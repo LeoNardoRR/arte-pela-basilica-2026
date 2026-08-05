@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 
 const SUPABASE_URL = "https://luodxzttfbnnufxufehb.supabase.co";
 const SUPABASE_KEY = "sb_publishable_rmXVP-5JoFt5xTF6humZPQ_oQAWLm2n";
-const BASILICA_CREST = "https://arte-pela-basilica-2026.ribeiroleonardoti.chatgpt.site/brasao-basilica.png";
+const BASILICA_CREST = `${import.meta.env.BASE_URL}logo-basilica.jpeg`;
 
 const supabaseHeaders = {
   apikey: SUPABASE_KEY,
