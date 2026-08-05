@@ -34,7 +34,7 @@ nav a:hover { color: var(--navy); border-color: var(--gold); }
 
 .hero { min-height: 590px; height: 70vh; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .hero-image {
-  position: absolute; inset: 0; background-image: url("/hero-basilica.jpeg");
+  position: absolute; inset: 0; background-image: url("/hero-basilica-v2.jpeg");
   background-size: cover; background-position: center; transform: scale(1.015);
 }
 .hero-overlay { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,6,63,.76) 0%, rgba(0,6,70,.42) 52%, rgba(0,0,0,.14) 100%), linear-gradient(0deg, rgba(0,6,102,.26), transparent 45%); }
