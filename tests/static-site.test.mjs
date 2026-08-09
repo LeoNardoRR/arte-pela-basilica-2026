@@ -6,4 +6,6 @@ test("builds a GitHub Pages-ready catalog", async () => {
   await access(new URL("../dist/index.html", import.meta.url));
   const html = await readFile(new URL("../dist/index.html", import.meta.url), "utf8");
   assert.match(html, /Arte pela Basílica/);
+  assert.match(html, /assets\/index-/);
+  assert.match(html, /favicon\.svg/);
 });
