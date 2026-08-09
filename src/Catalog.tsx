@@ -5,6 +5,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 const SUPABASE_URL = "https://luodxzttfbnnufxufehb.supabase.co";
 const SUPABASE_KEY = "sb_publishable_rmXVP-5JoFt5xTF6humZPQ_oQAWLm2n";
 const BASILICA_CREST = `${import.meta.env.BASE_URL}logo-basilica.jpeg`;
+const REGISTRATION_EMAIL = "bmoweb@gmail.com";
 
 const supabaseHeaders = { apikey: SUPABASE_KEY, "Content-Type": "application/json" };
 
@@ -21,12 +22,6 @@ const fallbackWorks: Artwork[] = [
 ];
 
 const statusLabel = { available: "Disponível", reserved: "Indisponível", sold: "Adquirida" };
-const paymentMethods = [
-  { value: "pix", label: "Pix", note: "pagamento à vista" },
-  { value: "credit_card", label: "Cartão de crédito", note: "condições com a equipe" },
-  { value: "debit_card", label: "Cartão de débito", note: "no atendimento" },
-  { value: "bank_transfer", label: "Transferência", note: "dados após aprovação" },
-];
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
 export function Catalog() {
@@ -36,6 +31,7 @@ export function Catalog() {
   const [cartOpen, setCartOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
+  const [emailUrl, setEmailUrl] = useState("");
 
   useEffect(() => {
     fetch(`${SUPABASE_URL}/rest/v1/artworks?select=id,code,title,artist,technique,dimensions,status,palette&order=id.asc`, { headers: supabaseHeaders })
@@ -61,23 +57,47 @@ export function Catalog() {
   }
 
   function updateAmount(id: number, amount: number) { setCart((items) => items.map((item) => item.work.id === id ? { ...item, amount: Math.max(0, amount) } : item)); }
-  function removeFromCart(id: number) { setCart((items) => items.filter((item) => item.work.id !== id)); setMessage(""); }
-  function closeCart() { setCartOpen(false); setMessage(""); }
+  function removeFromCart(id: number) { setCart((items) => items.filter((item) => item.work.id !== id)); setMessage(""); setEmailUrl(""); }
+  function closeCart() { setCartOpen(false); setMessage(""); setEmailUrl(""); }
 
   async function submitBidCart(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!cart.length || cart.some((item) => item.amount <= 0)) { setMessage("Informe um lance para cada obra da sua sacola."); return; }
     setSubmitting(true); setMessage("");
     const form = new FormData(event.currentTarget);
+    const submittedItems = [...cart];
     try {
       const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/submit_auction_cart`, {
         method: "POST", headers: supabaseHeaders,
-        body: JSON.stringify({ bidder_name: form.get("name"), bidder_email: form.get("email"), bidder_phone: form.get("phone"), preferred_payment_method: form.get("payment_method"), items: cart.map((item) => ({ artwork_id: item.work.id, amount_cents: Math.round(item.amount * 100) })) }),
+        body: JSON.stringify({ bidder_name: form.get("name"), bidder_email: form.get("email"), bidder_phone: form.get("phone"), preferred_payment_method: "in_person", items: cart.map((item) => ({ artwork_id: item.work.id, amount_cents: Math.round(item.amount * 100) })) }),
       });
       const data = await response.json() as { message?: string } | string;
       if (!response.ok) throw new Error(typeof data === "object" && data?.message ? data.message : "Não foi possível enviar sua proposta.");
+      const name = String(form.get("name") || "");
+      const email = String(form.get("email") || "");
+      const phone = String(form.get("phone") || "");
+      const itemLines = submittedItems.map((item) => `• ${item.work.title} (${item.work.code}) — ${money.format(item.amount)}`).join("\n");
+      const emailMessage = [
+        "*Nova intenção de compra*",
+        "_Arte pela Basílica 2026_",
+        "",
+        "Uma nova intenção de compra foi registrada no acervo.",
+        "",
+        `*Participante:* ${name}`,
+        `*WhatsApp:* ${phone}`,
+        `*E-mail:* ${email}`,
+        "",
+        "*Obras selecionadas:*",
+        itemLines,
+        "",
+        `*Montante da intenção:* ${money.format(submittedItems.reduce((sum, item) => sum + item.amount, 0))}`,
+        "*Pagamento:* presencial, a combinar com a equipe.",
+        "",
+        "Registro recebido pelo portal Arte pela Basílica.",
+      ].join("\n");
+      setEmailUrl(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(REGISTRATION_EMAIL)}&su=${encodeURIComponent("Nova intenção de compra — Arte pela Basílica 2026")}&body=${encodeURIComponent(emailMessage)}`);
       setCart([]);
-      setMessage("Proposta enviada. A equipe da Basílica confirmará os lances e orientará o pagamento escolhido.");
+      setMessage("Intenção de compra registrada. A equipe da Basílica confirmará os lances e orientará o pagamento presencial.");
     } catch (error) { setMessage(error instanceof Error ? error.message : "Não foi possível enviar sua proposta."); }
     finally { setSubmitting(false); }
   }
@@ -95,10 +115,10 @@ export function Catalog() {
     <section className="catalog-section" id="acervo"><div className="catalog-heading"><div><p className="section-kicker">Acervo 2026</p><h2>Obras disponíveis</h2><p>{availableCount} de {works.length} obras desta prévia ainda disponíveis.</p></div><div className="filters" aria-label="Filtrar obras"><button className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>Todas</button><button className={filter === "available" ? "active" : ""} onClick={() => setFilter("available")}>Disponíveis</button><button className={filter === "unavailable" ? "active" : ""} onClick={() => setFilter("unavailable")}>Indisponíveis</button></div></div>
       <div className="works-grid" aria-live="polite">{visibleWorks.map((work) => <article className={`work-card ${work.status !== "available" ? "unavailable" : ""}`} key={work.id}><div className={`work-image ${work.palette}`}><span className={`status ${work.status}`}>{statusLabel[work.status]}</span><div className="art-shape shape-one" /><div className="art-shape shape-two" />{work.status !== "available" && <div className="sold-overlay"><strong>{statusLabel[work.status]}</strong><span>Esta obra não está disponível para proposta.</span></div>}</div><div className="work-body"><span className="work-code">{work.code}</span><h3>{work.title}</h3><p>{work.artist}</p><dl><div><dt>Técnica</dt><dd>{work.technique}</dd></div><div><dt>Dimensões</dt><dd>{work.dimensions}</dd></div><div><dt>Lance</dt><dd>Definido por você</dd></div></dl><button disabled={work.status !== "available"} onClick={() => addToCart(work)}>{cart.some((item) => item.work.id === work.id) ? "Na sua sacola" : "Adicionar à sacola"}<span aria-hidden="true">→</span></button></div></article>)}</div>
     </section>
-    <section className="how-section" id="como-comprar"><div><p className="section-kicker light">Como participar</p><h2>Monte a sua proposta.<br />Nós cuidamos do restante.</h2></div><ol><li><span>01</span><div><strong>Selecione</strong><p>Adicione à sacola todas as obras que deseja disputar.</p></div></li><li><span>02</span><div><strong>Informe os lances</strong><p>Defina um valor para cada obra e confira o montante total.</p></div></li><li><span>03</span><div><strong>Escolha como pagar</strong><p>Selecione sua preferência. A confirmação e cobrança são feitas pela equipe.</p></div></li></ol></section>
-    <section className="closing" id="contato"><img src={BASILICA_CREST} alt="" /><p className="section-kicker">10 de setembro de 2026</p><h2>Faça parte desta história.</h2><p>Os lances são propostas e não geram cobrança automática. A Basílica entrará em contato para confirmar a disponibilidade e o pagamento.</p><button className="button primary" onClick={() => setCartOpen(true)}>Abrir minha sacola <span>→</span></button></section>
-    <footer><div className="brand footer-brand"><img src={BASILICA_CREST} alt="" /><span><strong>Basílica</strong><small>Santo Antônio</small></span></div><p>Arte pela Basílica · Edição 2026</p><p>Acervo online até 17 de setembro de 2026</p></footer>
+    <section className="how-section" id="como-comprar"><div><p className="section-kicker light">Como participar</p><h2>Monte a sua intenção.<br />Nós cuidamos do restante.</h2></div><ol><li><span>01</span><div><strong>Selecione</strong><p>Adicione à sacola todas as obras que deseja disputar.</p></div></li><li><span>02</span><div><strong>Informe os lances</strong><p>Defina um valor para cada obra e confira o montante total.</p></div></li><li><span>03</span><div><strong>Registre</strong><p>Envie sua intenção de compra. O pagamento será tratado presencialmente.</p></div></li></ol></section>
+    <section className="closing" id="contato"><img src={BASILICA_CREST} alt="" /><p className="section-kicker">10 de setembro de 2026</p><h2>Faça parte desta história.</h2><p>Sua intenção de compra fica registrada. A confirmação da obra e o pagamento serão realizados presencialmente com a equipe da Basílica.</p><button className="button primary" onClick={() => setCartOpen(true)}>Abrir minha sacola <span>→</span></button></section>
+    <footer><div className="brand footer-brand"><img src={BASILICA_CREST} alt="" /><span><strong>Basílica</strong><small>Santo Antônio</small></span></div><p>Arte pela Basílica · Edição 2026</p><p><a className="admin-link" href="#admin">Área administrativa</a><br />Acervo online até 17 de setembro de 2026</p></footer>
 
-    {cartOpen && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && closeCart()}><section className="purchase-modal cart-modal" role="dialog" aria-modal="true" aria-labelledby="cart-title"><button className="modal-close" onClick={closeCart} aria-label="Fechar">×</button><p className="section-kicker">Minha sacola de lances</p><h2 id="cart-title">Sua proposta</h2>{message ? <div className="success-message"><span>✓</span><p>{message}</p><button onClick={closeCart}>Voltar ao acervo</button></div> : cart.length === 0 ? <div className="empty-cart"><p>Adicione obras do acervo para montar sua proposta.</p><a className="button primary" href="#acervo" onClick={closeCart}>Ver obras <span>→</span></a></div> : <form onSubmit={submitBidCart}><div className="cart-lines">{cart.map((item) => <div className="cart-line" key={item.work.id}><div><strong>{item.work.title}</strong><small>{item.work.code}</small></div><label>Lance (R$)<input type="number" min="1" step="0.01" inputMode="decimal" value={item.amount || ""} onChange={(event) => updateAmount(item.work.id, Number(event.target.value))} required /></label><button type="button" onClick={() => removeFromCart(item.work.id)} aria-label={`Remover ${item.work.title}`}>Remover</button></div>)}</div><div className="cart-total"><span>Montante da proposta</span><strong>{money.format(total)}</strong></div><label>Nome completo<input name="name" required autoComplete="name" /></label><label>E-mail<input name="email" type="email" required autoComplete="email" /></label><label>WhatsApp<input name="phone" type="tel" required autoComplete="tel" /></label><fieldset><legend>Forma de pagamento preferida</legend><div className="payment-options">{paymentMethods.map((method) => <label className="payment-option" key={method.value}><input type="radio" name="payment_method" value={method.value} required /><span><strong>{method.label}</strong><small>{method.note}</small></span></label>)}</div></fieldset><button className="button primary" disabled={submitting}>{submitting ? "Enviando proposta…" : "Enviar proposta"} <span>→</span></button><small>Nenhuma cobrança é feita agora. O pagamento será combinado após a confirmação da Basílica.</small></form>}</section></div>}
+    {cartOpen && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && closeCart()}><section className="purchase-modal cart-modal" role="dialog" aria-modal="true" aria-labelledby="cart-title"><button className="modal-close" onClick={closeCart} aria-label="Fechar">×</button><p className="section-kicker">Minha sacola de lances</p><h2 id="cart-title">Intenção de compra</h2>{message ? <div className="success-message"><span>✓</span><p>{message}</p>{emailUrl && <a className="button email-button" href={emailUrl} target="_blank" rel="noreferrer">Abrir no Gmail com registro <span>↗</span></a>}<button onClick={closeCart}>Voltar ao acervo</button></div> : cart.length === 0 ? <div className="empty-cart"><p>Adicione obras do acervo para montar sua intenção de compra.</p><a className="button primary" href="#acervo" onClick={closeCart}>Ver obras <span>→</span></a></div> : <form onSubmit={submitBidCart}><div className="cart-lines">{cart.map((item) => <div className="cart-line" key={item.work.id}><div><strong>{item.work.title}</strong><small>{item.work.code}</small></div><label>Lance (R$)<input type="number" min="1" step="0.01" inputMode="decimal" value={item.amount || ""} onChange={(event) => updateAmount(item.work.id, Number(event.target.value))} required /></label><button type="button" onClick={() => removeFromCart(item.work.id)} aria-label={`Remover ${item.work.title}`}>Remover</button></div>)}</div><div className="cart-total"><span>Montante da proposta</span><strong>{money.format(total)}</strong></div><label>Nome completo<input name="name" required autoComplete="name" /></label><label>E-mail<input name="email" type="email" required autoComplete="email" /></label><label>WhatsApp<input name="phone" type="tel" required autoComplete="tel" /></label><div className="in-person-note"><strong>Pagamento presencial</strong><p>Esta etapa registra sua intenção. Após confirmar, você verá o botão para abrir o Gmail com o e-mail pronto para <b>bmoweb@gmail.com</b>.</p></div><button className="button primary" disabled={submitting}>{submitting ? "Registrando intenção…" : "Registrar intenção e preparar e-mail"} <span>→</span></button><small>Nenhuma cobrança é feita neste site.</small></form>}</section></div>}
   </main>;
 }
