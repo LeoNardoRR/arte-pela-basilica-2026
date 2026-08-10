@@ -15,10 +15,22 @@ test("admin route survives both hash navigation and auth redirect", async () => 
 test("admin uses Supabase Auth and guarded RPCs", async () => {
   const admin = await read("src/Admin.tsx");
   assert.match(admin, /signInWithOtp/);
-  assert.match(admin, /shouldCreateUser:\s*true/);
+  assert.match(admin, /shouldCreateUser:\s*false/);
   assert.match(admin, /admin_get_proposals/);
   assert.match(admin, /admin_update_cart_status/);
   assert.match(admin, /Conta não autorizada/);
+  assert.match(admin, /Modo demonstração/);
+  assert.match(admin, /Nenhum dado real foi modificado/);
+});
+
+test("catalog provides an accessible carousel and sticky navigation", async () => {
+  const catalog = await read("src/Catalog.tsx");
+  const css = await read("src/globals.css");
+  assert.match(catalog, /aria-label="Carrossel de obras"/);
+  assert.match(catalog, /aria-label="Obra anterior"/);
+  assert.match(catalog, /aria-label="Próxima obra"/);
+  assert.match(css, /scroll-snap-type:\s*x mandatory/);
+  assert.match(css, /position:\s*sticky;\s*top:\s*0/);
 });
 
 test("database migration closes anonymous admin access", async () => {

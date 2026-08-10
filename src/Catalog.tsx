@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { ADMIN_EMAIL, supabase } from "./supabase";
 
 const BASILICA_CREST = `${import.meta.env.BASE_URL}logo-basilica.jpeg`;
@@ -56,6 +56,8 @@ export function Catalog() {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [emailUrl, setEmailUrl] = useState("");
+  const [carouselIndex, setCarouselIndex] = useState(0);
+  const carouselRef = useRef<HTMLDivElement>(null);
 
   async function loadCatalog() {
     setCatalogLoading(true);
@@ -113,6 +115,32 @@ export function Catalog() {
 
   const availableCount = works.filter((work) => work.status === "available").length;
   const total = cart.reduce((sum, item) => sum + item.amount, 0);
+
+  function carouselStep() {
+    const carousel = carouselRef.current;
+    const firstCard = carousel?.querySelector<HTMLElement>(".work-card");
+    if (!carousel || !firstCard) return 0;
+    const gap = Number.parseFloat(window.getComputedStyle(carousel).columnGap || "0");
+    return firstCard.offsetWidth + gap;
+  }
+
+  function moveCarousel(direction: -1 | 1) {
+    const step = carouselStep();
+    carouselRef.current?.scrollBy({ left: direction * step, behavior: "smooth" });
+  }
+
+  function syncCarouselIndex() {
+    const carousel = carouselRef.current;
+    const step = carouselStep();
+    if (!carousel || !step) return;
+    setCarouselIndex(Math.round(carousel.scrollLeft / step));
+  }
+
+  function changeFilter(nextFilter: CatalogFilter) {
+    setFilter(nextFilter);
+    setCarouselIndex(0);
+    carouselRef.current?.scrollTo({ left: 0, behavior: "smooth" });
+  }
 
   function addToCart(work: Artwork) {
     setCart((items) => items.some((item) => item.work.id === work.id)
@@ -258,9 +286,9 @@ export function Catalog() {
             <p>{catalogLoading ? "Carregando acervo…" : `${availableCount} de ${works.length} obras ainda disponíveis.`}</p>
           </div>
           <div className="filters" aria-label="Filtrar obras">
-            <button aria-pressed={filter === "all"} className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>Todas</button>
-            <button aria-pressed={filter === "available"} className={filter === "available" ? "active" : ""} onClick={() => setFilter("available")}>Disponíveis</button>
-            <button aria-pressed={filter === "unavailable"} className={filter === "unavailable" ? "active" : ""} onClick={() => setFilter("unavailable")}>Indisponíveis</button>
+            <button aria-pressed={filter === "all"} className={filter === "all" ? "active" : ""} onClick={() => changeFilter("all")}>Todas</button>
+            <button aria-pressed={filter === "available"} className={filter === "available" ? "active" : ""} onClick={() => changeFilter("available")}>Disponíveis</button>
+            <button aria-pressed={filter === "unavailable"} className={filter === "unavailable" ? "active" : ""} onClick={() => changeFilter("unavailable")}>Indisponíveis</button>
           </div>
         </div>
 
@@ -270,7 +298,16 @@ export function Catalog() {
             <button className="button primary" onClick={loadCatalog}>Tentar novamente <span>→</span></button>
           </div>
         ) : (
-          <div className="works-grid" aria-live="polite">
+          <div className="carousel-shell">
+            <div className="carousel-toolbar">
+              <p>Arraste para explorar ou use as setas</p>
+              <div className="carousel-navigation">
+                <span aria-live="polite">{visibleWorks.length ? Math.min(carouselIndex + 1, visibleWorks.length) : 0} / {visibleWorks.length}</span>
+                <button type="button" onClick={() => moveCarousel(-1)} disabled={carouselIndex === 0} aria-label="Obra anterior">←</button>
+                <button type="button" onClick={() => moveCarousel(1)} disabled={carouselIndex >= visibleWorks.length - 1} aria-label="Próxima obra">→</button>
+              </div>
+            </div>
+            <div className="works-carousel" ref={carouselRef} onScroll={syncCarouselIndex} aria-live="polite" aria-label="Carrossel de obras">
             {visibleWorks.map((work) => (
               <article className={`work-card ${work.status !== "available" ? "unavailable" : ""}`} key={work.id}>
                 <div className={`work-image ${work.palette}`}>
@@ -298,6 +335,7 @@ export function Catalog() {
               </article>
             ))}
             {!catalogLoading && visibleWorks.length === 0 && <p className="catalog-empty">Nenhuma obra encontrada neste filtro.</p>}
+            </div>
           </div>
         )}
       </section>

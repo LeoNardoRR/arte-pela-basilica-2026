@@ -55,6 +55,49 @@ const statusActions: Record<IntentStatus, Array<{ status: IntentStatus; label: s
   paid: [],
 };
 
+const demoIntentsSeed: Intent[] = [
+  {
+    id: "demo-001",
+    bidder_name: "Marina Oliveira (demonstração)",
+    bidder_email: "marina.exemplo@demo.local",
+    bidder_phone: "+55 11 90000-0001",
+    preferred_payment_method: "in_person",
+    total_cents: 425000,
+    status: "submitted",
+    created_at: "2026-08-09T14:30:00.000Z",
+    items: [
+      { artwork_id: 2, artwork_code: "OB-002", artwork_title: "Caminho de fé", artwork_status: "available", amount_cents: 275000 },
+      { artwork_id: 4, artwork_code: "OB-004", artwork_title: "Jardim interior", artwork_status: "available", amount_cents: 150000 },
+    ],
+  },
+  {
+    id: "demo-002",
+    bidder_name: "Carlos Santos (demonstração)",
+    bidder_email: "carlos.exemplo@demo.local",
+    bidder_phone: "+55 11 90000-0002",
+    preferred_payment_method: "in_person",
+    total_cents: 310000,
+    status: "reviewed",
+    created_at: "2026-08-08T18:10:00.000Z",
+    items: [
+      { artwork_id: 3, artwork_code: "OB-003", artwork_title: "Santo silêncio", artwork_status: "available", amount_cents: 310000 },
+    ],
+  },
+  {
+    id: "demo-003",
+    bidder_name: "Ana Lima (demonstração)",
+    bidder_email: "ana.exemplo@demo.local",
+    bidder_phone: "+55 11 90000-0003",
+    preferred_payment_method: "in_person",
+    total_cents: 520000,
+    status: "approved",
+    created_at: "2026-08-07T11:20:00.000Z",
+    items: [
+      { artwork_id: 1, artwork_code: "OB-001", artwork_title: "Luz da manhã", artwork_status: "sold", amount_cents: 520000 },
+    ],
+  },
+];
+
 function authRedirectUrl() {
   const redirect = new URL(window.location.href);
   redirect.search = "?admin=1";
@@ -76,6 +119,8 @@ export function Admin() {
   const [loading, setLoading] = useState(false);
   const [changingId, setChangingId] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | IntentStatus>("all");
+  const [demoMode, setDemoMode] = useState(false);
+  const [demoIntents, setDemoIntents] = useState<Intent[]>(demoIntentsSeed);
 
   const authorized = session?.user.email?.toLowerCase() === ADMIN_EMAIL;
 
@@ -128,7 +173,7 @@ export function Admin() {
       email: ADMIN_EMAIL,
       options: {
         emailRedirectTo: authRedirectUrl(),
-        shouldCreateUser: true,
+        shouldCreateUser: false,
       },
     });
 
@@ -141,6 +186,13 @@ export function Admin() {
   }
 
   async function logout() {
+    if (demoMode) {
+      setDemoMode(false);
+      setDemoIntents(demoIntentsSeed);
+      setStatusFilter("all");
+      setNotice("");
+      return;
+    }
     setLoading(true);
     await supabase.auth.signOut();
     setSession(null);
@@ -162,6 +214,12 @@ export function Admin() {
 
     setChangingId(intent.id);
     setNotice("");
+    if (demoMode) {
+      setDemoIntents((current) => current.map((item) => item.id === intent.id ? { ...item, status: nextStatus } : item));
+      setNotice(`Teste concluído: status alterado para “${statusLabels[nextStatus]}”. Nenhum dado real foi modificado.`);
+      setChangingId("");
+      return;
+    }
     const { error } = await supabase.rpc("admin_update_cart_status", {
       cart_id: intent.id,
       new_status: nextStatus,
@@ -176,19 +234,20 @@ export function Admin() {
     setChangingId("");
   }
 
+  const displayedIntents = demoMode ? demoIntents : intents;
   const visibleIntents = useMemo(
-    () => statusFilter === "all" ? intents : intents.filter((intent) => intent.status === statusFilter),
-    [intents, statusFilter],
+    () => statusFilter === "all" ? displayedIntents : displayedIntents.filter((intent) => intent.status === statusFilter),
+    [displayedIntents, statusFilter],
   );
-  const activeIntents = intents.filter((intent) => intent.status !== "declined");
-  const confirmedIntents = intents.filter((intent) => intent.status === "approved" || intent.status === "paid");
+  const activeIntents = displayedIntents.filter((intent) => intent.status !== "declined");
+  const confirmedIntents = displayedIntents.filter((intent) => intent.status === "approved" || intent.status === "paid");
   const activeTotal = activeIntents.reduce((sum, intent) => sum + intent.total_cents, 0);
   const confirmedTotal = confirmedIntents.reduce((sum, intent) => sum + intent.total_cents, 0);
 
   let content;
   if (!authReady) {
     content = <p className="admin-notice">Verificando acesso seguro…</p>;
-  } else if (!session) {
+  } else if (!session && !demoMode) {
     content = (
       <div className="admin-login">
         <p className="section-kicker">Área restrita</p>
@@ -199,10 +258,17 @@ export function Admin() {
             {loading ? "Enviando…" : "Enviar link de acesso"} <span>→</span>
           </button>
         </form>
+        <div className="admin-demo-entry">
+          <span>ou</span>
+          <button type="button" className="button demo-button" onClick={() => { setDemoMode(true); setNotice(""); }}>
+            Entrar no modo demonstração <span>→</span>
+          </button>
+          <small>Usa somente dados fictícios e não altera o acervo real.</small>
+        </div>
         {notice && <p className="admin-notice" role="status">{notice}</p>}
       </div>
     );
-  } else if (!authorized) {
+  } else if (!authorized && !demoMode) {
     content = (
       <div className="admin-login">
         <p className="section-kicker">Acesso negado</p>
@@ -214,18 +280,19 @@ export function Admin() {
   } else {
     content = (
       <div>
+        {demoMode && <div className="demo-banner" role="status"><strong>Modo demonstração</strong><span>Você pode testar filtros e status com segurança. Nenhuma alteração será salva.</span></div>}
         <div className="admin-title">
           <div>
-            <p className="section-kicker">Painel administrativo</p>
-            <h1>Intenções registradas</h1>
+            <p className="section-kicker">{demoMode ? "Ambiente de teste" : "Painel administrativo"}</p>
+            <h1>{demoMode ? "Teste do painel" : "Intenções registradas"}</h1>
           </div>
-          <button className="admin-refresh" onClick={loadProposals} disabled={loading}>
+          {!demoMode && <button className="admin-refresh" onClick={loadProposals} disabled={loading}>
             {loading ? "Atualizando…" : "Atualizar dados"}
-          </button>
+          </button>}
         </div>
 
         <div className="admin-stats">
-          <div><span>Intenções</span><strong>{intents.length}</strong></div>
+          <div><span>Intenções</span><strong>{displayedIntents.length}</strong></div>
           <div><span>Em aberto</span><strong>{activeIntents.length}</strong></div>
           <div><span>Montante ativo</span><strong>{money.format(activeTotal / 100)}</strong></div>
           <div><span>Aprovado/pago</span><strong>{money.format(confirmedTotal / 100)}</strong></div>
@@ -240,7 +307,7 @@ export function Admin() {
         </div>
 
         {notice && <p className="admin-notice" role="status">{notice}</p>}
-        {loading && !intents.length ? (
+        {loading && !displayedIntents.length ? (
           <p className="admin-notice">Carregando registros…</p>
         ) : (
           <div className="intent-list">
@@ -297,7 +364,7 @@ export function Admin() {
       <header className="admin-header">
         <a href="#inicio">← Voltar ao site</a>
         <span>Controle pessoal · Arte pela Basílica</span>
-        {session && <button onClick={logout}>Sair</button>}
+        {(session || demoMode) && <button onClick={logout}>{demoMode ? "Encerrar teste" : "Sair"}</button>}
       </header>
       <section className="admin-wrap">{content}</section>
     </main>
