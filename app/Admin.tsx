@@ -175,7 +175,7 @@ export function Admin() {
       email: ADMIN_EMAIL,
       options: {
         emailRedirectTo: authRedirectUrl(),
-        shouldCreateUser: false,
+        shouldCreateUser: true,
       },
     });
 

@@ -15,8 +15,10 @@ test("admin route survives hash navigation and auth redirects", async () => {
 
 test("admin uses protected Supabase access and includes a safe demo", async () => {
   const admin = await read("app/Admin.tsx");
+  const supabase = await read("app/supabase.ts");
   assert.match(admin, /signInWithOtp/);
-  assert.match(admin, /shouldCreateUser:\s*false/);
+  assert.match(admin, /shouldCreateUser:\s*true/);
+  assert.match(supabase, /ADMIN_EMAIL\s*=\s*"ribeiroleonardoti@gmail\.com"/);
   assert.match(admin, /admin_get_proposals/);
   assert.match(admin, /admin_update_cart_status/);
   assert.match(admin, /Modo demonstração/);
