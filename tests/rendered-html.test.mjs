@@ -23,18 +23,20 @@ test("admin uses protected Supabase access and includes a safe demo", async () =
   assert.match(admin, /Nenhum dado real foi modificado/);
 });
 
-test("catalog matches the GitHub carousel and bidding flow", async () => {
+test("catalog provides an expandable full-screen gallery and bidding flow", async () => {
   const catalog = await read("app/Catalog.tsx");
   const css = await read("app/globals.css");
-  assert.match(catalog, /aria-label="Carrossel de obras"/);
-  assert.match(catalog, /aria-label="Obra anterior"/);
-  assert.match(catalog, /aria-label="Próxima obra"/);
+  assert.match(catalog, /Abrir galeria de obras/);
+  assert.match(catalog, /role="dialog" aria-modal="true" aria-labelledby="gallery-title"/);
+  assert.match(catalog, /aria-label="Fechar galeria"/);
+  assert.match(catalog, /galleryCloseRef\.current\?\.focus/);
   assert.match(catalog, /mobile-catalog-link/);
   assert.match(catalog, /submit_auction_cart/);
   assert.match(catalog, /Minha sacola de lances/);
   assert.match(catalog, /Nenhuma obra foi reservada ou cobrada/);
   assert.doesNotMatch(catalog, /fallbackWorks/);
-  assert.match(css, /scroll-snap-type:\s*x mandatory/);
+  assert.match(css, /\.gallery-overlay\s*\{[^}]*position:\s*fixed/);
+  assert.match(css, /\.gallery-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3/);
   assert.match(css, /position:\s*sticky;\s*top:\s*0/);
   assert.match(css, /\.mobile-catalog-link\s*\{[^}]*display:\s*none/);
 });

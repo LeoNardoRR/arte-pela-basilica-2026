@@ -58,8 +58,8 @@ export function Catalog() {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [emailUrl, setEmailUrl] = useState("");
-  const [carouselIndex, setCarouselIndex] = useState(0);
-  const carouselRef = useRef<HTMLDivElement>(null);
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const galleryCloseRef = useRef<HTMLButtonElement>(null);
 
   async function loadCatalog() {
     setCatalogLoading(true);
@@ -96,18 +96,25 @@ export function Catalog() {
   }, [cart]);
 
   useEffect(() => {
-    if (!cartOpen) return;
+    if (!cartOpen && !galleryOpen) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") closeCart();
+      if (event.key === "Escape") {
+        if (galleryOpen) closeGallery();
+        else closeCart();
+      }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [cartOpen]);
+  }, [cartOpen, galleryOpen]);
+
+  useEffect(() => {
+    if (galleryOpen) galleryCloseRef.current?.focus();
+  }, [galleryOpen]);
 
   const visibleWorks = useMemo(() => {
     if (filter === "available") return works.filter((work) => work.status === "available");
@@ -116,32 +123,20 @@ export function Catalog() {
   }, [filter, works]);
 
   const availableCount = works.filter((work) => work.status === "available").length;
+  const previewWorks = works.filter((work) => work.status === "available").slice(0, 3);
   const total = cart.reduce((sum, item) => sum + item.amount, 0);
-
-  function carouselStep() {
-    const carousel = carouselRef.current;
-    const firstCard = carousel?.querySelector<HTMLElement>(".work-card");
-    if (!carousel || !firstCard) return 0;
-    const gap = Number.parseFloat(window.getComputedStyle(carousel).columnGap || "0");
-    return firstCard.offsetWidth + gap;
-  }
-
-  function moveCarousel(direction: -1 | 1) {
-    const step = carouselStep();
-    carouselRef.current?.scrollBy({ left: direction * step, behavior: "smooth" });
-  }
-
-  function syncCarouselIndex() {
-    const carousel = carouselRef.current;
-    const step = carouselStep();
-    if (!carousel || !step) return;
-    setCarouselIndex(Math.round(carousel.scrollLeft / step));
-  }
 
   function changeFilter(nextFilter: CatalogFilter) {
     setFilter(nextFilter);
-    setCarouselIndex(0);
-    carouselRef.current?.scrollTo({ left: 0, behavior: "smooth" });
+  }
+
+  function openGallery() {
+    setFilter("all");
+    setGalleryOpen(true);
+  }
+
+  function closeGallery() {
+    setGalleryOpen(false);
   }
 
   function addToCart(work: Artwork) {
@@ -150,7 +145,37 @@ export function Catalog() {
       : [...items, { work, amount: 0 }]);
     setMessage("");
     setEmailUrl("");
+    setGalleryOpen(false);
     setCartOpen(true);
+  }
+
+  function renderArtworkCard(work: Artwork) {
+    return (
+      <article className={`work-card ${work.status !== "available" ? "unavailable" : ""}`} key={work.id}>
+        <div className={`work-image ${work.palette}`}>
+          <span className={`status ${work.status}`}>{statusLabel[work.status]}</span>
+          <div className="art-shape shape-one" />
+          <div className="art-shape shape-two" />
+          {work.status !== "available" && (
+            <div className="sold-overlay"><strong>{statusLabel[work.status]}</strong><span>Esta obra não está disponível para proposta.</span></div>
+          )}
+        </div>
+        <div className="work-body">
+          <span className="work-code">{work.code}</span>
+          <h3>{work.title}</h3>
+          <p>{work.artist}</p>
+          <dl>
+            <div><dt>Técnica</dt><dd>{work.technique}</dd></div>
+            <div><dt>Dimensões</dt><dd>{work.dimensions}</dd></div>
+            <div><dt>Lance</dt><dd>Definido por você</dd></div>
+          </dl>
+          <button disabled={work.status !== "available"} onClick={() => addToCart(work)}>
+            {cart.some((item) => item.work.id === work.id) ? "Na sua sacola" : "Adicionar à sacola"}
+            <span aria-hidden="true">→</span>
+          </button>
+        </div>
+      </article>
+    );
   }
 
   function updateAmount(id: number, amount: number) {
@@ -288,11 +313,9 @@ export function Catalog() {
             <h2>Obras disponíveis</h2>
             <p>{catalogLoading ? "Carregando acervo…" : `${availableCount} de ${works.length} obras ainda disponíveis.`}</p>
           </div>
-          <div className="filters" aria-label="Filtrar obras">
-            <button aria-pressed={filter === "all"} className={filter === "all" ? "active" : ""} onClick={() => changeFilter("all")}>Todas</button>
-            <button aria-pressed={filter === "available"} className={filter === "available" ? "active" : ""} onClick={() => changeFilter("available")}>Disponíveis</button>
-            <button aria-pressed={filter === "unavailable"} className={filter === "unavailable" ? "active" : ""} onClick={() => changeFilter("unavailable")}>Indisponíveis</button>
-          </div>
+          <button className="button catalog-expand-button" type="button" onClick={openGallery} disabled={catalogLoading || works.length === 0}>
+            Ver galeria completa <span>↗</span>
+          </button>
         </div>
 
         {catalogError ? (
@@ -301,43 +324,29 @@ export function Catalog() {
             <button className="button primary" onClick={loadCatalog}>Tentar novamente <span>→</span></button>
           </div>
         ) : (
-          <div className="carousel-shell">
-            <div className="carousel-toolbar">
-              <p>Arraste para explorar ou use as setas</p>
-              <div className="carousel-navigation">
-                <span aria-live="polite">{visibleWorks.length ? Math.min(carouselIndex + 1, visibleWorks.length) : 0} / {visibleWorks.length}</span>
-                <button type="button" onClick={() => moveCarousel(-1)} disabled={carouselIndex === 0} aria-label="Obra anterior">←</button>
-                <button type="button" onClick={() => moveCarousel(1)} disabled={carouselIndex >= visibleWorks.length - 1} aria-label="Próxima obra">→</button>
+          <div className="collection-preview">
+            <div className="collection-copy">
+              <span className="collection-label">Galeria interativa</span>
+              <h3>Uma visão maior para escolher com calma.</h3>
+              <p>Abra o acervo em tela cheia, filtre as obras e compare cada detalhe antes de montar sua sacola de lances.</p>
+              <div className="collection-stats">
+                <div><strong>{works.length}</strong><span>obras no acervo</span></div>
+                <div><strong>{availableCount}</strong><span>disponíveis agora</span></div>
               </div>
+              <button className="button gallery-open-button" type="button" onClick={openGallery} disabled={catalogLoading || works.length === 0}>
+                Abrir galeria de obras <span>↗</span>
+              </button>
             </div>
-            <div className="works-carousel" ref={carouselRef} onScroll={syncCarouselIndex} aria-live="polite" aria-label="Carrossel de obras">
-            {visibleWorks.map((work) => (
-              <article className={`work-card ${work.status !== "available" ? "unavailable" : ""}`} key={work.id}>
-                <div className={`work-image ${work.palette}`}>
-                  <span className={`status ${work.status}`}>{statusLabel[work.status]}</span>
-                  <div className="art-shape shape-one" />
-                  <div className="art-shape shape-two" />
-                  {work.status !== "available" && (
-                    <div className="sold-overlay"><strong>{statusLabel[work.status]}</strong><span>Esta obra não está disponível para proposta.</span></div>
-                  )}
+            <div className="preview-stack" aria-hidden="true">
+              {previewWorks.map((work, index) => (
+                <div className={`preview-art preview-art-${index + 1}`} key={work.id}>
+                  <div className={`work-image ${work.palette}`}>
+                    <div className="art-shape shape-one" />
+                    <div className="art-shape shape-two" />
+                  </div>
+                  <div><span>{work.code}</span><strong>{work.title}</strong></div>
                 </div>
-                <div className="work-body">
-                  <span className="work-code">{work.code}</span>
-                  <h3>{work.title}</h3>
-                  <p>{work.artist}</p>
-                  <dl>
-                    <div><dt>Técnica</dt><dd>{work.technique}</dd></div>
-                    <div><dt>Dimensões</dt><dd>{work.dimensions}</dd></div>
-                    <div><dt>Lance</dt><dd>Definido por você</dd></div>
-                  </dl>
-                  <button disabled={work.status !== "available"} onClick={() => addToCart(work)}>
-                    {cart.some((item) => item.work.id === work.id) ? "Na sua sacola" : "Adicionar à sacola"}
-                    <span aria-hidden="true">→</span>
-                  </button>
-                </div>
-              </article>
-            ))}
-            {!catalogLoading && visibleWorks.length === 0 && <p className="catalog-empty">Nenhuma obra encontrada neste filtro.</p>}
+              ))}
             </div>
           </div>
         )}
@@ -365,6 +374,32 @@ export function Catalog() {
         <p>Arte pela Basílica · Edição 2026</p>
         <p><a className="admin-link" href="#admin">Área administrativa</a><br />Acervo online até 17 de setembro de 2026</p>
       </footer>
+
+      {galleryOpen && (
+        <section className="gallery-overlay" role="dialog" aria-modal="true" aria-labelledby="gallery-title">
+          <header className="gallery-header">
+            <div>
+              <p className="section-kicker">Acervo 2026</p>
+              <h2 id="gallery-title">Galeria de obras</h2>
+              <span>{visibleWorks.length} {visibleWorks.length === 1 ? "obra exibida" : "obras exibidas"}</span>
+            </div>
+            <div className="gallery-actions">
+              <div className="filters" aria-label="Filtrar obras">
+                <button aria-pressed={filter === "all"} className={filter === "all" ? "active" : ""} onClick={() => changeFilter("all")}>Todas</button>
+                <button aria-pressed={filter === "available"} className={filter === "available" ? "active" : ""} onClick={() => changeFilter("available")}>Disponíveis</button>
+                <button aria-pressed={filter === "unavailable"} className={filter === "unavailable" ? "active" : ""} onClick={() => changeFilter("unavailable")}>Indisponíveis</button>
+              </div>
+              <button ref={galleryCloseRef} className="gallery-close" type="button" onClick={closeGallery} aria-label="Fechar galeria">×</button>
+            </div>
+          </header>
+          <div className="gallery-content">
+            <div className="gallery-grid" aria-live="polite">
+              {visibleWorks.map(renderArtworkCard)}
+              {visibleWorks.length === 0 && <p className="catalog-empty">Nenhuma obra encontrada neste filtro.</p>}
+            </div>
+          </div>
+        </section>
+      )}
 
       {cartOpen && (
         <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && closeCart()}>
