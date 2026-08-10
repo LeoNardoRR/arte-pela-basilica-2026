@@ -1,91 +1,46 @@
 import assert from "node:assert/strict";
-import { access, readFile, readdir } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const developmentPreviewMeta =
-  /<meta(?=[^>]*\bname=["']codex-preview["'])(?=[^>]*\bcontent=["']development["'])[^>]*>/i;
-const templateRoot = new URL("../", import.meta.url);
-const previewRoot = new URL("../app/_sites-preview/", import.meta.url);
+const root = new URL("../", import.meta.url);
+const read = (path) => readFile(new URL(path, root), "utf8");
 
-async function render() {
-  const workerUrl = new URL("../dist/server/index.js", import.meta.url);
-  workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
-  const { default: worker } = await import(workerUrl.href);
-
-  return worker.fetch(
-    new Request("http://localhost/", {
-      headers: { accept: "text/html" },
-    }),
-    {
-      ASSETS: {
-        fetch: async () => new Response("Not found", { status: 404 }),
-      },
-    },
-    {
-      waitUntil() {},
-      passThroughOnException() {},
-    },
-  );
-}
-
-test("server-renders the starter loading skeleton", async () => {
-  const response = await render();
-  assert.equal(response.status, 200);
-  assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
-
-  const html = await response.text();
-  assert.match(html, developmentPreviewMeta);
-  assert.match(html, /<title>Your site is taking shape<\/title>/i);
-  assert.match(html, /Building your site/);
-  assert.match(html, /Your site is taking shape/);
-  assert.match(
-    html,
-    /Your first version will appear here automatically when it’s ready\./,
-  );
-  assert.doesNotMatch(html, /Codex/);
-  assert.match(html, /react-loading-skeleton/);
-  assert.match(html, /role="status"/);
+test("admin route survives hash navigation and auth redirects", async () => {
+  const page = await read("app/page.tsx");
+  assert.match(page, /hash\.startsWith\("#admin"\)/);
+  assert.match(page, /URLSearchParams/);
+  assert.match(page, /access_token=/);
+  assert.match(page, /hashchange/);
 });
 
-test("keeps the loading skeleton scoped and disposable", async () => {
-  const [preview, css, page, layout, packageJson, files] = await Promise.all([
-    readFile(new URL("SkeletonPreview.tsx", previewRoot), "utf8"),
-    readFile(new URL("preview.css", previewRoot), "utf8"),
-    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../package.json", import.meta.url), "utf8"),
-    readdir(previewRoot),
-  ]);
+test("admin uses protected Supabase access and includes a safe demo", async () => {
+  const admin = await read("app/Admin.tsx");
+  assert.match(admin, /signInWithOtp/);
+  assert.match(admin, /shouldCreateUser:\s*false/);
+  assert.match(admin, /admin_get_proposals/);
+  assert.match(admin, /admin_update_cart_status/);
+  assert.match(admin, /Modo demonstração/);
+  assert.match(admin, /Nenhum dado real foi modificado/);
+});
 
-  assert.deepEqual(files.sort(), ["SkeletonPreview.tsx", "preview.css"]);
-  assert.match(preview, /from "react-loading-skeleton"/);
-  assert.match(preview, /baseColor="#eceae7"/);
-  assert.match(preview, /highlightColor="#f9f8f6"/);
-  assert.match(preview, /duration=\{2\.8\}/);
-  assert.match(preview, /sites-skeleton-search-placeholder/);
-  assert.match(packageJson, /"react-loading-skeleton": "3\.5\.0"/);
+test("catalog matches the GitHub carousel and bidding flow", async () => {
+  const catalog = await read("app/Catalog.tsx");
+  const css = await read("app/globals.css");
+  assert.match(catalog, /aria-label="Carrossel de obras"/);
+  assert.match(catalog, /aria-label="Obra anterior"/);
+  assert.match(catalog, /aria-label="Próxima obra"/);
+  assert.match(catalog, /submit_auction_cart/);
+  assert.match(catalog, /Minha sacola de lances/);
+  assert.match(catalog, /Nenhuma obra foi reservada ou cobrada/);
+  assert.doesNotMatch(catalog, /fallbackWorks/);
+  assert.match(css, /scroll-snap-type:\s*x mandatory/);
+  assert.match(css, /position:\s*sticky;\s*top:\s*0/);
+});
 
-  const shellIndex = preview.indexOf('className="sites-skeleton-shell"');
-  const statusIndex = preview.indexOf('className="sites-skeleton-status"');
-  assert.ok(shellIndex >= 0 && statusIndex > shellIndex);
-  assert.match(css, /position:\s*fixed/);
-  assert.match(css, /inset:\s*0/);
-  assert.match(css, /opacity:\s*0\.52/);
-  assert.match(css, /prefers-reduced-motion:\s*reduce/);
-  assert.doesNotMatch(css, /#020617|canvas|pets|progress/i);
-  assert.doesNotMatch(
-    preview,
-    /loading-spinner|status-mark|status-progress|canvas|cookie|random/i,
-  );
-
-  assert.match(page, /export const metadata:\s*Metadata/);
-  assert.match(page, /"codex-preview": "development"/);
-  assert.match(page, /<SkeletonPreview \/>/);
-  assert.match(layout, /title:\s*"Starter Project"/);
-  assert.doesNotMatch(layout, /codex-preview|_sites-preview|themeColor|\bViewport\b/);
-  assert.doesNotMatch(css, /(^|\s)(html|body)\s*\{/m);
-
-  await assert.rejects(
-    access(new URL("public/_sites-preview", templateRoot)),
-  );
+test("production metadata and hosting configuration are preserved", async () => {
+  const layout = await read("app/layout.tsx");
+  const hosting = JSON.parse(await read(".openai/hosting.json"));
+  assert.match(layout, /Arte pela Basílica/);
+  assert.match(layout, /og\.png/);
+  assert.equal(hosting.project_id, "appgprj_6a69ecc5b8048191af285f10c3a452f8");
 });
