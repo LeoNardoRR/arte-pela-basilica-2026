@@ -36,7 +36,12 @@ test("catalog provides an expandable full-screen gallery and bidding flow", asyn
   assert.match(catalog, /Nenhuma obra foi reservada ou cobrada/);
   assert.doesNotMatch(catalog, /fallbackWorks/);
   assert.match(css, /\.gallery-overlay\s*\{[^}]*position:\s*fixed/);
-  assert.match(css, /\.gallery-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3/);
+  assert.match(catalog, /gallery-remainder-/);
+  assert.match(catalog, /IntersectionObserver/);
+  assert.match(catalog, /requestAnimationFrame/);
+  assert.match(css, /\.gallery-grid\s*\{[^}]*grid-template-columns:\s*repeat\(12/);
+  assert.match(css, /nth-child\(5n\+1\)/);
+  assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(css, /position:\s*sticky;\s*top:\s*0/);
   assert.match(css, /\.mobile-catalog-link\s*\{[^}]*display:\s*none/);
 });

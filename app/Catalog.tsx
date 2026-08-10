@@ -60,6 +60,8 @@ export function Catalog() {
   const [emailUrl, setEmailUrl] = useState("");
   const [galleryOpen, setGalleryOpen] = useState(false);
   const galleryCloseRef = useRef<HTMLButtonElement>(null);
+  const heroImageRef = useRef<HTMLDivElement>(null);
+  const scrollProgressRef = useRef<HTMLDivElement>(null);
 
   async function loadCatalog() {
     setCatalogLoading(true);
@@ -85,6 +87,51 @@ export function Catalog() {
 
   useEffect(() => {
     void loadCatalog();
+  }, []);
+
+  useEffect(() => {
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const revealNodes = Array.from(document.querySelectorAll<HTMLElement>("[data-reveal]"));
+
+    if (prefersReducedMotion) {
+      revealNodes.forEach((node) => node.classList.add("is-visible"));
+      return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.14, rootMargin: "0px 0px -8% 0px" });
+
+    revealNodes.forEach((node) => observer.observe(node));
+
+    let animationFrame = 0;
+    const updateScrollEffects = () => {
+      const scrollTop = window.scrollY;
+      const scrollRange = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
+      if (heroImageRef.current) {
+        heroImageRef.current.style.transform = `translate3d(0, ${Math.min(scrollTop * 0.16, 105)}px, 0) scale(1.08)`;
+      }
+      if (scrollProgressRef.current) {
+        scrollProgressRef.current.style.transform = `scaleX(${Math.min(scrollTop / scrollRange, 1)})`;
+      }
+    };
+    const onScroll = () => {
+      cancelAnimationFrame(animationFrame);
+      animationFrame = requestAnimationFrame(updateScrollEffects);
+    };
+
+    updateScrollEffects();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(animationFrame);
+      window.removeEventListener("scroll", onScroll);
+    };
   }, []);
 
   useEffect(() => {
@@ -256,6 +303,7 @@ export function Catalog() {
 
   return (
     <main>
+      <div className="scroll-progress" ref={scrollProgressRef} aria-hidden="true" />
       <header className="site-header">
         <a className="brand" href="#inicio" aria-label="Basílica Santo Antônio — início">
           <img src={BASILICA_CREST} alt="Brasão da Basílica Santo Antônio" />
@@ -274,7 +322,7 @@ export function Catalog() {
       </header>
 
       <section className="hero" id="inicio">
-        <div className="hero-image" />
+        <div className="hero-image" ref={heroImageRef} />
         <div className="hero-overlay" />
         <div className="hero-content">
           <p className="eyebrow">Um evento da Basílica Santo Antônio</p>
@@ -285,9 +333,10 @@ export function Catalog() {
             <a className="button ghost" href="#evento">Sobre o evento</a>
           </div>
         </div>
+        <a className="hero-scroll-cue" href="#evento"><span>Role para explorar</span><i aria-hidden="true" /></a>
       </section>
 
-      <aside className="event-bar" id="evento">
+      <aside className="event-bar" id="evento" data-reveal="up">
         <div className="event-icon" aria-hidden="true">◇</div>
         <div><span>Evento presencial</span><strong>10 de setembro de 2026</strong></div>
         <div><span>Local</span><strong>Hotel anfitrião · detalhes em breve</strong></div>
@@ -295,7 +344,7 @@ export function Catalog() {
         <a href="#acervo">Explorar <span>→</span></a>
       </aside>
 
-      <section className="intro">
+      <section className="intro" data-reveal="up">
         <p className="section-kicker">Arte pela Basílica</p>
         <h2>Uma coleção especial.<br />Um propósito maior.</h2>
         <p className="intro-copy">Selecione as obras que deseja disputar, informe seu lance em cada uma e envie uma única intenção. O total da sua sacola é calculado automaticamente.</p>
@@ -307,7 +356,7 @@ export function Catalog() {
       </section>
 
       <section className="catalog-section" id="acervo" aria-busy={catalogLoading}>
-        <div className="catalog-heading">
+        <div className="catalog-heading" data-reveal="up">
           <div>
             <p className="section-kicker">Acervo 2026</p>
             <h2>Obras disponíveis</h2>
@@ -324,7 +373,7 @@ export function Catalog() {
             <button className="button primary" onClick={loadCatalog}>Tentar novamente <span>→</span></button>
           </div>
         ) : (
-          <div className="collection-preview">
+          <div className="collection-preview" data-reveal="up">
             <div className="collection-copy">
               <span className="collection-label">Galeria interativa</span>
               <h3>Uma visão maior para escolher com calma.</h3>
@@ -352,7 +401,7 @@ export function Catalog() {
         )}
       </section>
 
-      <section className="how-section" id="como-comprar">
+      <section className="how-section" id="como-comprar" data-reveal="up">
         <div><p className="section-kicker light">Como participar</p><h2>Registre a sua intenção.<br />Nós cuidamos do restante.</h2></div>
         <ol>
           <li><span>01</span><div><strong>Selecione</strong><p>Adicione à sacola todas as obras que deseja disputar.</p></div></li>
@@ -361,7 +410,7 @@ export function Catalog() {
         </ol>
       </section>
 
-      <section className="closing" id="contato">
+      <section className="closing" id="contato" data-reveal="up">
         <img src={BASILICA_CREST} alt="" />
         <p className="section-kicker">10 de setembro de 2026</p>
         <h2>Faça parte desta história.</h2>
@@ -393,7 +442,7 @@ export function Catalog() {
             </div>
           </header>
           <div className="gallery-content">
-            <div className="gallery-grid" aria-live="polite">
+            <div className={`gallery-grid gallery-remainder-${visibleWorks.length % 5}`} aria-live="polite">
               {visibleWorks.map(renderArtworkCard)}
               {visibleWorks.length === 0 && <p className="catalog-empty">Nenhuma obra encontrada neste filtro.</p>}
             </div>
