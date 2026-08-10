@@ -242,6 +242,7 @@ export function Catalog() {
           <a href="#como-comprar">Como participar</a>
           <a href="#contato">Fale conosco</a>
         </nav>
+        <a className="mobile-catalog-link" href="#acervo">Obras</a>
         <button className="cart-trigger" onClick={() => setCartOpen(true)} aria-label={`Abrir sacola com ${cart.length} obras`}>
           <span>Minha sacola</span><b>{cart.length}</b>
         </button>

@@ -29,12 +29,14 @@ test("catalog matches the GitHub carousel and bidding flow", async () => {
   assert.match(catalog, /aria-label="Carrossel de obras"/);
   assert.match(catalog, /aria-label="Obra anterior"/);
   assert.match(catalog, /aria-label="Próxima obra"/);
+  assert.match(catalog, /mobile-catalog-link/);
   assert.match(catalog, /submit_auction_cart/);
   assert.match(catalog, /Minha sacola de lances/);
   assert.match(catalog, /Nenhuma obra foi reservada ou cobrada/);
   assert.doesNotMatch(catalog, /fallbackWorks/);
   assert.match(css, /scroll-snap-type:\s*x mandatory/);
   assert.match(css, /position:\s*sticky;\s*top:\s*0/);
+  assert.match(css, /\.mobile-catalog-link\s*\{[^}]*display:\s*none/);
 });
 
 test("production metadata and hosting configuration are preserved", async () => {
