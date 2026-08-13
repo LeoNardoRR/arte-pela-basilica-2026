@@ -477,7 +477,7 @@ footer p:last-child { text-align: right; }
   .admin-stats strong { font-size: clamp(18px,5.6vw,23px); overflow-wrap: anywhere; }
   .admin-stats span { font-size: 8px; line-height: 1.4; }
   .admin-stats small { display: none; }
-  .admin-toolbar { width: calc(100% + 4vw); }
+  .admin-toolbar { width: 100%; }
   .admin-toolbar button { padding: 13px 12px; }
   .admin-toolbar button:first-child { padding-left: 2px; }
   .intent-top { flex-direction: column; }
