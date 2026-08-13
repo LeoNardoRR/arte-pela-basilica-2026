@@ -1,0 +1,35 @@
+name: Publicar no GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/configure-pages@v6
+      - name: Preparar publicação
+        run: |
+          cp github-pages/index.html github-pages/404.html
+          touch github-pages/.nojekyll
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: github-pages
+      - name: Publicar
+        id: deployment
+        uses: actions/deploy-pages@v5
