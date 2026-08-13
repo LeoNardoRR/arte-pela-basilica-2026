@@ -51,10 +51,13 @@ test("catalog provides fixed prices, full-screen gallery and purchase-intent flo
   assert.match(css, /\.gallery-overlay\s*\{[^}]*position:\s*fixed/);
   assert.match(catalog, /IntersectionObserver/);
   assert.match(catalog, /requestAnimationFrame/);
-  assert.match(css, /\.gallery-grid\s*\{[^}]*grid-template-columns:\s*repeat\(5/);
-  assert.match(css, /@media \(max-width:\s*1200px\)[\s\S]*\.gallery-grid\s*\{[^}]*grid-template-columns:\s*repeat\(4/);
+  assert.match(catalog, /useState<CatalogFilter>\("available"\)/);
+  assert.match(catalog, /Disponíveis <small>\{availableCount\}<\/small>/);
+  assert.match(catalog, /<ArtworkExperience3D/);
+  assert.match(css, /\.gallery-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3/);
+  assert.match(css, /@media \(max-width:\s*1200px\)[\s\S]*\.gallery-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3/);
   assert.match(css, /@media \(max-width:\s*950px\)[\s\S]*\.gallery-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2/);
-  assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*\.gallery-grid\s*\{[^}]*grid-template-columns:\s*1fr/);
+  assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*\.gallery-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(css, /position:\s*sticky;\s*top:\s*0/);
   assert.match(css, /\.mobile-catalog-link\s*\{[^}]*display:\s*none/);

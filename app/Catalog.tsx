@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { ADMIN_EMAIL, supabase } from "./supabase";
+import { ArtworkExperience3D } from "./ArtworkExperience3D";
 
 const BASILICA_CREST = "/logo-basilica.jpeg";
 const CART_STORAGE_KEY = "arte-pela-basilica-cart-v2";
@@ -57,7 +58,7 @@ export function Catalog() {
   const [works, setWorks] = useState<Artwork[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [catalogError, setCatalogError] = useState("");
-  const [filter, setFilter] = useState<CatalogFilter>("all");
+  const [filter, setFilter] = useState<CatalogFilter>("available");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -67,6 +68,7 @@ export function Catalog() {
   const [selectedWork, setSelectedWork] = useState<Artwork | null>(null);
   const galleryCloseRef = useRef<HTMLButtonElement>(null);
   const detailCloseRef = useRef<HTMLButtonElement>(null);
+  const detailScrollerRef = useRef<HTMLDivElement>(null);
   const submittingRef = useRef(false);
   const modalTriggerRef = useRef<HTMLElement | null>(null);
   const heroImageRef = useRef<HTMLDivElement>(null);
@@ -222,7 +224,7 @@ export function Catalog() {
   const visibleWorks = useMemo(() => {
     if (filter === "available") return works.filter((work) => work.status === "available");
     if (filter === "unavailable") return works.filter((work) => work.status !== "available");
-    return works;
+    return [...works].sort((a, b) => Number(a.status !== "available") - Number(b.status !== "available") || a.id - b.id);
   }, [filter, works]);
 
   const availableCount = works.filter((work) => work.status === "available").length;
@@ -230,7 +232,7 @@ export function Catalog() {
   const totalCents = cart.reduce((sum, item) => sum + item.work.price_cents, 0);
 
   function openGallery() {
-    setFilter("all");
+    setFilter("available");
     setGalleryOpen(true);
   }
 
@@ -254,7 +256,6 @@ export function Catalog() {
   }
 
   function renderArtworkCard(work: Artwork) {
-    const inCart = cart.some((item) => item.work.id === work.id);
     return (
       <article className={`work-card ${work.status !== "available" ? "unavailable" : ""}`} key={work.id}>
         <button className="work-visual-button" type="button" onClick={() => setSelectedWork(work)} aria-label={`Ver detalhes de ${work.title}`}>
@@ -269,12 +270,9 @@ export function Catalog() {
           <div className="work-heading"><span className="work-code">{work.code}</span><strong className="work-price">{formatPrice(work.price_cents)}</strong></div>
           <h3>{work.title}</h3>
           <p>{work.artist}</p>
-          <dl>
-            <div><dt>Técnica</dt><dd>{work.technique}</dd></div>
-            <div><dt>Dimensões</dt><dd>{work.dimensions}</dd></div>
-          </dl>
-          <button disabled={work.status !== "available" || inCart} onClick={() => addToCart(work)}>
-            {inCart ? "Na sua seleção" : work.status === "available" ? "Tenho interesse" : "Indisponível"}<span aria-hidden="true">→</span>
+          <p className="work-spec">{work.technique} · {work.dimensions}</p>
+          <button className="work-detail-link" type="button" onClick={() => setSelectedWork(work)}>
+            Ver detalhes <span aria-hidden="true">↗</span>
           </button>
         </div>
       </article>
@@ -363,7 +361,7 @@ export function Catalog() {
       <section className="catalog-section" id="acervo" aria-busy={catalogLoading}>
         <div className="catalog-heading" data-reveal="up"><div><p className="section-kicker">Catálogo da exposição</p><h2>Obras selecionadas</h2><p>{catalogLoading ? "Preparando o acervo…" : `${availableCount} obras disponíveis para intenção de compra.`}</p></div><button className="button catalog-expand-button" type="button" onClick={openGallery} disabled={catalogLoading || works.length === 0}>Entrar na galeria <span>↗</span></button></div>
         {catalogError ? <div className="catalog-error" role="alert"><p>{catalogError}</p><button className="button primary" onClick={loadCatalog}>Tentar novamente <span>→</span></button></div> : (
-          <div className="collection-preview" data-reveal="up"><div className="collection-copy"><span className="collection-label">Visita imersiva</span><h3>Observe os detalhes. Escolha com calma.</h3><p>A galeria em tela cheia reúne ficha técnica, disponibilidade e valor de cada obra em uma experiência inspirada em exposições contemporâneas.</p><div className="collection-stats"><div><strong>{works.length}</strong><span>obras catalogadas</span></div><div><strong>{availableCount}</strong><span>disponíveis agora</span></div></div><button className="button gallery-open-button" type="button" onClick={openGallery} disabled={catalogLoading || works.length === 0}>Abrir galeria <span>↗</span></button></div><div className="preview-stack" aria-hidden="true">{previewWorks.map((work, index) => <div className={`preview-art preview-art-${index + 1}`} key={work.id}><div className={`work-image ${work.palette}`}><div className="art-frame"><div className="art-shape shape-one" /><div className="art-shape shape-two" /></div></div><div><span>{work.code}</span><strong>{work.title}</strong><small>{formatPrice(work.price_cents)}</small></div></div>)}</div></div>
+          <div className="collection-preview" data-reveal="up"><div className="collection-copy"><span className="collection-label">Curadoria 2026</span><h3>Observe os detalhes. Escolha com calma.</h3><p>Uma galeria editorial para descobrir cada obra sem distrações. No detalhe, uma experiência tridimensional revela frente, espessura e verso individualmente.</p><div className="collection-stats"><div><strong>{works.length}</strong><span>obras catalogadas</span></div><div><strong>{availableCount}</strong><span>disponíveis agora</span></div></div><button className="button gallery-open-button" type="button" onClick={openGallery} disabled={catalogLoading || works.length === 0}>Abrir galeria <span>↗</span></button></div><div className="preview-curation" aria-hidden="true">{previewWorks.map((work, index) => <div className={`preview-piece preview-piece-${index + 1}`} key={work.id}><div className={`work-image ${work.palette}`}><div className="art-frame"><div className="art-shape shape-one" /><div className="art-shape shape-two" /></div></div><div className="preview-piece-caption"><span>{work.code}</span><strong>{work.title}</strong><small>{work.dimensions}</small></div></div>)}</div></div>
         )}
       </section>
 
@@ -374,9 +372,9 @@ export function Catalog() {
       <footer><div className="brand footer-brand"><img src={BASILICA_CREST} alt="" /><span><strong>Basílica</strong><small>Santo Antônio</small></span></div><p>Arte pela Basílica · Edição 2026</p><p><a className="admin-link" href="#admin">Área administrativa</a><br />Acervo online até 17 de setembro</p></footer>
       </div>
 
-      {galleryOpen && <section className="gallery-overlay" role="dialog" aria-modal="true" aria-labelledby="gallery-title"><header className="gallery-header"><div><p className="section-kicker">Acervo 2026</p><h2 id="gallery-title">Galeria de obras</h2><span>{visibleWorks.length} {visibleWorks.length === 1 ? "obra exibida" : "obras exibidas"}</span></div><div className="gallery-actions"><div className="filters" aria-label="Filtrar obras"><button aria-pressed={filter === "all"} className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>Todas</button><button aria-pressed={filter === "available"} className={filter === "available" ? "active" : ""} onClick={() => setFilter("available")}>Disponíveis</button><button aria-pressed={filter === "unavailable"} className={filter === "unavailable" ? "active" : ""} onClick={() => setFilter("unavailable")}>Indisponíveis</button></div><button ref={galleryCloseRef} className="gallery-close" type="button" onClick={() => setGalleryOpen(false)} aria-label="Fechar galeria">×</button></div></header><div className="gallery-content"><div className="gallery-grid" aria-live="polite">{visibleWorks.map(renderArtworkCard)}{visibleWorks.length === 0 && <p className="catalog-empty">Nenhuma obra encontrada neste filtro.</p>}</div></div></section>}
+      {galleryOpen && <section className="gallery-overlay" role="dialog" aria-modal="true" aria-labelledby="gallery-title"><header className="gallery-header"><div><p className="section-kicker">Acervo 2026</p><h2 id="gallery-title">Galeria de obras</h2><span>{visibleWorks.length} {visibleWorks.length === 1 ? "obra exibida" : "obras exibidas"}</span></div><div className="gallery-actions"><div className="filters" aria-label="Filtrar obras"><button aria-pressed={filter === "available"} className={filter === "available" ? "active" : ""} onClick={() => setFilter("available")}>Disponíveis <small>{availableCount}</small></button><button aria-pressed={filter === "unavailable"} className={filter === "unavailable" ? "active" : ""} onClick={() => setFilter("unavailable")}>Indisponíveis <small>{works.length - availableCount}</small></button><button aria-pressed={filter === "all"} className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>Todas <small>{works.length}</small></button></div><button ref={galleryCloseRef} className="gallery-close" type="button" onClick={() => setGalleryOpen(false)} aria-label="Fechar galeria">×</button></div></header><div className="gallery-content"><div className="gallery-grid" aria-live="polite">{visibleWorks.map(renderArtworkCard)}{visibleWorks.length === 0 && <p className="catalog-empty">Nenhuma obra encontrada neste filtro.</p>}</div></div></section>}
 
-      {selectedWork && <div className="detail-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setSelectedWork(null)}><section className="artwork-detail" role="dialog" aria-modal="true" aria-labelledby="detail-title"><button ref={detailCloseRef} className="modal-close" onClick={() => setSelectedWork(null)} aria-label="Fechar detalhes">×</button><div className={`detail-art work-image ${selectedWork.palette}`}><div className="art-frame"><div className="art-shape shape-one" /><div className="art-shape shape-two" /></div></div><div className="detail-copy"><span className="work-code">{selectedWork.code} · {statusLabel[selectedWork.status]}</span><h2 id="detail-title">{selectedWork.title}</h2><p className="detail-artist">{selectedWork.artist}</p><dl><div><dt>Técnica</dt><dd>{selectedWork.technique}</dd></div><div><dt>Dimensões</dt><dd>{selectedWork.dimensions}</dd></div></dl><div className="detail-price"><span>Valor da obra</span><strong>{formatPrice(selectedWork.price_cents)}</strong><small>Compra e pagamento presenciais</small></div><button className="button primary" disabled={selectedWork.status !== "available" || cart.some((item) => item.work.id === selectedWork.id)} onClick={() => addToCart(selectedWork)}>{cart.some((item) => item.work.id === selectedWork.id) ? "Obra já selecionada" : "Adicionar à seleção"}<span>→</span></button></div></section></div>}
+      {selectedWork && <div ref={detailScrollerRef} className="detail-backdrop" role="presentation"><section className="artwork-detail" role="dialog" aria-modal="true" aria-labelledby="detail-title"><button ref={detailCloseRef} className="modal-close detail-close" onClick={() => setSelectedWork(null)} aria-label="Fechar detalhes">×</button><header className="detail-intro"><span className="work-code">{selectedWork.code} · {statusLabel[selectedWork.status]}</span><h2 id="detail-title">{selectedWork.title}</h2><p>{selectedWork.artist}</p><span className="detail-scroll-cue">Role para explorar <i aria-hidden="true">↓</i></span></header><ArtworkExperience3D work={selectedWork} scrollerRef={detailScrollerRef} /><div className="detail-copy"><div><span className="section-kicker">Ficha da obra</span><h3>{selectedWork.title}</h3><p className="detail-artist">{selectedWork.artist}</p><dl><div><dt>Técnica</dt><dd>{selectedWork.technique}</dd></div><div><dt>Dimensões</dt><dd>{selectedWork.dimensions}</dd></div><div><dt>Disponibilidade</dt><dd>{statusLabel[selectedWork.status]}</dd></div></dl></div><div className="detail-purchase"><div className="detail-price"><span>Valor da obra</span><strong>{formatPrice(selectedWork.price_cents)}</strong><small>Compra e pagamento presenciais</small></div><button className="button primary" disabled={selectedWork.status !== "available" || cart.some((item) => item.work.id === selectedWork.id)} onClick={() => addToCart(selectedWork)}>{cart.some((item) => item.work.id === selectedWork.id) ? "Obra já selecionada" : "Adicionar à seleção"}<span>→</span></button></div></div></section></div>}
 
       {cartOpen && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && closeCart()}><section className="purchase-modal cart-modal" role="dialog" aria-modal="true" aria-labelledby="cart-title"><button className="modal-close" onClick={closeCart} aria-label="Fechar seleção">×</button><p className="section-kicker">Sua seleção</p><h2 id="cart-title">Intenção de compra</h2><p className="modal-note">Confira as obras e deixe seus dados. Esta etapa não realiza pagamento.</p>
         {message ? <div className={emailUrl ? "success-message" : "success-message error-message"} role="status"><span>{emailUrl ? "✓" : "!"}</span><p>{message}</p>{emailUrl && <a className="button email-button" href={emailUrl} target="_blank" rel="noreferrer">Enviar cópia por Gmail <span>↗</span></a>}<button onClick={closeCart}>Voltar ao acervo</button></div> : cart.length === 0 ? <div className="empty-cart"><p>Sua seleção está vazia. Explore a galeria e escolha as obras de seu interesse.</p><a className="button primary" href="#acervo" onClick={closeCart}>Explorar acervo <span>→</span></a></div> : <form onSubmit={submitPurchaseIntent}><div className="cart-lines">{cart.map((item) => <div className="cart-line" key={item.work.id}><div className={`cart-thumb work-image ${item.work.palette}`}><div className="art-frame"><div className="art-shape shape-one" /><div className="art-shape shape-two" /></div></div><div className="cart-line-info"><small>{item.work.code}</small><strong>{item.work.title}</strong><span>{formatPrice(item.work.price_cents)}</span></div><button type="button" onClick={() => removeFromCart(item.work.id)} aria-label={`Remover ${item.work.title}`}>Remover</button></div>)}</div><div className="cart-total"><span>Valor total da seleção</span><strong>{formatPrice(totalCents)}</strong></div><div className="contact-fields"><label>Nome completo<input name="name" required minLength={2} maxLength={120} autoComplete="name" placeholder="Como devemos chamar você?" /></label><label>E-mail<input name="email" type="email" required maxLength={160} autoComplete="email" placeholder="voce@email.com" /></label><label>WhatsApp<input name="phone" type="tel" required minLength={8} maxLength={40} autoComplete="tel" placeholder="(11) 99999-9999" /></label></div><div className="in-person-note"><strong>Sem pagamento online</strong><p>Você está registrando interesse nestas obras. A equipe confirmará a disponibilidade e concluirá a compra presencialmente no evento.</p></div><button className="button primary submit-intent" disabled={submitting}>{submitting ? "Registrando intenção…" : "Registrar intenção de compra"}<span>→</span></button><small className="form-consent">Ao enviar, você concorda em ser contatado pela equipe sobre esta seleção.</small></form>}
