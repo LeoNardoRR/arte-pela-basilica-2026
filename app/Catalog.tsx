@@ -59,6 +59,13 @@ function ArtworkPhoto({ work, eager = false }: { work: Artwork; eager?: boolean 
       loading={eager ? "eager" : "lazy"}
       decoding="async"
       referrerPolicy="no-referrer"
+      onLoad={(event) => {
+        const image = event.currentTarget;
+        const frame = image.parentElement;
+        if (frame && image.naturalWidth > 0 && image.naturalHeight > 0) {
+          frame.style.setProperty("--artwork-aspect", `${image.naturalWidth} / ${image.naturalHeight}`);
+        }
+      }}
       onError={(event) => { event.currentTarget.hidden = true; }}
     />
   );

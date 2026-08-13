@@ -162,10 +162,8 @@ export function ArtworkExperience3D({ work, reference, scrollerRef }: Props) {
         const backTexture = new THREE.CanvasTexture(makeArtworkCanvas(work, true));
         frontTexture.colorSpace = THREE.SRGBColorSpace;
         backTexture.colorSpace = THREE.SRGBColorSpace;
-        frontTexture.flipY = false;
+        frontTexture.flipY = true;
         backTexture.flipY = false;
-        frontTexture.center.set(0.5, 0.5);
-        frontTexture.rotation = Math.PI / 2;
         frontTexture.needsUpdate = true;
         backTexture.needsUpdate = true;
 
@@ -179,7 +177,7 @@ export function ArtworkExperience3D({ work, reference, scrollerRef }: Props) {
 
         const textureImage = frontTexture.image as { width?: number; height?: number } | undefined;
         const imageAspect = (textureImage?.width ?? 768) / Math.max(textureImage?.height ?? 1024, 1);
-        const widthScale = THREE.MathUtils.clamp(imageAspect / 0.75, 0.72, 1.45);
+        const widthScale = THREE.MathUtils.clamp(imageAspect / 0.75, 0.55, 2.15);
         const progress = { value: 0 };
         let responsiveScale = 1;
         let manualYaw = 0;
@@ -218,10 +216,15 @@ export function ArtworkExperience3D({ work, reference, scrollerRef }: Props) {
         const resize = () => {
           const width = stage.clientWidth;
           const height = Math.min(stage.clientHeight, window.innerHeight);
-          responsiveScale = width < 620 ? 0.69 : width < 950 ? 0.86 : 1;
           renderer.setSize(width, height, false);
           camera.aspect = width / Math.max(height, 1);
           camera.updateProjectionMatrix();
+          const visibleHeight = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.position.z;
+          const availableWidth = visibleHeight * camera.aspect * 0.82;
+          const availableHeight = visibleHeight * 0.74;
+          const fitWidth = availableWidth / (1.68 * widthScale);
+          const fitHeight = availableHeight / 2.18;
+          responsiveScale = Math.min(1, fitWidth, fitHeight);
           render();
         };
         const resizeObserver = new ResizeObserver(resize);

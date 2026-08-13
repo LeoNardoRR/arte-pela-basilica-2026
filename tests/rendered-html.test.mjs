@@ -61,8 +61,10 @@ test("catalog provides fixed prices, full-screen gallery and purchase-intent flo
   assert.match(css, /@media \(max-width:\s*1200px\)[\s\S]*\.gallery-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3/);
   assert.match(css, /@media \(max-width:\s*950px\)[\s\S]*\.gallery-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2/);
   assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*\.gallery-grid\s*\{[^}]*grid-template-columns:\s*1fr/);
-  assert.match(css, /\.artwork-photo\s*\{[^}]*object-fit:\s*cover/);
+  assert.match(css, /\.artwork-photo\s*\{[^}]*object-fit:\s*contain/);
+  assert.match(css, /aspect-ratio:\s*var\(--artwork-aspect/);
   assert.match(css, /\.arrow-icon::before/);
+  assert.match(css, /\.arrow-icon::before\s*\{[^}]*transform:\s*rotate\(45deg\)/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(css, /position:\s*sticky;\s*top:\s*0/);
   assert.match(css, /\.mobile-catalog-link\s*\{[^}]*display:\s*none/);
@@ -79,6 +81,8 @@ test("all 60 catalog slots have public-domain reference art and interactive 3D",
   assert.match(experience, /touch-action:\s*pan-y|canvas\.dataset\.rotation/);
   assert.match(experience, /scrub:\s*0\.35/);
   assert.match(experience, /new THREE\.TextureLoader\(\)\.loadAsync\(reference\.imageUrl\)/);
+  assert.match(experience, /frontTexture\.flipY\s*=\s*true/);
+  assert.doesNotMatch(experience, /frontTexture\.rotation/);
   assert.doesNotMatch(experience, /requestAnimationFrame/);
 });
 
