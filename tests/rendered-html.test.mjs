@@ -35,7 +35,11 @@ test("catalog provides fixed prices, full-screen gallery and purchase-intent flo
   assert.match(catalog, /Abrir galeria/);
   assert.match(catalog, /role="dialog" aria-modal="true" aria-labelledby="gallery-title"/);
   assert.match(catalog, /aria-label="Fechar galeria"/);
-  assert.match(catalog, /galleryCloseRef\.current\?\.focus/);
+  assert.match(catalog, /focusable\[0\]\?\.focus/);
+  assert.match(catalog, /modalTriggerRef\.current\.focus/);
+  assert.match(catalog, /event\.key !== "Tab"/);
+  assert.match(catalog, /submittingRef\.current/);
+  assert.match(catalog, /phoneDigits\.length < 8/);
   assert.match(catalog, /mobile-catalog-link/);
   assert.match(catalog, /className="admin-menu-link" href="#admin"/);
   assert.match(catalog, /price_cents/);
@@ -61,5 +65,7 @@ test("production metadata and hosting configuration are preserved", async () => 
   const hosting = JSON.parse(await read(".openai/hosting.json"));
   assert.match(layout, /Arte pela Basílica/);
   assert.match(layout, /og\.png/);
+  assert.match(layout, /metadataBase/);
+  assert.match(layout, /canonical/);
   assert.equal(hosting.project_id, "appgprj_6a69ecc5b8048191af285f10c3a452f8");
 });

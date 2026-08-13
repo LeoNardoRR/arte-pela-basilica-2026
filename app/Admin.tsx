@@ -120,5 +120,5 @@ export function Admin() {
     </details>) : <p className="admin-notice">Nenhuma intenção encontrada neste filtro.</p>}</div>}
   </div>;
 
-  return <main className="admin-page"><header className="admin-header"><a href="#inicio">← Voltar à exposição</a><span>Arte pela Basílica · Gestão presencial</span>{session && <button onClick={logout}>Sair</button>}</header><section className="admin-wrap">{content}</section></main>;
+  return <main className="admin-page"><header className="admin-header"><a href="#conteudo-principal">← Voltar à exposição</a><span>Arte pela Basílica · Gestão presencial</span>{session && <button onClick={logout}>Sair</button>}</header><section className="admin-wrap">{content}</section></main>;
 }

@@ -58,7 +58,7 @@ export function Catalog() {
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [catalogError, setCatalogError] = useState("");
   const [filter, setFilter] = useState<CatalogFilter>("all");
-  const [cart, setCart] = useState<CartItem[]>(loadSavedCart);
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
@@ -67,6 +67,8 @@ export function Catalog() {
   const [selectedWork, setSelectedWork] = useState<Artwork | null>(null);
   const galleryCloseRef = useRef<HTMLButtonElement>(null);
   const detailCloseRef = useRef<HTMLButtonElement>(null);
+  const submittingRef = useRef(false);
+  const modalTriggerRef = useRef<HTMLElement | null>(null);
   const heroImageRef = useRef<HTMLDivElement>(null);
   const scrollProgressRef = useRef<HTMLDivElement>(null);
 
@@ -93,7 +95,10 @@ export function Catalog() {
   }
 
   useEffect(() => {
-    const timer = window.setTimeout(() => void loadCatalog(), 0);
+    const timer = window.setTimeout(() => {
+      setCart(loadSavedCart());
+      void loadCatalog();
+    }, 0);
     return () => window.clearTimeout(timer);
   }, []);
 
@@ -147,8 +152,9 @@ export function Catalog() {
     }
   }, [cart]);
 
+  const modalOpen = cartOpen || galleryOpen || Boolean(selectedWork);
+
   useEffect(() => {
-    const modalOpen = cartOpen || galleryOpen || Boolean(selectedWork);
     if (!modalOpen) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -163,15 +169,55 @@ export function Catalog() {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [cartOpen, galleryOpen, selectedWork]);
+  }, [modalOpen, galleryOpen, selectedWork]);
 
   useEffect(() => {
-    if (galleryOpen) galleryCloseRef.current?.focus();
-  }, [galleryOpen]);
+    if (modalOpen && !modalTriggerRef.current) {
+      modalTriggerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    }
+    if (!modalOpen && modalTriggerRef.current) {
+      modalTriggerRef.current.focus();
+      modalTriggerRef.current = null;
+      return;
+    }
+
+    const dialog = document.querySelector<HTMLElement>(selectedWork ? ".artwork-detail" : galleryOpen ? ".gallery-overlay" : ".cart-modal");
+    if (!dialog) return;
+    const backgroundGallery = selectedWork ? document.querySelector<HTMLElement>(".gallery-overlay") : null;
+    if (backgroundGallery) {
+      backgroundGallery.inert = true;
+      backgroundGallery.setAttribute("aria-hidden", "true");
+    }
+    const focusableSelector = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+    const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(focusableSelector));
+    focusable[0]?.focus();
+    const trapFocus = (event: KeyboardEvent) => {
+      if (event.key !== "Tab" || focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    dialog.addEventListener("keydown", trapFocus);
+    return () => {
+      dialog.removeEventListener("keydown", trapFocus);
+      if (backgroundGallery) {
+        backgroundGallery.inert = false;
+        backgroundGallery.removeAttribute("aria-hidden");
+      }
+    };
+  }, [modalOpen, cartOpen, galleryOpen, selectedWork]);
 
   useEffect(() => {
-    if (selectedWork) detailCloseRef.current?.focus();
-  }, [selectedWork]);
+    if (!galleryOpen || selectedWork) return;
+    const timer = window.setTimeout(() => galleryCloseRef.current?.focus(), 0);
+    return () => window.clearTimeout(timer);
+  }, [galleryOpen, selectedWork]);
 
   const visibleWorks = useMemo(() => {
     if (filter === "available") return works.filter((work) => work.status === "available");
@@ -247,7 +293,9 @@ export function Catalog() {
       setMessage("Uma das obras não está mais disponível. Atualize o acervo e revise sua seleção.");
       return;
     }
+    if (submittingRef.current) return;
 
+    submittingRef.current = true;
     setSubmitting(true);
     setMessage("");
     setEmailUrl("");
@@ -257,6 +305,14 @@ export function Catalog() {
     const phone = String(form.get("phone") || "").trim();
     const submittedWorks = cart.map((item) => currentWorks.get(item.work.id)!);
 
+    const phoneDigits = phone.replace(/\D/g, "");
+    if (phoneDigits.length < 8 || phoneDigits.length > 15) {
+      setMessage("Informe um WhatsApp válido, com DDD.");
+      setSubmitting(false);
+      submittingRef.current = false;
+      return;
+    }
+
     const { error } = await supabase.rpc("submit_purchase_intent", {
       bidder_name: name,
       bidder_email: email,
@@ -265,7 +321,8 @@ export function Catalog() {
     });
 
     if (error) {
-      setMessage(error.message || "Não foi possível registrar sua intenção agora.");
+      const safeMessages = ["Preencha nome, e-mail e WhatsApp corretamente.", "A seleção deve ter entre 1 e 20 obras.", "A seleção contém dados inválidos.", "Uma obra não pode aparecer duas vezes na mesma seleção.", "Uma ou mais obras não estão mais disponíveis para intenção."];
+      setMessage(safeMessages.includes(error.message) ? error.message : "Não foi possível registrar sua intenção agora. Tente novamente em alguns instantes.");
     } else {
       const itemLines = submittedWorks.map((work) => `• ${work.title} (${work.code}) — ${formatPrice(work.price_cents)}`).join("\n");
       const emailMessage = [
@@ -277,20 +334,23 @@ export function Catalog() {
       setMessage("Intenção registrada. A equipe recebeu sua seleção e entrará em contato. Nenhuma cobrança foi realizada e a compra será concluída presencialmente.");
     }
     setSubmitting(false);
+    submittingRef.current = false;
   }
 
   return (
     <main>
       <div className="scroll-progress" ref={scrollProgressRef} aria-hidden="true" />
+      <a className="skip-link" href="#conteudo-principal">Pular para o conteúdo</a>
+      <div className="page-shell" inert={modalOpen ? true : undefined} aria-hidden={modalOpen ? true : undefined}>
       <header className="site-header">
-        <a className="brand" href="#inicio" aria-label="Basílica Santo Antônio — início"><img src={BASILICA_CREST} alt="Brasão da Basílica Santo Antônio" /><span><strong>Basílica</strong><small>Santo Antônio</small></span></a>
+        <a className="brand" href="#conteudo-principal" aria-label="Basílica Santo Antônio — início"><img src={BASILICA_CREST} alt="Brasão da Basílica Santo Antônio" /><span><strong>Basílica</strong><small>Santo Antônio</small></span></a>
         <nav aria-label="Navegação principal"><a href="#exposicao">A exposição</a><a href="#acervo">Acervo</a><a href="#como-participar">Como adquirir</a><a href="#contato">Contato</a></nav>
         <a className="mobile-catalog-link" href="#acervo">Acervo</a>
         <a className="admin-menu-link" href="#admin" aria-label="Acessar área administrativa">Administrativo</a>
         <button className="cart-trigger" onClick={() => setCartOpen(true)} aria-label={`Abrir seleção com ${cart.length} obras`}><span>Minha seleção</span><b>{cart.length}</b></button>
       </header>
 
-      <section className="hero" id="inicio">
+      <section className="hero" id="conteudo-principal">
         <div className="hero-image" ref={heroImageRef} /><div className="hero-overlay" />
         <div className="hero-content"><p className="eyebrow">Exposição beneficente · Edição 2026</p><h1>Arte que atravessa<br />o tempo.</h1><p>Uma seleção singular de obras reunidas em favor da preservação da Basílica Santo Antônio.</p><div className="hero-actions"><a className="button primary" href="#acervo">Explorar o acervo <span>→</span></a><a className="button ghost" href="#exposicao">Conhecer a exposição</a></div></div>
         <a className="hero-scroll-cue" href="#exposicao"><span>Descubra a coleção</span><i aria-hidden="true" /></a>
@@ -312,6 +372,7 @@ export function Catalog() {
       <section className="closing" id="contato" data-reveal="up"><img src={BASILICA_CREST} alt="" /><p className="section-kicker">10 de setembro de 2026</p><h2>Leve uma obra.<br />Faça parte desta história.</h2><p>O registro de intenção não gera cobrança online nem reserva automática. A disponibilidade será confirmada pela equipe e a compra acontecerá presencialmente.</p><button className="button primary" onClick={() => setCartOpen(true)}>Revisar minha seleção <span>→</span></button></section>
 
       <footer><div className="brand footer-brand"><img src={BASILICA_CREST} alt="" /><span><strong>Basílica</strong><small>Santo Antônio</small></span></div><p>Arte pela Basílica · Edição 2026</p><p><a className="admin-link" href="#admin">Área administrativa</a><br />Acervo online até 17 de setembro</p></footer>
+      </div>
 
       {galleryOpen && <section className="gallery-overlay" role="dialog" aria-modal="true" aria-labelledby="gallery-title"><header className="gallery-header"><div><p className="section-kicker">Acervo 2026</p><h2 id="gallery-title">Galeria de obras</h2><span>{visibleWorks.length} {visibleWorks.length === 1 ? "obra exibida" : "obras exibidas"}</span></div><div className="gallery-actions"><div className="filters" aria-label="Filtrar obras"><button aria-pressed={filter === "all"} className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>Todas</button><button aria-pressed={filter === "available"} className={filter === "available" ? "active" : ""} onClick={() => setFilter("available")}>Disponíveis</button><button aria-pressed={filter === "unavailable"} className={filter === "unavailable" ? "active" : ""} onClick={() => setFilter("unavailable")}>Indisponíveis</button></div><button ref={galleryCloseRef} className="gallery-close" type="button" onClick={() => setGalleryOpen(false)} aria-label="Fechar galeria">×</button></div></header><div className="gallery-content"><div className="gallery-grid" aria-live="polite">{visibleWorks.map(renderArtworkCard)}{visibleWorks.length === 0 && <p className="catalog-empty">Nenhuma obra encontrada neste filtro.</p>}</div></div></section>}
 
