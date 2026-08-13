@@ -22,6 +22,10 @@ test("admin uses protected Supabase access and has no public demo", async () => 
   assert.match(admin, /admin_update_cart_status/);
   assert.match(admin, /groupByPerson/);
   assert.match(admin, /Intenções por pessoa/);
+  assert.match(admin, /Fila de atendimento/);
+  assert.match(admin, /statusFilters\.map/);
+  assert.match(admin, /Histórico de intenções/);
+  assert.match(admin, /tabIndex=\{person\.intents\.length > 2/);
   assert.match(admin, /<details className="person-card"/);
   assert.match(admin, /Ver detalhes/);
   assert.match(admin, /Contato direto/);
