@@ -22,6 +22,9 @@ test("admin uses protected Supabase access and has no public demo", async () => 
   assert.match(admin, /admin_update_cart_status/);
   assert.match(admin, /groupByPerson/);
   assert.match(admin, /Intenções por pessoa/);
+  assert.match(admin, /<details className="person-card"/);
+  assert.match(admin, /Ver detalhes/);
+  assert.match(admin, /Contato direto/);
   assert.match(admin, /Somente o usuário autorizado e a senha fixa/);
   assert.doesNotMatch(admin, /resetPasswordForEmail|PASSWORD_RECOVERY|updateUser\(\{ password:|Criar ou redefinir senha|Visualizar demonstração|Modo demonstração|demoMode|demoIntents/);
 });
