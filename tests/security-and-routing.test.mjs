@@ -32,8 +32,9 @@ test("catalog has accessible dialogs, skip navigation and reduced-motion support
   assert.match(catalog, /trapFocus/);
   assert.match(catalog, /\.inert = true/);
   assert.match(catalog, /fetchPriority="high"/);
-  assert.match(catalog, /aria-label="Basílica Santo Antônio"/);
+  assert.doesNotMatch(catalog, /className="brand"[^>]*aria-label/);
   assert.match(catalog, /aria-label="Administrativo"/);
+  assert.match(catalog, /srcSet=\{HERO_IMAGE_SET\}/);
   assert.match(css, /:focus-visible/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
 });

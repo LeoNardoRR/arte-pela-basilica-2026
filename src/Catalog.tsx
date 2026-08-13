@@ -3,6 +3,7 @@ import { ADMIN_EMAIL, supabase } from "./supabase";
 
 const BASILICA_CREST = `${import.meta.env.BASE_URL}logo-basilica.webp`;
 const HERO_IMAGE = `${import.meta.env.BASE_URL}hero-basilica-v3.webp`;
+const HERO_IMAGE_SET = `${import.meta.env.BASE_URL}hero-basilica-640.webp 640w, ${import.meta.env.BASE_URL}hero-basilica-1200.webp 1200w, ${HERO_IMAGE} 1800w`;
 const CART_STORAGE_KEY = "arte-pela-basilica-cart-v2";
 
 type Artwork = {
@@ -338,7 +339,7 @@ export function Catalog() {
       <a className="skip-link" href="#conteudo-principal">Pular para o conteúdo</a>
       <div className="page-shell" inert={modalOpen ? true : undefined} aria-hidden={modalOpen ? true : undefined}>
       <header className="site-header">
-        <a className="brand" href="#conteudo-principal" aria-label="Basílica Santo Antônio"><img src={BASILICA_CREST} alt="" /><span><strong>Basílica</strong><small>Santo Antônio</small></span></a>
+        <a className="brand" href="#conteudo-principal"><img src={BASILICA_CREST} alt="" /><span><strong>Basílica</strong><small>Santo Antônio</small></span></a>
         <nav aria-label="Navegação principal"><a href="#exposicao">A exposição</a><a href="#acervo">Acervo</a><a href="#como-participar">Como adquirir</a><a href="#contato">Contato</a></nav>
         <a className="mobile-catalog-link" href="#acervo">Acervo</a>
         <a className="admin-menu-link" href="#admin" aria-label="Administrativo">Administrativo</a>
@@ -346,7 +347,7 @@ export function Catalog() {
       </header>
 
       <section className="hero" id="conteudo-principal">
-        <img className="hero-image" src={HERO_IMAGE} alt="" fetchPriority="high" decoding="async" ref={heroImageRef} /><div className="hero-overlay" />
+        <img className="hero-image" src={HERO_IMAGE} srcSet={HERO_IMAGE_SET} sizes="(max-width: 620px) 640px, (max-width: 1200px) 1200px, 1800px" alt="" fetchPriority="high" decoding="async" ref={heroImageRef} /><div className="hero-overlay" />
         <div className="hero-content"><p className="eyebrow">Exposição beneficente · Edição 2026</p><h1>Arte que atravessa<br />o tempo.</h1><p>Uma seleção singular de obras reunidas em favor da preservação da Basílica Santo Antônio.</p><div className="hero-actions"><a className="button primary" href="#acervo">Explorar o acervo <span>→</span></a><a className="button ghost" href="#exposicao">Conhecer a exposição</a></div></div>
         <a className="hero-scroll-cue" href="#exposicao"><span>Descubra a coleção</span><i aria-hidden="true" /></a>
       </section>
