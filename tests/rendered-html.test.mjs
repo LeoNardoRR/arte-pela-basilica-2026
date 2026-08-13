@@ -54,13 +54,32 @@ test("catalog provides fixed prices, full-screen gallery and purchase-intent flo
   assert.match(catalog, /useState<CatalogFilter>\("available"\)/);
   assert.match(catalog, /Disponíveis <small>\{availableCount\}<\/small>/);
   assert.match(catalog, /<ArtworkExperience3D/);
+  assert.match(catalog, /CURATED_ARTWORKS/);
+  assert.match(catalog, /<ArtworkPhoto work=\{work\}/);
+  assert.doesNotMatch(catalog, /[→↗↑↓←]/);
   assert.match(css, /\.gallery-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3/);
   assert.match(css, /@media \(max-width:\s*1200px\)[\s\S]*\.gallery-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3/);
   assert.match(css, /@media \(max-width:\s*950px\)[\s\S]*\.gallery-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2/);
-  assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*\.gallery-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2/);
+  assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*\.gallery-grid\s*\{[^}]*grid-template-columns:\s*1fr/);
+  assert.match(css, /\.artwork-photo\s*\{[^}]*object-fit:\s*cover/);
+  assert.match(css, /\.arrow-icon::before/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(css, /position:\s*sticky;\s*top:\s*0/);
   assert.match(css, /\.mobile-catalog-link\s*\{[^}]*display:\s*none/);
+});
+
+test("all 60 catalog slots have public-domain reference art and interactive 3D", async () => {
+  const images = await read("app/artworkImages.ts");
+  const experience = await read("app/ArtworkExperience3D.tsx");
+  assert.equal((images.match(/"slot":\s*\d+/g) ?? []).length, 60);
+  assert.equal((images.match(/"license":\s*"Public Domain — The Metropolitan Museum of Art"/g) ?? []).length, 60);
+  assert.equal(new Set(images.match(/"imageUrl":\s*"\/artworks\/\d{2}\.jpg"/g) ?? []).size, 60);
+  assert.match(experience, /pointerdown/);
+  assert.match(experience, /pointermove/);
+  assert.match(experience, /touch-action:\s*pan-y|canvas\.dataset\.rotation/);
+  assert.match(experience, /scrub:\s*0\.35/);
+  assert.match(experience, /new THREE\.TextureLoader\(\)\.loadAsync\(reference\.imageUrl\)/);
+  assert.doesNotMatch(experience, /requestAnimationFrame/);
 });
 
 test("production metadata and hosting configuration are preserved", async () => {
