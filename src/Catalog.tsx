@@ -1,7 +1,8 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { ADMIN_EMAIL, supabase } from "./supabase";
 
-const BASILICA_CREST = `${import.meta.env.BASE_URL}logo-basilica.jpeg`;
+const BASILICA_CREST = `${import.meta.env.BASE_URL}logo-basilica.webp`;
+const HERO_IMAGE = `${import.meta.env.BASE_URL}hero-basilica-v3.webp`;
 const CART_STORAGE_KEY = "arte-pela-basilica-cart-v2";
 
 type Artwork = {
@@ -67,7 +68,7 @@ export function Catalog() {
   const detailCloseRef = useRef<HTMLButtonElement>(null);
   const submittingRef = useRef(false);
   const modalTriggerRef = useRef<HTMLElement | null>(null);
-  const heroImageRef = useRef<HTMLDivElement>(null);
+  const heroImageRef = useRef<HTMLImageElement>(null);
   const scrollProgressRef = useRef<HTMLDivElement>(null);
 
   async function loadCatalog() {
@@ -337,15 +338,15 @@ export function Catalog() {
       <a className="skip-link" href="#conteudo-principal">Pular para o conteúdo</a>
       <div className="page-shell" inert={modalOpen ? true : undefined} aria-hidden={modalOpen ? true : undefined}>
       <header className="site-header">
-        <a className="brand" href="#conteudo-principal" aria-label="Basílica Santo Antônio — início"><img src={BASILICA_CREST} alt="Brasão da Basílica Santo Antônio" /><span><strong>Basílica</strong><small>Santo Antônio</small></span></a>
+        <a className="brand" href="#conteudo-principal" aria-label="Basílica Santo Antônio"><img src={BASILICA_CREST} alt="" /><span><strong>Basílica</strong><small>Santo Antônio</small></span></a>
         <nav aria-label="Navegação principal"><a href="#exposicao">A exposição</a><a href="#acervo">Acervo</a><a href="#como-participar">Como adquirir</a><a href="#contato">Contato</a></nav>
         <a className="mobile-catalog-link" href="#acervo">Acervo</a>
-        <a className="admin-menu-link" href="#admin" aria-label="Acessar área administrativa">Administrativo</a>
+        <a className="admin-menu-link" href="#admin" aria-label="Administrativo">Administrativo</a>
         <button className="cart-trigger" onClick={() => setCartOpen(true)} aria-label={`Abrir seleção com ${cart.length} obras`}><span>Minha seleção</span><b>{cart.length}</b></button>
       </header>
 
       <section className="hero" id="conteudo-principal">
-        <div className="hero-image" ref={heroImageRef} /><div className="hero-overlay" />
+        <img className="hero-image" src={HERO_IMAGE} alt="" fetchPriority="high" decoding="async" ref={heroImageRef} /><div className="hero-overlay" />
         <div className="hero-content"><p className="eyebrow">Exposição beneficente · Edição 2026</p><h1>Arte que atravessa<br />o tempo.</h1><p>Uma seleção singular de obras reunidas em favor da preservação da Basílica Santo Antônio.</p><div className="hero-actions"><a className="button primary" href="#acervo">Explorar o acervo <span>→</span></a><a className="button ghost" href="#exposicao">Conhecer a exposição</a></div></div>
         <a className="hero-scroll-cue" href="#exposicao"><span>Descubra a coleção</span><i aria-hidden="true" /></a>
       </section>

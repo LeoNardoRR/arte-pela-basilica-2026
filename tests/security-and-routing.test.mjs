@@ -31,6 +31,9 @@ test("catalog has accessible dialogs, skip navigation and reduced-motion support
   assert.match(catalog, /prefers-reduced-motion/);
   assert.match(catalog, /trapFocus/);
   assert.match(catalog, /\.inert = true/);
+  assert.match(catalog, /fetchPriority="high"/);
+  assert.match(catalog, /aria-label="Basílica Santo Antônio"/);
+  assert.match(catalog, /aria-label="Administrativo"/);
   assert.match(css, /:focus-visible/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
 });
@@ -73,6 +76,7 @@ test("temporary Pages environment has explicit social metadata, noindex and a re
   assert.match(index, /name="robots" content="noindex,follow"/);
   assert.match(index, /property="og:image" content="https:\/\/leonardorr\.github\.io\/arte-pela-basilica-2026\/og\.png"/);
   assert.match(index, /rel="canonical"/);
+  assert.match(index, /rel="preload" as="image"/);
   assert.match(robots, /Disallow: \//);
   assert.match(notFound, /Página não encontrada/);
   assert.match(notFound, /\/arte-pela-basilica-2026\//);

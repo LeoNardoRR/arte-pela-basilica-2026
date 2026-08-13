@@ -12,5 +12,6 @@ test("builds a GitHub Pages-ready catalog", async () => {
   assert.match(html, /<noscript>/);
   await access(new URL("../dist/404.html", import.meta.url));
   await access(new URL("../dist/robots.txt", import.meta.url));
-  await access(new URL("../dist/hero-basilica-v3.jpeg", import.meta.url));
+  await access(new URL("../dist/hero-basilica-v3.webp", import.meta.url));
+  await access(new URL("../dist/logo-basilica.webp", import.meta.url));
 });
