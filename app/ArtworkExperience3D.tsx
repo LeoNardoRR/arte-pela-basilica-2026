@@ -3,6 +3,7 @@
 import { RefObject, useEffect, useRef, useState } from "react";
 import type * as ThreeTypes from "three";
 import type { CuratedArtworkImage } from "./artworkImages";
+import { publicAsset } from "./publicAsset";
 
 type Artwork3D = {
   code: string;
@@ -37,7 +38,7 @@ export function preloadArtworkExperience3D() {
       import("three/addons/loaders/GLTFLoader.js"),
       import("gsap"),
       import("gsap/ScrollTrigger"),
-      fetch("/models/product.glb").catch(() => null),
+      fetch(publicAsset("/models/product.glb")).catch(() => null),
     ]);
   }
   return modulePreload;
@@ -147,7 +148,7 @@ export function ArtworkExperience3D({ work, reference, scrollerRef }: Props) {
         rimLight.position.set(-4, 1, -3);
         scene.add(rimLight);
 
-        const gltf = await new GLTFLoader().loadAsync("/models/product.glb");
+        const gltf = await new GLTFLoader().loadAsync(publicAsset("/models/product.glb"));
         if (cancelled) return;
         const product = gltf.scene;
         scene.add(product);

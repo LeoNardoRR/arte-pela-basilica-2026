@@ -4,8 +4,9 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { ADMIN_EMAIL, supabase } from "./supabase";
 import { ArtworkExperience3D } from "./ArtworkExperience3D";
 import { CURATED_ARTWORKS, CuratedArtworkImage } from "./artworkImages";
+import { publicAsset } from "./publicAsset";
 
-const BASILICA_CREST = "/logo-basilica.jpeg";
+const BASILICA_CREST = publicAsset("/logo-basilica.jpeg");
 const CART_STORAGE_KEY = "arte-pela-basilica-cart-v2";
 
 type Artwork = {
@@ -42,7 +43,12 @@ function formatPrice(cents: number) {
 function artworkReference(work: Artwork): CuratedArtworkImage {
   const parsedSlot = Number(work.code.match(/\d+/)?.[0]);
   const slot = Number.isFinite(parsedSlot) && parsedSlot > 0 ? parsedSlot : work.id;
-  return CURATED_ARTWORKS[(slot - 1) % CURATED_ARTWORKS.length];
+  const reference = CURATED_ARTWORKS[(slot - 1) % CURATED_ARTWORKS.length];
+  return {
+    ...reference,
+    imageUrl: publicAsset(reference.imageUrl),
+    thumbnailUrl: publicAsset(reference.thumbnailUrl),
+  };
 }
 
 function ArrowIcon({ direction = "right" }: { direction?: "right" | "up-right" | "down" | "left" }) {

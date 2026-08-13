@@ -99,3 +99,19 @@ test("production metadata and hosting configuration are preserved", async () => 
   assert.match(layout, /canonical/);
   assert.equal(hosting.project_id, "appgprj_6a69ecc5b8048191af285f10c3a452f8");
 });
+
+test("GitHub Pages builds the complete client application under its repository path", async () => {
+  const pagesConfig = await read("vite.pages.config.ts");
+  const pagesEntry = await read("github-pages/main.tsx");
+  const pagesHtml = await read("github-pages/index.html");
+  const workflow = await read(".github/workflows/pages.yml");
+  const assets = await read("app/publicAsset.ts");
+  assert.match(pagesConfig, /\/arte-pela-basilica-2026\//);
+  assert.match(pagesConfig, /publicDir:\s*"\.\.\/public"/);
+  assert.match(pagesEntry, /import Home from "\.\.\/app\/page"/);
+  assert.match(pagesHtml, /id="root"/);
+  assert.doesNotMatch(pagesHtml, /window\.location\.replace|http-equiv="refresh"/);
+  assert.match(workflow, /npm run build:pages/);
+  assert.match(workflow, /path:\s*dist-pages/);
+  assert.match(assets, /meta\[name="public-base"\]/);
+});

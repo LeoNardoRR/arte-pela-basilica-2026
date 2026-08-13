@@ -1,98 +1,113 @@
-# vinext-starter
+# Arte pela Basílica — Exposição 2026
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+Uma experiência digital de alto padrão criada para apresentar a exposição beneficente **Arte pela Basílica**, facilitar a descoberta das obras e registrar intenções de compra para conclusão presencial com a equipe do evento.
 
-## Prerequisites
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-online-000666?style=flat-square&logo=github)](https://leonardorr.github.io/arte-pela-basilica-2026/)
+[![React](https://img.shields.io/badge/React-19-1a237e?style=flat-square&logo=react)](https://react.dev/)
+[![Three.js](https://img.shields.io/badge/Three.js-3D-b7904b?style=flat-square&logo=threedotjs)](https://threejs.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-dados-24612b?style=flat-square&logo=supabase)](https://supabase.com/)
 
-- Node.js `>=22.13.0`
+![Prévia da experiência Arte pela Basílica](public/og.png)
 
-## Quick Start
+## Acessos
+
+- **GitHub Pages:** [leonardorr.github.io/arte-pela-basilica-2026](https://leonardorr.github.io/arte-pela-basilica-2026/)
+- **Versão principal:** [arte-pela-basilica-2026.ribeiroleonardoti.chatgpt.site](https://arte-pela-basilica-2026.ribeiroleonardoti.chatgpt.site/)
+- **Administrativo:** use `#admin` ao final de qualquer um dos endereços. O acesso exige a conta autorizada no Supabase.
+
+## Experiência
+
+- Catálogo editorial com **60 obras** e valores fixos.
+- Filtros priorizando obras disponíveis, seguidos de indisponíveis e visão completa.
+- Pré-visualizações que respeitam a proporção original de cada quadro.
+- Galeria responsiva para desktop, tablet e celular.
+- Detalhe individual com experiência 3D em Three.js.
+- Rotação do quadro por toque ou mouse, com frente, espessura e verso.
+- Animações com GSAP ScrollTrigger e alternativa estática para `prefers-reduced-motion`.
+- Seleção de obras e registro de intenção de compra sem cobrança online.
+
+## Visualização 3D
+
+O 3D aparece somente no detalhe da obra, evitando múltiplos canvases concorrentes na galeria. A arte é aplicada diretamente ao material do modelo, enquanto o grupo 3D controla movimento, rotação e escala.
+
+Principais cuidados:
+
+- textura aplicada como `material.map`;
+- transparência da textura revela a cor base sem perfurar o mesh;
+- interação por arraste em telas sensíveis ao toque e com mouse;
+- renderização ativa apenas durante a experiência;
+- enquadramento responsivo para obras verticais e horizontais;
+- modo reduzido de movimento respeitado.
+
+## Área administrativa
+
+O painel organiza as intenções por pessoa e mantém a operação presencial clara:
+
+- resumo de pessoas, intenções e valores;
+- filtros com contadores por status;
+- contatos, obras e valores agrupados por interessado;
+- histórico de intenções com rolagem interna quando necessário;
+- ações para atendimento, confirmação, cancelamento e conclusão;
+- autenticação protegida pelo Supabase, sem senha armazenada no código.
+
+## Arquitetura
+
+| Camada | Tecnologia | Responsabilidade |
+| --- | --- | --- |
+| Interface | React 19 + TypeScript | Catálogo, galeria, seleção e painel |
+| 3D e movimento | Three.js + GSAP | Modelo interativo e animações |
+| Dados e autenticação | Supabase | Obras, intenções, sessão administrativa e regras de acesso |
+| Aplicação principal | Vinext + Cloudflare | Versão completa hospedada no Sites |
+| Publicação estática | Vite + GitHub Actions | Versão equivalente no GitHub Pages |
+
+As duas publicações compartilham os mesmos componentes de interface. O GitHub Pages executa a aplicação no navegador e acessa o Supabase diretamente com a chave pública; operações protegidas continuam sujeitas às regras de autenticação, RPC e RLS do projeto.
+
+## Rodar localmente
+
+Requisitos: Node.js `>=22.13.0`.
 
 ```bash
 npm install
+```
+
+Versão principal:
+
+```bash
 npm run dev
-npm run build
 ```
 
-This starter does not use `wrangler.jsonc`.
+Prévia específica do GitHub Pages:
 
-## Included Shape
-
-- edit site code under `app/`
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/schema.ts` starts intentionally empty
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
-
-## Workspace Auth Headers
-
-OpenAI workspace sites can read the current user's email from
-`oai-authenticated-user-email`.
-
-SIWC-authenticated workspace sites may also receive
-`oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty
-`name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by
-`oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-Treat the full name as optional and fall back to email when it is absent:
-
-```tsx
-import { headers } from "next/headers";
-
-export default async function Home() {
-  const requestHeaders = await headers();
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
-
-  const displayName = fullName ?? email;
-  // ...
-}
+```bash
+npm run dev:pages
 ```
 
-## Optional Dispatch-Owned ChatGPT Sign-In
+## Validação e builds
 
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs
-optional or required ChatGPT sign-in:
+```bash
+# Build principal e testes
+npm test
 
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send
-  anonymous visitors through Sign in with ChatGPT.
-- Use `chatGPTSignInPath(returnTo)` and `chatGPTSignOutPath(returnTo)` for
-  browser links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in
-  or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because
-  they depend on per-request identity headers.
+# Build estático usado pelo GitHub Pages
+npm run build:pages
 
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the
-OAuth cookies, and identity header injection. Do not implement app routes for
-those reserved paths. Routes that do not import and call the helper remain
-anonymous-compatible.
+# Verificação de código
+npm run lint
+```
 
-SIWC establishes identity only; it does not prove workspace membership. Use the
-Sites hosting platform's access policy controls for workspace-wide restrictions,
-or enforce explicit server-side membership or allowlist checks.
+O workflow em `.github/workflows/pages.yml` instala as dependências, cria o build estático e publica o conteúdo no GitHub Pages a cada atualização do branch `main`.
 
-Use SIWC for account pages, user-specific dashboards, saved records, and write
-actions tied to the current ChatGPT user. Leave public content anonymous.
+## Fluxo comercial
 
-## Useful Commands
+O site registra uma **intenção de compra**. Não existe cobrança ou pagamento online: a equipe confirma a disponibilidade e conclui a aquisição presencialmente no evento.
 
-- `npm run dev`: start local development
-- `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
-- `npm run db:generate`: generate Drizzle migrations after schema changes
+Os valores utilizados na interface são validados no servidor pelo Supabase; o navegador não é considerado fonte confiável para preços ou totais.
 
-## Learn More
+## Créditos das imagens
 
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+As 60 imagens usadas como referências visuais pertencem ao acervo de domínio público do [The Metropolitan Museum of Art](https://www.metmuseum.org/art/collection). Cada detalhe de obra mantém um link para a ficha de origem correspondente.
+
+---
+
+**Arte pela Basílica · Edição 2026**
+Uma coleção com propósito. Uma experiência para guardar.

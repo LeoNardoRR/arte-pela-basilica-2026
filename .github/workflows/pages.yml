@@ -22,14 +22,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build:pages
       - uses: actions/configure-pages@v6
       - name: Preparar publicação
         run: |
-          cp github-pages/index.html github-pages/404.html
-          touch github-pages/.nojekyll
+          cp dist-pages/index.html dist-pages/404.html
+          touch dist-pages/.nojekyll
       - uses: actions/upload-pages-artifact@v5
         with:
-          path: github-pages
+          path: dist-pages
       - name: Publicar
         id: deployment
         uses: actions/deploy-pages@v5
