@@ -4,8 +4,7 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { ADMIN_EMAIL, supabase } from "./supabase";
 
 const BASILICA_CREST = "/logo-basilica.jpeg";
-const CART_STORAGE_KEY = "arte-pela-basilica-cart";
-const MAX_BID = 1_000_000;
+const CART_STORAGE_KEY = "arte-pela-basilica-cart-v2";
 
 type Artwork = {
   id: number;
@@ -16,21 +15,27 @@ type Artwork = {
   dimensions: string;
   status: "available" | "reserved" | "sold";
   palette: string;
+  price_cents: number;
 };
 
-type CartItem = { work: Artwork; amount: number };
+type CartItem = { work: Artwork };
 type CatalogFilter = "all" | "available" | "unavailable";
 
 const statusLabel = {
   available: "Disponível",
-  reserved: "Indisponível",
+  reserved: "Em negociação",
   sold: "Adquirida",
 };
 
 const money = new Intl.NumberFormat("pt-BR", {
   style: "currency",
   currency: "BRL",
+  maximumFractionDigits: 0,
 });
+
+function formatPrice(cents: number) {
+  return money.format(cents / 100);
+}
 
 function loadSavedCart(): CartItem[] {
   try {
@@ -41,7 +46,7 @@ function loadSavedCart(): CartItem[] {
     return parsed.filter((item): item is CartItem => {
       if (!item || typeof item !== "object") return false;
       const candidate = item as CartItem;
-      return Number.isInteger(candidate.work?.id) && Number.isFinite(candidate.amount) && candidate.amount >= 0;
+      return Number.isInteger(candidate.work?.id);
     });
   } catch {
     return [];
@@ -59,7 +64,9 @@ export function Catalog() {
   const [message, setMessage] = useState("");
   const [emailUrl, setEmailUrl] = useState("");
   const [galleryOpen, setGalleryOpen] = useState(false);
+  const [selectedWork, setSelectedWork] = useState<Artwork | null>(null);
   const galleryCloseRef = useRef<HTMLButtonElement>(null);
+  const detailCloseRef = useRef<HTMLButtonElement>(null);
   const heroImageRef = useRef<HTMLDivElement>(null);
   const scrollProgressRef = useRef<HTMLDivElement>(null);
 
@@ -68,7 +75,7 @@ export function Catalog() {
     setCatalogError("");
     const { data, error } = await supabase
       .from("artworks")
-      .select("id,code,title,artist,technique,dimensions,status,palette")
+      .select("id,code,title,artist,technique,dimensions,status,palette,price_cents")
       .order("id", { ascending: true });
 
     if (error) {
@@ -79,20 +86,20 @@ export function Catalog() {
       setWorks(freshWorks);
       setCart((items) => items.flatMap((item) => {
         const currentWork = freshWorks.find((work) => work.id === item.work.id);
-        return currentWork?.status === "available" ? [{ ...item, work: currentWork }] : [];
+        return currentWork?.status === "available" ? [{ work: currentWork }] : [];
       }));
     }
     setCatalogLoading(false);
   }
 
   useEffect(() => {
-    void loadCatalog();
+    const timer = window.setTimeout(() => void loadCatalog(), 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const revealNodes = Array.from(document.querySelectorAll<HTMLElement>("[data-reveal]"));
-
     if (prefersReducedMotion) {
       revealNodes.forEach((node) => node.classList.add("is-visible"));
       return;
@@ -105,8 +112,7 @@ export function Catalog() {
           observer.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.14, rootMargin: "0px 0px -8% 0px" });
-
+    }, { threshold: 0.12, rootMargin: "0px 0px -7% 0px" });
     revealNodes.forEach((node) => observer.observe(node));
 
     let animationFrame = 0;
@@ -114,7 +120,7 @@ export function Catalog() {
       const scrollTop = window.scrollY;
       const scrollRange = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
       if (heroImageRef.current) {
-        heroImageRef.current.style.transform = `translate3d(0, ${Math.min(scrollTop * 0.16, 105)}px, 0) scale(1.08)`;
+        heroImageRef.current.style.transform = `translate3d(0, ${Math.min(scrollTop * 0.13, 90)}px, 0) scale(1.08)`;
       }
       if (scrollProgressRef.current) {
         scrollProgressRef.current.style.transform = `scaleX(${Math.min(scrollTop / scrollRange, 1)})`;
@@ -124,7 +130,6 @@ export function Catalog() {
       cancelAnimationFrame(animationFrame);
       animationFrame = requestAnimationFrame(updateScrollEffects);
     };
-
     updateScrollEffects();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
@@ -143,25 +148,30 @@ export function Catalog() {
   }, [cart]);
 
   useEffect(() => {
-    if (!cartOpen && !galleryOpen) return;
+    const modalOpen = cartOpen || galleryOpen || Boolean(selectedWork);
+    if (!modalOpen) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        if (galleryOpen) closeGallery();
-        else closeCart();
-      }
+      if (event.key !== "Escape") return;
+      if (selectedWork) setSelectedWork(null);
+      else if (galleryOpen) setGalleryOpen(false);
+      else setCartOpen(false);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [cartOpen, galleryOpen]);
+  }, [cartOpen, galleryOpen, selectedWork]);
 
   useEffect(() => {
     if (galleryOpen) galleryCloseRef.current?.focus();
   }, [galleryOpen]);
+
+  useEffect(() => {
+    if (selectedWork) detailCloseRef.current?.focus();
+  }, [selectedWork]);
 
   const visibleWorks = useMemo(() => {
     if (filter === "available") return works.filter((work) => work.status === "available");
@@ -171,63 +181,18 @@ export function Catalog() {
 
   const availableCount = works.filter((work) => work.status === "available").length;
   const previewWorks = works.filter((work) => work.status === "available").slice(0, 3);
-  const total = cart.reduce((sum, item) => sum + item.amount, 0);
-
-  function changeFilter(nextFilter: CatalogFilter) {
-    setFilter(nextFilter);
-  }
+  const totalCents = cart.reduce((sum, item) => sum + item.work.price_cents, 0);
 
   function openGallery() {
     setFilter("all");
     setGalleryOpen(true);
   }
 
-  function closeGallery() {
-    setGalleryOpen(false);
-  }
-
   function addToCart(work: Artwork) {
-    setCart((items) => items.some((item) => item.work.id === work.id)
-      ? items
-      : [...items, { work, amount: 0 }]);
+    setCart((items) => items.some((item) => item.work.id === work.id) ? items : [...items, { work }]);
     setMessage("");
     setEmailUrl("");
-    setGalleryOpen(false);
-    setCartOpen(true);
-  }
-
-  function renderArtworkCard(work: Artwork) {
-    return (
-      <article className={`work-card ${work.status !== "available" ? "unavailable" : ""}`} key={work.id}>
-        <div className={`work-image ${work.palette}`}>
-          <span className={`status ${work.status}`}>{statusLabel[work.status]}</span>
-          <div className="art-shape shape-one" />
-          <div className="art-shape shape-two" />
-          {work.status !== "available" && (
-            <div className="sold-overlay"><strong>{statusLabel[work.status]}</strong><span>Esta obra não está disponível para proposta.</span></div>
-          )}
-        </div>
-        <div className="work-body">
-          <span className="work-code">{work.code}</span>
-          <h3>{work.title}</h3>
-          <p>{work.artist}</p>
-          <dl>
-            <div><dt>Técnica</dt><dd>{work.technique}</dd></div>
-            <div><dt>Dimensões</dt><dd>{work.dimensions}</dd></div>
-            <div><dt>Lance</dt><dd>Definido por você</dd></div>
-          </dl>
-          <button disabled={work.status !== "available"} onClick={() => addToCart(work)}>
-            {cart.some((item) => item.work.id === work.id) ? "Na sua sacola" : "Adicionar à sacola"}
-            <span aria-hidden="true">→</span>
-          </button>
-        </div>
-      </article>
-    );
-  }
-
-  function updateAmount(id: number, amount: number) {
-    const safeAmount = Number.isFinite(amount) ? Math.min(MAX_BID, Math.max(0, amount)) : 0;
-    setCart((items) => items.map((item) => item.work.id === id ? { ...item, amount: safeAmount } : item));
+    setSelectedWork(null);
   }
 
   function removeFromCart(id: number) {
@@ -242,16 +207,44 @@ export function Catalog() {
     setEmailUrl("");
   }
 
-  async function submitBidCart(event: FormEvent<HTMLFormElement>) {
+  function renderArtworkCard(work: Artwork) {
+    const inCart = cart.some((item) => item.work.id === work.id);
+    return (
+      <article className={`work-card ${work.status !== "available" ? "unavailable" : ""}`} key={work.id}>
+        <button className="work-visual-button" type="button" onClick={() => setSelectedWork(work)} aria-label={`Ver detalhes de ${work.title}`}>
+          <div className={`work-image ${work.palette}`}>
+            <span className={`status ${work.status}`}>{statusLabel[work.status]}</span>
+            <div className="art-frame"><div className="art-shape shape-one" /><div className="art-shape shape-two" /></div>
+            {work.status !== "available" && <div className="sold-overlay"><strong>{statusLabel[work.status]}</strong><span>Indisponível para nova intenção.</span></div>}
+            <span className="view-work">Ver obra</span>
+          </div>
+        </button>
+        <div className="work-body">
+          <div className="work-heading"><span className="work-code">{work.code}</span><strong className="work-price">{formatPrice(work.price_cents)}</strong></div>
+          <h3>{work.title}</h3>
+          <p>{work.artist}</p>
+          <dl>
+            <div><dt>Técnica</dt><dd>{work.technique}</dd></div>
+            <div><dt>Dimensões</dt><dd>{work.dimensions}</dd></div>
+          </dl>
+          <button disabled={work.status !== "available" || inCart} onClick={() => addToCart(work)}>
+            {inCart ? "Na sua seleção" : work.status === "available" ? "Tenho interesse" : "Indisponível"}<span aria-hidden="true">→</span>
+          </button>
+        </div>
+      </article>
+    );
+  }
+
+  async function submitPurchaseIntent(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!cart.length || cart.some((item) => item.amount < 1 || item.amount > MAX_BID || !Number.isFinite(item.amount))) {
-      setMessage("Informe um lance válido para cada obra da sua sacola.");
+    if (!cart.length) {
+      setMessage("Adicione pelo menos uma obra à sua seleção.");
       return;
     }
 
     const currentWorks = new Map(works.map((work) => [work.id, work]));
     if (cart.some((item) => currentWorks.get(item.work.id)?.status !== "available")) {
-      setMessage("Uma das obras não está mais disponível. Atualize o acervo e revise sua sacola.");
+      setMessage("Uma das obras não está mais disponível. Atualize o acervo e revise sua seleção.");
       return;
     }
 
@@ -259,44 +252,29 @@ export function Catalog() {
     setMessage("");
     setEmailUrl("");
     const form = new FormData(event.currentTarget);
-    const submittedItems = cart.map((item) => ({ ...item, work: currentWorks.get(item.work.id)! }));
     const name = String(form.get("name") || "").trim();
     const email = String(form.get("email") || "").trim();
     const phone = String(form.get("phone") || "").trim();
+    const submittedWorks = cart.map((item) => currentWorks.get(item.work.id)!);
 
-    const { error } = await supabase.rpc("submit_auction_cart", {
+    const { error } = await supabase.rpc("submit_purchase_intent", {
       bidder_name: name,
       bidder_email: email,
       bidder_phone: phone,
-      preferred_payment_method: "in_person",
-      items: submittedItems.map((item) => ({
-        artwork_id: item.work.id,
-        amount_cents: Math.round(item.amount * 100),
-      })),
+      items: submittedWorks.map((work) => ({ artwork_id: work.id })),
     });
 
     if (error) {
-      setMessage(error.message || "Não foi possível registrar sua intenção.");
+      setMessage(error.message || "Não foi possível registrar sua intenção agora.");
     } else {
-      const itemLines = submittedItems
-        .map((item) => `• ${item.work.title} (${item.work.code}) — ${money.format(item.amount)}`)
-        .join("\n");
+      const itemLines = submittedWorks.map((work) => `• ${work.title} (${work.code}) — ${formatPrice(work.price_cents)}`).join("\n");
       const emailMessage = [
-        "Nova intenção de compra — Arte pela Basílica 2026",
-        "",
-        `Participante: ${name}`,
-        `WhatsApp: ${phone}`,
-        `E-mail: ${email}`,
-        "",
-        "Obras selecionadas:",
-        itemLines,
-        "",
-        `Montante da intenção: ${money.format(submittedItems.reduce((sum, item) => sum + item.amount, 0))}`,
-        "Pagamento: presencial, a combinar com a equipe.",
+        "Nova intenção de compra — Arte pela Basílica 2026", "", `Interessado: ${name}`, `WhatsApp: ${phone}`, `E-mail: ${email}`, "",
+        "Obras selecionadas:", itemLines, "", `Valor total: ${formatPrice(totalCents)}`, "Conclusão e pagamento: presencial, com a equipe do evento.",
       ].join("\n");
-      setEmailUrl(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(ADMIN_EMAIL)}&su=${encodeURIComponent("Nova intenção de compra — Arte pela Basílica 2026")}&body=${encodeURIComponent(emailMessage)}`);
+      setEmailUrl(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(ADMIN_EMAIL)}&su=${encodeURIComponent("Intenção de compra — Arte pela Basílica 2026")}&body=${encodeURIComponent(emailMessage)}`);
       setCart([]);
-      setMessage("Intenção registrada com sucesso. A equipe analisará os lances e entrará em contato. Nenhuma obra foi reservada ou cobrada nesta etapa.");
+      setMessage("Intenção registrada. A equipe recebeu sua seleção e entrará em contato. Nenhuma cobrança foi realizada e a compra será concluída presencialmente.");
     }
     setSubmitting(false);
   }
@@ -305,196 +283,42 @@ export function Catalog() {
     <main>
       <div className="scroll-progress" ref={scrollProgressRef} aria-hidden="true" />
       <header className="site-header">
-        <a className="brand" href="#inicio" aria-label="Basílica Santo Antônio — início">
-          <img src={BASILICA_CREST} alt="Brasão da Basílica Santo Antônio" />
-          <span><strong>Basílica</strong><small>Santo Antônio</small></span>
-        </a>
-        <nav aria-label="Navegação principal">
-          <a href="#evento">O evento</a>
-          <a href="#acervo">Obras de arte</a>
-          <a href="#como-comprar">Como participar</a>
-          <a href="#contato">Fale conosco</a>
-        </nav>
-        <a className="mobile-catalog-link" href="#acervo">Obras</a>
-        <button className="cart-trigger" onClick={() => setCartOpen(true)} aria-label={`Abrir sacola com ${cart.length} obras`}>
-          <span>Minha sacola</span><b>{cart.length}</b>
-        </button>
+        <a className="brand" href="#inicio" aria-label="Basílica Santo Antônio — início"><img src={BASILICA_CREST} alt="Brasão da Basílica Santo Antônio" /><span><strong>Basílica</strong><small>Santo Antônio</small></span></a>
+        <nav aria-label="Navegação principal"><a href="#exposicao">A exposição</a><a href="#acervo">Acervo</a><a href="#como-participar">Como adquirir</a><a href="#contato">Contato</a></nav>
+        <a className="mobile-catalog-link" href="#acervo">Acervo</a>
+        <button className="cart-trigger" onClick={() => setCartOpen(true)} aria-label={`Abrir seleção com ${cart.length} obras`}><span>Minha seleção</span><b>{cart.length}</b></button>
       </header>
 
       <section className="hero" id="inicio">
-        <div className="hero-image" ref={heroImageRef} />
-        <div className="hero-overlay" />
-        <div className="hero-content">
-          <p className="eyebrow">Um evento da Basílica Santo Antônio</p>
-          <h1>Arte que preserva<br />histórias.</h1>
-          <p>Quase 60 obras reunidas em uma noite especial de arte, encontro e contribuição para o futuro da nossa Basílica.</p>
-          <div className="hero-actions">
-            <a className="button primary" href="#acervo">Conhecer as obras <span>→</span></a>
-            <a className="button ghost" href="#evento">Sobre o evento</a>
-          </div>
-        </div>
-        <a className="hero-scroll-cue" href="#evento"><span>Role para explorar</span><i aria-hidden="true" /></a>
+        <div className="hero-image" ref={heroImageRef} /><div className="hero-overlay" />
+        <div className="hero-content"><p className="eyebrow">Exposição beneficente · Edição 2026</p><h1>Arte que atravessa<br />o tempo.</h1><p>Uma seleção singular de obras reunidas em favor da preservação da Basílica Santo Antônio.</p><div className="hero-actions"><a className="button primary" href="#acervo">Explorar o acervo <span>→</span></a><a className="button ghost" href="#exposicao">Conhecer a exposição</a></div></div>
+        <a className="hero-scroll-cue" href="#exposicao"><span>Descubra a coleção</span><i aria-hidden="true" /></a>
       </section>
 
-      <aside className="event-bar" id="evento" data-reveal="up">
-        <div className="event-icon" aria-hidden="true">◇</div>
-        <div><span>Evento presencial</span><strong>10 de setembro de 2026</strong></div>
-        <div><span>Local</span><strong>Hotel anfitrião · detalhes em breve</strong></div>
-        <div><span>Acervo online</span><strong>Disponível até 17 de setembro</strong></div>
-        <a href="#acervo">Explorar <span>→</span></a>
-      </aside>
+      <aside className="event-bar" id="exposicao" data-reveal="up"><div className="event-icon" aria-hidden="true">◇</div><div><span>Exposição presencial</span><strong>10 de setembro de 2026</strong></div><div><span>Encontro</span><strong>Hotel anfitrião · detalhes em breve</strong></div><div><span>Acervo online</span><strong>Disponível até 17 de setembro</strong></div><a href="#acervo">Visitar acervo <span>→</span></a></aside>
 
-      <section className="intro" data-reveal="up">
-        <p className="section-kicker">Arte pela Basílica</p>
-        <h2>Uma coleção especial.<br />Um propósito maior.</h2>
-        <p className="intro-copy">Selecione as obras que deseja disputar, informe seu lance em cada uma e envie uma única intenção. O total da sua sacola é calculado automaticamente.</p>
-        <div className="numbers">
-          <div><strong>~60</strong><span>obras selecionadas</span></div>
-          <div><strong>10.09</strong><span>evento no hotel</span></div>
-          <div><strong>17.09</strong><span>encerramento online</span></div>
-        </div>
-      </section>
+      <section className="intro" data-reveal="up"><p className="section-kicker">Arte pela Basílica</p><h2>Uma coleção com propósito.<br />Uma experiência para guardar.</h2><p className="intro-copy">Cada obra possui valor fixo. Escolha suas peças, registre seu interesse e deixe seus dados. A equipe organizará o atendimento e a conclusão da compra presencialmente no evento.</p><div className="numbers"><div><strong>60</strong><span>obras em exposição</span></div><div><strong>10.09</strong><span>encontro presencial</span></div><div><strong>1 gesto</strong><span>em favor da Basílica</span></div></div></section>
 
       <section className="catalog-section" id="acervo" aria-busy={catalogLoading}>
-        <div className="catalog-heading" data-reveal="up">
-          <div>
-            <p className="section-kicker">Acervo 2026</p>
-            <h2>Obras disponíveis</h2>
-            <p>{catalogLoading ? "Carregando acervo…" : `${availableCount} de ${works.length} obras ainda disponíveis.`}</p>
-          </div>
-          <button className="button catalog-expand-button" type="button" onClick={openGallery} disabled={catalogLoading || works.length === 0}>
-            Ver galeria completa <span>↗</span>
-          </button>
-        </div>
-
-        {catalogError ? (
-          <div className="catalog-error" role="alert">
-            <p>{catalogError}</p>
-            <button className="button primary" onClick={loadCatalog}>Tentar novamente <span>→</span></button>
-          </div>
-        ) : (
-          <div className="collection-preview" data-reveal="up">
-            <div className="collection-copy">
-              <span className="collection-label">Galeria interativa</span>
-              <h3>Uma visão maior para escolher com calma.</h3>
-              <p>Abra o acervo em tela cheia, filtre as obras e compare cada detalhe antes de montar sua sacola de lances.</p>
-              <div className="collection-stats">
-                <div><strong>{works.length}</strong><span>obras no acervo</span></div>
-                <div><strong>{availableCount}</strong><span>disponíveis agora</span></div>
-              </div>
-              <button className="button gallery-open-button" type="button" onClick={openGallery} disabled={catalogLoading || works.length === 0}>
-                Abrir galeria de obras <span>↗</span>
-              </button>
-            </div>
-            <div className="preview-stack" aria-hidden="true">
-              {previewWorks.map((work, index) => (
-                <div className={`preview-art preview-art-${index + 1}`} key={work.id}>
-                  <div className={`work-image ${work.palette}`}>
-                    <div className="art-shape shape-one" />
-                    <div className="art-shape shape-two" />
-                  </div>
-                  <div><span>{work.code}</span><strong>{work.title}</strong></div>
-                </div>
-              ))}
-            </div>
-          </div>
+        <div className="catalog-heading" data-reveal="up"><div><p className="section-kicker">Catálogo da exposição</p><h2>Obras selecionadas</h2><p>{catalogLoading ? "Preparando o acervo…" : `${availableCount} obras disponíveis para intenção de compra.`}</p></div><button className="button catalog-expand-button" type="button" onClick={openGallery} disabled={catalogLoading || works.length === 0}>Entrar na galeria <span>↗</span></button></div>
+        {catalogError ? <div className="catalog-error" role="alert"><p>{catalogError}</p><button className="button primary" onClick={loadCatalog}>Tentar novamente <span>→</span></button></div> : (
+          <div className="collection-preview" data-reveal="up"><div className="collection-copy"><span className="collection-label">Visita imersiva</span><h3>Observe os detalhes. Escolha com calma.</h3><p>A galeria em tela cheia reúne ficha técnica, disponibilidade e valor de cada obra em uma experiência inspirada em exposições contemporâneas.</p><div className="collection-stats"><div><strong>{works.length}</strong><span>obras catalogadas</span></div><div><strong>{availableCount}</strong><span>disponíveis agora</span></div></div><button className="button gallery-open-button" type="button" onClick={openGallery} disabled={catalogLoading || works.length === 0}>Abrir galeria <span>↗</span></button></div><div className="preview-stack" aria-hidden="true">{previewWorks.map((work, index) => <div className={`preview-art preview-art-${index + 1}`} key={work.id}><div className={`work-image ${work.palette}`}><div className="art-frame"><div className="art-shape shape-one" /><div className="art-shape shape-two" /></div></div><div><span>{work.code}</span><strong>{work.title}</strong><small>{formatPrice(work.price_cents)}</small></div></div>)}</div></div>
         )}
       </section>
 
-      <section className="how-section" id="como-comprar" data-reveal="up">
-        <div><p className="section-kicker light">Como participar</p><h2>Registre a sua intenção.<br />Nós cuidamos do restante.</h2></div>
-        <ol>
-          <li><span>01</span><div><strong>Selecione</strong><p>Adicione à sacola todas as obras que deseja disputar.</p></div></li>
-          <li><span>02</span><div><strong>Informe os lances</strong><p>Defina um valor para cada obra e confira o montante total.</p></div></li>
-          <li><span>03</span><div><strong>Aguarde a análise</strong><p>A equipe confirma a disponibilidade e combina o pagamento presencial.</p></div></li>
-        </ol>
-      </section>
+      <section className="how-section" id="como-participar" data-reveal="up"><div><p className="section-kicker light">Como adquirir</p><h2>Seu interesse registrado.<br />A compra, no encontro.</h2></div><ol><li><span>01</span><div><strong>Escolha as obras</strong><p>Explore o acervo e adicione à sua seleção as peças que deseja adquirir.</p></div></li><li><span>02</span><div><strong>Envie sua intenção</strong><p>Confira os valores fixos e informe seu contato em um único envio.</p></div></li><li><span>03</span><div><strong>Conclua presencialmente</strong><p>A equipe entra em contato e finaliza a compra no dia do evento.</p></div></li></ol></section>
 
-      <section className="closing" id="contato" data-reveal="up">
-        <img src={BASILICA_CREST} alt="" />
-        <p className="section-kicker">10 de setembro de 2026</p>
-        <h2>Faça parte desta história.</h2>
-        <p>A intenção não reserva automaticamente a obra e não gera cobrança. A confirmação e o pagamento serão realizados presencialmente com a equipe da Basílica.</p>
-        <button className="button primary" onClick={() => setCartOpen(true)}>Abrir minha sacola <span>→</span></button>
-      </section>
+      <section className="closing" id="contato" data-reveal="up"><img src={BASILICA_CREST} alt="" /><p className="section-kicker">10 de setembro de 2026</p><h2>Leve uma obra.<br />Faça parte desta história.</h2><p>O registro de intenção não gera cobrança online nem reserva automática. A disponibilidade será confirmada pela equipe e a compra acontecerá presencialmente.</p><button className="button primary" onClick={() => setCartOpen(true)}>Revisar minha seleção <span>→</span></button></section>
 
-      <footer>
-        <div className="brand footer-brand"><img src={BASILICA_CREST} alt="" /><span><strong>Basílica</strong><small>Santo Antônio</small></span></div>
-        <p>Arte pela Basílica · Edição 2026</p>
-        <p><a className="admin-link" href="#admin">Área administrativa</a><br />Acervo online até 17 de setembro de 2026</p>
-      </footer>
+      <footer><div className="brand footer-brand"><img src={BASILICA_CREST} alt="" /><span><strong>Basílica</strong><small>Santo Antônio</small></span></div><p>Arte pela Basílica · Edição 2026</p><p><a className="admin-link" href="#admin">Área administrativa</a><br />Acervo online até 17 de setembro</p></footer>
 
-      {galleryOpen && (
-        <section className="gallery-overlay" role="dialog" aria-modal="true" aria-labelledby="gallery-title">
-          <header className="gallery-header">
-            <div>
-              <p className="section-kicker">Acervo 2026</p>
-              <h2 id="gallery-title">Galeria de obras</h2>
-              <span>{visibleWorks.length} {visibleWorks.length === 1 ? "obra exibida" : "obras exibidas"}</span>
-            </div>
-            <div className="gallery-actions">
-              <div className="filters" aria-label="Filtrar obras">
-                <button aria-pressed={filter === "all"} className={filter === "all" ? "active" : ""} onClick={() => changeFilter("all")}>Todas</button>
-                <button aria-pressed={filter === "available"} className={filter === "available" ? "active" : ""} onClick={() => changeFilter("available")}>Disponíveis</button>
-                <button aria-pressed={filter === "unavailable"} className={filter === "unavailable" ? "active" : ""} onClick={() => changeFilter("unavailable")}>Indisponíveis</button>
-              </div>
-              <button ref={galleryCloseRef} className="gallery-close" type="button" onClick={closeGallery} aria-label="Fechar galeria">×</button>
-            </div>
-          </header>
-          <div className="gallery-content">
-            <div className={`gallery-grid gallery-remainder-${visibleWorks.length % 5}`} aria-live="polite">
-              {visibleWorks.map(renderArtworkCard)}
-              {visibleWorks.length === 0 && <p className="catalog-empty">Nenhuma obra encontrada neste filtro.</p>}
-            </div>
-          </div>
-        </section>
-      )}
+      {galleryOpen && <section className="gallery-overlay" role="dialog" aria-modal="true" aria-labelledby="gallery-title"><header className="gallery-header"><div><p className="section-kicker">Acervo 2026</p><h2 id="gallery-title">Galeria de obras</h2><span>{visibleWorks.length} {visibleWorks.length === 1 ? "obra exibida" : "obras exibidas"}</span></div><div className="gallery-actions"><div className="filters" aria-label="Filtrar obras"><button aria-pressed={filter === "all"} className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>Todas</button><button aria-pressed={filter === "available"} className={filter === "available" ? "active" : ""} onClick={() => setFilter("available")}>Disponíveis</button><button aria-pressed={filter === "unavailable"} className={filter === "unavailable" ? "active" : ""} onClick={() => setFilter("unavailable")}>Indisponíveis</button></div><button ref={galleryCloseRef} className="gallery-close" type="button" onClick={() => setGalleryOpen(false)} aria-label="Fechar galeria">×</button></div></header><div className="gallery-content"><div className="gallery-grid" aria-live="polite">{visibleWorks.map(renderArtworkCard)}{visibleWorks.length === 0 && <p className="catalog-empty">Nenhuma obra encontrada neste filtro.</p>}</div></div></section>}
 
-      {cartOpen && (
-        <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && closeCart()}>
-          <section className="purchase-modal cart-modal" role="dialog" aria-modal="true" aria-labelledby="cart-title">
-            <button className="modal-close" onClick={closeCart} aria-label="Fechar">×</button>
-            <p className="section-kicker">Minha sacola de lances</p>
-            <h2 id="cart-title">Intenção de compra</h2>
+      {selectedWork && <div className="detail-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setSelectedWork(null)}><section className="artwork-detail" role="dialog" aria-modal="true" aria-labelledby="detail-title"><button ref={detailCloseRef} className="modal-close" onClick={() => setSelectedWork(null)} aria-label="Fechar detalhes">×</button><div className={`detail-art work-image ${selectedWork.palette}`}><div className="art-frame"><div className="art-shape shape-one" /><div className="art-shape shape-two" /></div></div><div className="detail-copy"><span className="work-code">{selectedWork.code} · {statusLabel[selectedWork.status]}</span><h2 id="detail-title">{selectedWork.title}</h2><p className="detail-artist">{selectedWork.artist}</p><dl><div><dt>Técnica</dt><dd>{selectedWork.technique}</dd></div><div><dt>Dimensões</dt><dd>{selectedWork.dimensions}</dd></div></dl><div className="detail-price"><span>Valor da obra</span><strong>{formatPrice(selectedWork.price_cents)}</strong><small>Compra e pagamento presenciais</small></div><button className="button primary" disabled={selectedWork.status !== "available" || cart.some((item) => item.work.id === selectedWork.id)} onClick={() => addToCart(selectedWork)}>{cart.some((item) => item.work.id === selectedWork.id) ? "Obra já selecionada" : "Adicionar à seleção"}<span>→</span></button></div></section></div>}
 
-            {message ? (
-              <div className={emailUrl ? "success-message" : "success-message error-message"} role="status">
-                <span>{emailUrl ? "✓" : "!"}</span>
-                <p>{message}</p>
-                {emailUrl && <a className="button email-button" href={emailUrl} target="_blank" rel="noreferrer">Enviar cópia opcional por Gmail <span>↗</span></a>}
-                <button onClick={closeCart}>Voltar ao acervo</button>
-              </div>
-            ) : cart.length === 0 ? (
-              <div className="empty-cart">
-                <p>Adicione obras do acervo para montar sua intenção de compra.</p>
-                <a className="button primary" href="#acervo" onClick={closeCart}>Ver obras <span>→</span></a>
-              </div>
-            ) : (
-              <form onSubmit={submitBidCart}>
-                <div className="cart-lines">
-                  {cart.map((item) => (
-                    <div className="cart-line" key={item.work.id}>
-                      <div><strong>{item.work.title}</strong><small>{item.work.code}</small></div>
-                      <label>
-                        Lance (R$)
-                        <input type="number" min="1" max={MAX_BID} step="0.01" inputMode="decimal" value={item.amount || ""} onChange={(event) => updateAmount(item.work.id, Number(event.target.value))} required />
-                      </label>
-                      <button type="button" onClick={() => removeFromCart(item.work.id)} aria-label={`Remover ${item.work.title}`}>Remover</button>
-                    </div>
-                  ))}
-                </div>
-                <div className="cart-total"><span>Montante da intenção</span><strong>{money.format(total)}</strong></div>
-                <label>Nome completo<input name="name" required minLength={2} maxLength={120} autoComplete="name" /></label>
-                <label>E-mail<input name="email" type="email" required maxLength={160} autoComplete="email" /></label>
-                <label>WhatsApp<input name="phone" type="tel" required minLength={5} maxLength={40} autoComplete="tel" /></label>
-                <div className="in-person-note"><strong>Pagamento presencial</strong><p>Esta etapa registra uma intenção para análise. Não há reserva automática nem cobrança online.</p></div>
-                <button className="button primary" disabled={submitting}>{submitting ? "Registrando intenção…" : "Registrar intenção"} <span>→</span></button>
-                <small>Ao enviar, você concorda em ser contatado pela equipe sobre estas obras.</small>
-              </form>
-            )}
-          </section>
-        </div>
-      )}
+      {cartOpen && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && closeCart()}><section className="purchase-modal cart-modal" role="dialog" aria-modal="true" aria-labelledby="cart-title"><button className="modal-close" onClick={closeCart} aria-label="Fechar seleção">×</button><p className="section-kicker">Sua seleção</p><h2 id="cart-title">Intenção de compra</h2><p className="modal-note">Confira as obras e deixe seus dados. Esta etapa não realiza pagamento.</p>
+        {message ? <div className={emailUrl ? "success-message" : "success-message error-message"} role="status"><span>{emailUrl ? "✓" : "!"}</span><p>{message}</p>{emailUrl && <a className="button email-button" href={emailUrl} target="_blank" rel="noreferrer">Enviar cópia por Gmail <span>↗</span></a>}<button onClick={closeCart}>Voltar ao acervo</button></div> : cart.length === 0 ? <div className="empty-cart"><p>Sua seleção está vazia. Explore a galeria e escolha as obras de seu interesse.</p><a className="button primary" href="#acervo" onClick={closeCart}>Explorar acervo <span>→</span></a></div> : <form onSubmit={submitPurchaseIntent}><div className="cart-lines">{cart.map((item) => <div className="cart-line" key={item.work.id}><div className={`cart-thumb work-image ${item.work.palette}`}><div className="art-frame"><div className="art-shape shape-one" /><div className="art-shape shape-two" /></div></div><div className="cart-line-info"><small>{item.work.code}</small><strong>{item.work.title}</strong><span>{formatPrice(item.work.price_cents)}</span></div><button type="button" onClick={() => removeFromCart(item.work.id)} aria-label={`Remover ${item.work.title}`}>Remover</button></div>)}</div><div className="cart-total"><span>Valor total da seleção</span><strong>{formatPrice(totalCents)}</strong></div><div className="contact-fields"><label>Nome completo<input name="name" required minLength={2} maxLength={120} autoComplete="name" placeholder="Como devemos chamar você?" /></label><label>E-mail<input name="email" type="email" required maxLength={160} autoComplete="email" placeholder="voce@email.com" /></label><label>WhatsApp<input name="phone" type="tel" required minLength={8} maxLength={40} autoComplete="tel" placeholder="(11) 99999-9999" /></label></div><div className="in-person-note"><strong>Sem pagamento online</strong><p>Você está registrando interesse nestas obras. A equipe confirmará a disponibilidade e concluirá a compra presencialmente no evento.</p></div><button className="button primary submit-intent" disabled={submitting}>{submitting ? "Registrando intenção…" : "Registrar intenção de compra"}<span>→</span></button><small className="form-consent">Ao enviar, você concorda em ser contatado pela equipe sobre esta seleção.</small></form>}
+      </section></div>}
     </main>
   );
 }

@@ -21,28 +21,33 @@ test("admin uses protected Supabase access and includes a safe demo", async () =
   assert.match(supabase, /ADMIN_EMAIL\s*=\s*"ribeiroleonardoti@gmail\.com"/);
   assert.match(admin, /admin_get_proposals/);
   assert.match(admin, /admin_update_cart_status/);
+  assert.match(admin, /groupByPerson/);
+  assert.match(admin, /Intenções por pessoa/);
   assert.match(admin, /Modo demonstração/);
   assert.match(admin, /Nenhum dado real foi modificado/);
 });
 
-test("catalog provides an expandable full-screen gallery and bidding flow", async () => {
+test("catalog provides fixed prices, full-screen gallery and purchase-intent flow", async () => {
   const catalog = await read("app/Catalog.tsx");
   const css = await read("app/globals.css");
-  assert.match(catalog, /Abrir galeria de obras/);
+  assert.match(catalog, /Abrir galeria/);
   assert.match(catalog, /role="dialog" aria-modal="true" aria-labelledby="gallery-title"/);
   assert.match(catalog, /aria-label="Fechar galeria"/);
   assert.match(catalog, /galleryCloseRef\.current\?\.focus/);
   assert.match(catalog, /mobile-catalog-link/);
-  assert.match(catalog, /submit_auction_cart/);
-  assert.match(catalog, /Minha sacola de lances/);
-  assert.match(catalog, /Nenhuma obra foi reservada ou cobrada/);
+  assert.match(catalog, /price_cents/);
+  assert.match(catalog, /submit_purchase_intent/);
+  assert.match(catalog, /Intenção de compra/);
+  assert.match(catalog, /Sem pagamento online/);
+  assert.doesNotMatch(catalog, /updateAmount|MAX_BID|type="number"/);
   assert.doesNotMatch(catalog, /fallbackWorks/);
   assert.match(css, /\.gallery-overlay\s*\{[^}]*position:\s*fixed/);
-  assert.match(catalog, /gallery-remainder-/);
   assert.match(catalog, /IntersectionObserver/);
   assert.match(catalog, /requestAnimationFrame/);
   assert.match(css, /\.gallery-grid\s*\{[^}]*grid-template-columns:\s*repeat\(5/);
-  assert.match(css, /@media \(max-width:\s*950px\)[\s\S]*\.gallery-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3/);
+  assert.match(css, /@media \(max-width:\s*1200px\)[\s\S]*\.gallery-grid\s*\{[^}]*grid-template-columns:\s*repeat\(4/);
+  assert.match(css, /@media \(max-width:\s*950px\)[\s\S]*\.gallery-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2/);
+  assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*\.gallery-grid\s*\{[^}]*grid-template-columns:\s*1fr/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(css, /position:\s*sticky;\s*top:\s*0/);
   assert.match(css, /\.mobile-catalog-link\s*\{[^}]*display:\s*none/);
