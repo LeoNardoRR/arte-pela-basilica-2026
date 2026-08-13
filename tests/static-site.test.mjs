@@ -8,4 +8,9 @@ test("builds a GitHub Pages-ready catalog", async () => {
   assert.match(html, /Arte pela Basílica/);
   assert.match(html, /assets\/index-/);
   assert.match(html, /favicon\.svg/);
+  assert.match(html, /og\.png/);
+  assert.match(html, /<noscript>/);
+  await access(new URL("../dist/404.html", import.meta.url));
+  await access(new URL("../dist/robots.txt", import.meta.url));
+  await access(new URL("../dist/hero-basilica-v3.jpeg", import.meta.url));
 });

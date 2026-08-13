@@ -15,9 +15,9 @@
     "check": "npm run lint && npm test"
   },
   "dependencies": {
-    "@supabase/supabase-js": "2.112.2",
-    "react": "19.2.6",
-    "react-dom": "19.2.6"
+    "@supabase/supabase-js": "2.112.3",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@types/node": "22.19.19",

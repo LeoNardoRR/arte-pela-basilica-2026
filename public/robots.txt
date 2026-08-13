@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /
+
+# Ambiente temporário de validação. Liberar a indexação somente no domínio de produção.
