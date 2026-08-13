@@ -20,6 +20,7 @@ const statusActions: Record<IntentStatus, Array<{ status: IntentStatus; label: s
 
 function authRedirectUrl() { const redirect = new URL(window.location.origin); redirect.search = "?admin=1"; return redirect.toString(); }
 function cleanAdminUrl() { if (window.location.search || window.location.hash.includes("access_token=")) window.history.replaceState({}, "", `${window.location.pathname}#admin`); }
+function resetButtonLabel(seconds: number) { return seconds >= 60 ? `Reenviar em ${Math.ceil(seconds / 60)} min` : `Reenviar em ${seconds}s`; }
 
 function groupByPerson(intents: Intent[]): PersonGroup[] {
   const groups = new Map<string, PersonGroup>();
@@ -89,8 +90,9 @@ export function Admin() {
     setLoading(true); setNotice("");
     if (username.trim().toLowerCase() !== ADMIN_EMAIL) { setNotice("Informe o usuário administrador cadastrado."); setLoading(false); return; }
     const { error } = await supabase.auth.resetPasswordForEmail(ADMIN_EMAIL, { redirectTo: authRedirectUrl() });
-    setResetCooldown(60);
-    setNotice(error ? "O e-mail foi solicitado há pouco. Aguarde 1 minuto antes de tentar novamente." : `Enviamos para ${ADMIN_EMAIL} o link seguro. Abra o e-mail mais recente e toque em “Redefinir senha”.`);
+    const shortWait = Boolean(error && /after \d+ seconds/i.test(error.message));
+    setResetCooldown(error && !shortWait ? 3600 : 60);
+    setNotice(error ? (shortWait ? "O e-mail foi solicitado há pouco. Aguarde 1 minuto antes de tentar novamente." : "O limite temporário de 2 e-mails por hora foi atingido. Aguarde até 1 hora e tente novamente.") : `Enviamos para ${ADMIN_EMAIL} o link seguro. Abra o e-mail mais recente e toque em “Redefinir senha”.`);
     setLoading(false);
   }
 
@@ -132,7 +134,7 @@ export function Admin() {
   let content;
   if (!authReady) content = <p className="admin-notice">Verificando acesso seguro…</p>;
   else if (recoveryMode && session) content = <div className="admin-login"><p className="section-kicker">Primeiro acesso ou recuperação</p><h1>Crie sua nova senha</h1><p>Escolha uma senha com pelo menos 8 caracteres para proteger o painel administrativo.</p><form className="admin-auth-form" onSubmit={saveNewPassword}><label>Nova senha<input name="new-password" type="password" required minLength={8} autoComplete="new-password" placeholder="Mínimo de 8 caracteres" /></label><label>Confirmar senha<input name="confirm-password" type="password" required minLength={8} autoComplete="new-password" placeholder="Digite novamente" /></label><button className="button primary" disabled={loading}>{loading ? "Salvando…" : "Salvar senha e acessar"}<span>→</span></button></form>{notice && <p className="admin-notice" role="status">{notice}</p>}</div>;
-  else if (!session) content = <div className="admin-login"><p className="section-kicker">Área restrita</p><h1>Acesso administrativo</h1><p>Entre com o usuário e a senha da equipe para consultar e administrar as intenções de compra.</p><form className="admin-auth-form" onSubmit={login}><label>Usuário<input name="username" type="email" required autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} placeholder="seu@email.com" /></label><label>Senha<input name="password" type="password" required minLength={8} autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Digite sua senha" /></label><button className="button primary" disabled={loading}>{loading ? "Entrando…" : "Entrar no painel"}<span>→</span></button><button type="button" className="password-reset-button" onClick={requestPasswordReset} disabled={loading || resetCooldown > 0}>{resetCooldown > 0 ? `Reenviar em ${resetCooldown}s` : "Criar ou redefinir senha"}</button></form>{notice && <p className="admin-notice" role="status">{notice}</p>}</div>;
+  else if (!session) content = <div className="admin-login"><p className="section-kicker">Área restrita</p><h1>Acesso administrativo</h1><p>Entre com o usuário e a senha da equipe para consultar e administrar as intenções de compra.</p><form className="admin-auth-form" onSubmit={login}><label>Usuário<input name="username" type="email" required autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} placeholder="seu@email.com" /></label><label>Senha<input name="password" type="password" required minLength={8} autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Digite sua senha" /></label><button className="button primary" disabled={loading}>{loading ? "Entrando…" : "Entrar no painel"}<span>→</span></button><button type="button" className="password-reset-button" onClick={requestPasswordReset} disabled={loading || resetCooldown > 0}>{resetCooldown > 0 ? resetButtonLabel(resetCooldown) : "Criar ou redefinir senha"}</button></form>{notice && <p className="admin-notice" role="status">{notice}</p>}</div>;
   else if (!authorized) content = <div className="admin-login"><p className="section-kicker">Acesso negado</p><h1>Conta não autorizada</h1><p>Esta conta não possui permissão para consultar dados administrativos.</p><button className="button primary" onClick={logout}>Sair desta conta <span>→</span></button></div>;
   else content = <div>
     <div className="admin-title"><div><p className="section-kicker">Painel administrativo</p><h1>Intenções por pessoa</h1><p>Cada pessoa reúne seus pedidos, obras selecionadas e valor total para atendimento presencial.</p></div><button className="admin-refresh" onClick={loadProposals} disabled={loading}>{loading ? "Atualizando…" : "Atualizar dados"}</button></div>
