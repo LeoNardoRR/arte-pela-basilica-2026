@@ -17,16 +17,13 @@ test("admin uses protected Supabase access and has no public demo", async () => 
   const admin = await read("app/Admin.tsx");
   const supabase = await read("app/supabase.ts");
   assert.match(admin, /signInWithPassword/);
-  assert.match(admin, /resetPasswordForEmail/);
-  assert.match(admin, /PASSWORD_RECOVERY/);
-  assert.match(admin, /updateUser\(\{ password:/);
   assert.match(supabase, /ADMIN_EMAIL\s*=\s*"ribeiroleonardoti@gmail\.com"/);
   assert.match(admin, /admin_get_proposals/);
   assert.match(admin, /admin_update_cart_status/);
   assert.match(admin, /groupByPerson/);
   assert.match(admin, /Intenções por pessoa/);
-  assert.match(admin, /resetCooldown/);
-  assert.doesNotMatch(admin, /Visualizar demonstração|Modo demonstração|demoMode|demoIntents/);
+  assert.match(admin, /Somente o usuário autorizado e a senha fixa/);
+  assert.doesNotMatch(admin, /resetPasswordForEmail|PASSWORD_RECOVERY|updateUser\(\{ password:|Criar ou redefinir senha|Visualizar demonstração|Modo demonstração|demoMode|demoIntents/);
 });
 
 test("catalog provides fixed prices, full-screen gallery and purchase-intent flow", async () => {

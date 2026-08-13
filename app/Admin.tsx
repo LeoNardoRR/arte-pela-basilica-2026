@@ -18,9 +18,7 @@ const statusActions: Record<IntentStatus, Array<{ status: IntentStatus; label: s
   declined: [], paid: [],
 };
 
-function authRedirectUrl() { const redirect = new URL(window.location.origin); redirect.search = "?admin=1"; return redirect.toString(); }
 function cleanAdminUrl() { if (window.location.search || window.location.hash.includes("access_token=")) window.history.replaceState({}, "", `${window.location.pathname}#admin`); }
-function resetButtonLabel(seconds: number) { return seconds >= 60 ? `Reenviar em ${Math.ceil(seconds / 60)} min` : `Reenviar em ${seconds}s`; }
 
 function groupByPerson(intents: Intent[]): PersonGroup[] {
   const groups = new Map<string, PersonGroup>();
@@ -46,8 +44,6 @@ export function Admin() {
   const [statusFilter, setStatusFilter] = useState<"all" | IntentStatus>("all");
   const [username, setUsername] = useState(ADMIN_EMAIL);
   const [password, setPassword] = useState("");
-  const [recoveryMode, setRecoveryMode] = useState(() => typeof window !== "undefined" && window.location.hash.includes("type=recovery"));
-  const [resetCooldown, setResetCooldown] = useState(0);
   const authorized = session?.user.email?.toLowerCase() === ADMIN_EMAIL;
 
   const loadProposals = useCallback(async () => {
@@ -61,7 +57,7 @@ export function Admin() {
   useEffect(() => {
     let active = true;
     supabase.auth.getSession().then(({ data }) => { if (!active) return; setSession(data.session); setAuthReady(true); if (data.session) cleanAdminUrl(); });
-    const { data } = supabase.auth.onAuthStateChange((event, nextSession) => { if (!active) return; setSession(nextSession); setAuthReady(true); if (event === "PASSWORD_RECOVERY") setRecoveryMode(true); if (nextSession) cleanAdminUrl(); });
+    const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => { if (!active) return; setSession(nextSession); setAuthReady(true); if (nextSession) cleanAdminUrl(); });
     return () => { active = false; data.subscription.unsubscribe(); };
   }, []);
   useEffect(() => {
@@ -69,12 +65,6 @@ export function Admin() {
     const timer = window.setTimeout(() => void loadProposals(), 0);
     return () => window.clearTimeout(timer);
   }, [authorized, loadProposals]);
-  useEffect(() => {
-    if (resetCooldown <= 0) return;
-    const timer = window.setInterval(() => setResetCooldown((current) => Math.max(0, current - 1)), 1000);
-    return () => window.clearInterval(timer);
-  }, [resetCooldown]);
-
   async function login(event: FormEvent) {
     event.preventDefault(); setLoading(true); setNotice("");
     const email = username.trim().toLowerCase();
@@ -82,30 +72,6 @@ export function Admin() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setNotice(error ? "Usuário ou senha incorretos." : "Acesso autorizado.");
     if (!error) setPassword("");
-    setLoading(false);
-  }
-
-  async function requestPasswordReset() {
-    if (resetCooldown > 0) return;
-    setLoading(true); setNotice("");
-    if (username.trim().toLowerCase() !== ADMIN_EMAIL) { setNotice("Informe o usuário administrador cadastrado."); setLoading(false); return; }
-    const { error } = await supabase.auth.resetPasswordForEmail(ADMIN_EMAIL, { redirectTo: authRedirectUrl() });
-    const shortWait = Boolean(error && /after \d+ seconds/i.test(error.message));
-    setResetCooldown(error && !shortWait ? 3600 : 60);
-    setNotice(error ? (shortWait ? "O e-mail foi solicitado há pouco. Aguarde 1 minuto antes de tentar novamente." : "O limite temporário de 2 e-mails por hora foi atingido. Aguarde até 1 hora e tente novamente.") : `Enviamos para ${ADMIN_EMAIL} o link seguro. Abra o e-mail mais recente e toque em “Redefinir senha”.`);
-    setLoading(false);
-  }
-
-  async function saveNewPassword(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setLoading(true); setNotice("");
-    const form = new FormData(event.currentTarget);
-    const newPassword = String(form.get("new-password") || "");
-    const confirmation = String(form.get("confirm-password") || "");
-    if (newPassword.length < 8) { setNotice("A senha precisa ter pelo menos 8 caracteres."); setLoading(false); return; }
-    if (newPassword !== confirmation) { setNotice("As duas senhas precisam ser iguais."); setLoading(false); return; }
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
-    if (error) setNotice("Não foi possível salvar a senha. Solicite um novo link e tente novamente.");
-    else { setRecoveryMode(false); setNotice("Senha criada com sucesso. Seu painel já está liberado."); cleanAdminUrl(); }
     setLoading(false);
   }
 
@@ -133,8 +99,7 @@ export function Admin() {
 
   let content;
   if (!authReady) content = <p className="admin-notice">Verificando acesso seguro…</p>;
-  else if (recoveryMode && session) content = <div className="admin-login"><p className="section-kicker">Primeiro acesso ou recuperação</p><h1>Crie sua nova senha</h1><p>Escolha uma senha com pelo menos 8 caracteres para proteger o painel administrativo.</p><form className="admin-auth-form" onSubmit={saveNewPassword}><label>Nova senha<input name="new-password" type="password" required minLength={8} autoComplete="new-password" placeholder="Mínimo de 8 caracteres" /></label><label>Confirmar senha<input name="confirm-password" type="password" required minLength={8} autoComplete="new-password" placeholder="Digite novamente" /></label><button className="button primary" disabled={loading}>{loading ? "Salvando…" : "Salvar senha e acessar"}<span>→</span></button></form>{notice && <p className="admin-notice" role="status">{notice}</p>}</div>;
-  else if (!session) content = <div className="admin-login"><p className="section-kicker">Área restrita</p><h1>Acesso administrativo</h1><p>Entre com o usuário e a senha da equipe para consultar e administrar as intenções de compra.</p><form className="admin-auth-form" onSubmit={login}><label>Usuário<input name="username" type="email" required autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} placeholder="seu@email.com" /></label><label>Senha<input name="password" type="password" required minLength={8} autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Digite sua senha" /></label><button className="button primary" disabled={loading}>{loading ? "Entrando…" : "Entrar no painel"}<span>→</span></button><button type="button" className="password-reset-button" onClick={requestPasswordReset} disabled={loading || resetCooldown > 0}>{resetCooldown > 0 ? resetButtonLabel(resetCooldown) : "Criar ou redefinir senha"}</button></form>{notice && <p className="admin-notice" role="status">{notice}</p>}</div>;
+  else if (!session) content = <div className="admin-login"><p className="section-kicker">Área restrita</p><h1>Acesso administrativo</h1><p>Somente o usuário autorizado e a senha fixa da equipe liberam este painel.</p><form className="admin-auth-form" onSubmit={login}><label>Usuário autorizado<input name="username" type="email" required readOnly autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} /></label><label>Senha<input name="password" type="password" required minLength={16} autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Digite a senha administrativa" /></label><button className="button primary" disabled={loading}>{loading ? "Entrando…" : "Entrar no painel"}<span>→</span></button></form>{notice && <p className="admin-notice" role="status">{notice}</p>}</div>;
   else if (!authorized) content = <div className="admin-login"><p className="section-kicker">Acesso negado</p><h1>Conta não autorizada</h1><p>Esta conta não possui permissão para consultar dados administrativos.</p><button className="button primary" onClick={logout}>Sair desta conta <span>→</span></button></div>;
   else content = <div>
     <div className="admin-title"><div><p className="section-kicker">Painel administrativo</p><h1>Intenções por pessoa</h1><p>Cada pessoa reúne seus pedidos, obras selecionadas e valor total para atendimento presencial.</p></div><button className="admin-refresh" onClick={loadProposals} disabled={loading}>{loading ? "Atualizando…" : "Atualizar dados"}</button></div>
