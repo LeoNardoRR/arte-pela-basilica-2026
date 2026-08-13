@@ -51,6 +51,9 @@ export function Admin() {
   const [statusFilter, setStatusFilter] = useState<"all" | IntentStatus>("all");
   const [demoMode, setDemoMode] = useState(false);
   const [demoIntents, setDemoIntents] = useState<Intent[]>(demoIntentsSeed);
+  const [username, setUsername] = useState(ADMIN_EMAIL);
+  const [password, setPassword] = useState("");
+  const [recoveryMode, setRecoveryMode] = useState(() => typeof window !== "undefined" && window.location.hash.includes("type=recovery"));
   const authorized = session?.user.email?.toLowerCase() === ADMIN_EMAIL;
 
   const loadProposals = useCallback(async () => {
@@ -64,7 +67,7 @@ export function Admin() {
   useEffect(() => {
     let active = true;
     supabase.auth.getSession().then(({ data }) => { if (!active) return; setSession(data.session); setAuthReady(true); if (data.session) cleanAdminUrl(); });
-    const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => { if (!active) return; setSession(nextSession); setAuthReady(true); if (nextSession) cleanAdminUrl(); });
+    const { data } = supabase.auth.onAuthStateChange((event, nextSession) => { if (!active) return; setSession(nextSession); setAuthReady(true); if (event === "PASSWORD_RECOVERY") setRecoveryMode(true); if (nextSession) cleanAdminUrl(); });
     return () => { active = false; data.subscription.unsubscribe(); };
   }, []);
   useEffect(() => {
@@ -73,10 +76,34 @@ export function Admin() {
     return () => window.clearTimeout(timer);
   }, [authorized, loadProposals]);
 
-  async function requestAccess(event: FormEvent) {
+  async function login(event: FormEvent) {
     event.preventDefault(); setLoading(true); setNotice("");
-    const { error } = await supabase.auth.signInWithOtp({ email: ADMIN_EMAIL, options: { emailRedirectTo: authRedirectUrl(), shouldCreateUser: true } });
-    setNotice(error ? "Não foi possível enviar o link agora. Aguarde um minuto e tente novamente." : `Link seguro enviado para ${ADMIN_EMAIL}. Abra o e-mail no mesmo navegador para acessar.`);
+    const email = username.trim().toLowerCase();
+    if (email !== ADMIN_EMAIL) { setNotice("Usuário ou senha incorretos."); setLoading(false); return; }
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setNotice(error ? "Usuário ou senha incorretos." : "Acesso autorizado.");
+    if (!error) setPassword("");
+    setLoading(false);
+  }
+
+  async function requestPasswordReset() {
+    setLoading(true); setNotice("");
+    if (username.trim().toLowerCase() !== ADMIN_EMAIL) { setNotice("Informe o usuário administrador cadastrado."); setLoading(false); return; }
+    const { error } = await supabase.auth.resetPasswordForEmail(ADMIN_EMAIL, { redirectTo: authRedirectUrl() });
+    setNotice(error ? "Não foi possível enviar o e-mail agora. Aguarde um minuto e tente novamente." : `Enviamos para ${ADMIN_EMAIL} o link seguro para criar ou redefinir sua senha.`);
+    setLoading(false);
+  }
+
+  async function saveNewPassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setLoading(true); setNotice("");
+    const form = new FormData(event.currentTarget);
+    const newPassword = String(form.get("new-password") || "");
+    const confirmation = String(form.get("confirm-password") || "");
+    if (newPassword.length < 8) { setNotice("A senha precisa ter pelo menos 8 caracteres."); setLoading(false); return; }
+    if (newPassword !== confirmation) { setNotice("As duas senhas precisam ser iguais."); setLoading(false); return; }
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) setNotice("Não foi possível salvar a senha. Solicite um novo link e tente novamente.");
+    else { setRecoveryMode(false); setNotice("Senha criada com sucesso. Seu painel já está liberado."); cleanAdminUrl(); }
     setLoading(false);
   }
 
@@ -106,7 +133,8 @@ export function Admin() {
 
   let content;
   if (!authReady) content = <p className="admin-notice">Verificando acesso seguro…</p>;
-  else if (!session && !demoMode) content = <div className="admin-login"><p className="section-kicker">Área restrita</p><h1>Gestão de intenções</h1><p>O painel é exclusivo da equipe. Um link temporário será enviado ao e-mail administrador cadastrado.</p><form onSubmit={requestAccess}><button className="button primary" disabled={loading}>{loading ? "Enviando…" : "Enviar link de acesso"}<span>→</span></button></form><div className="admin-demo-entry"><span>ou</span><button type="button" className="button demo-button" onClick={() => { setDemoMode(true); setNotice(""); }}>Visualizar demonstração <span>→</span></button><small>Dados fictícios, sem alteração no acervo real.</small></div>{notice && <p className="admin-notice" role="status">{notice}</p>}</div>;
+  else if (recoveryMode && session) content = <div className="admin-login"><p className="section-kicker">Primeiro acesso ou recuperação</p><h1>Crie sua nova senha</h1><p>Escolha uma senha com pelo menos 8 caracteres para proteger o painel administrativo.</p><form className="admin-auth-form" onSubmit={saveNewPassword}><label>Nova senha<input name="new-password" type="password" required minLength={8} autoComplete="new-password" placeholder="Mínimo de 8 caracteres" /></label><label>Confirmar senha<input name="confirm-password" type="password" required minLength={8} autoComplete="new-password" placeholder="Digite novamente" /></label><button className="button primary" disabled={loading}>{loading ? "Salvando…" : "Salvar senha e acessar"}<span>→</span></button></form>{notice && <p className="admin-notice" role="status">{notice}</p>}</div>;
+  else if (!session && !demoMode) content = <div className="admin-login"><p className="section-kicker">Área restrita</p><h1>Acesso administrativo</h1><p>Entre com o usuário e a senha da equipe para consultar e administrar as intenções de compra.</p><form className="admin-auth-form" onSubmit={login}><label>Usuário<input name="username" type="email" required autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} placeholder="seu@email.com" /></label><label>Senha<input name="password" type="password" required minLength={8} autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Digite sua senha" /></label><button className="button primary" disabled={loading}>{loading ? "Entrando…" : "Entrar no painel"}<span>→</span></button><button type="button" className="password-reset-button" onClick={requestPasswordReset} disabled={loading}>Criar ou redefinir senha</button></form><div className="admin-demo-entry"><span>ou</span><button type="button" className="button demo-button" onClick={() => { setDemoMode(true); setNotice(""); }}>Visualizar demonstração <span>→</span></button><small>Dados fictícios, sem alteração no acervo real.</small></div>{notice && <p className="admin-notice" role="status">{notice}</p>}</div>;
   else if (!authorized && !demoMode) content = <div className="admin-login"><p className="section-kicker">Acesso negado</p><h1>Conta não autorizada</h1><p>Esta conta não possui permissão para consultar dados administrativos.</p><button className="button primary" onClick={logout}>Sair desta conta <span>→</span></button></div>;
   else content = <div>{demoMode && <div className="demo-banner" role="status"><strong>Modo demonstração</strong><span>Filtros e status usam somente dados fictícios. Nenhuma alteração será salva.</span></div>}
     <div className="admin-title"><div><p className="section-kicker">{demoMode ? "Ambiente de teste" : "Painel administrativo"}</p><h1>{demoMode ? "Visão do painel" : "Intenções por pessoa"}</h1><p>Cada pessoa reúne seus pedidos, obras selecionadas e valor total para atendimento presencial.</p></div>{!demoMode && <button className="admin-refresh" onClick={loadProposals} disabled={loading}>{loading ? "Atualizando…" : "Atualizar dados"}</button>}</div>

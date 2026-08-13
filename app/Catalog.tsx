@@ -286,6 +286,7 @@ export function Catalog() {
         <a className="brand" href="#inicio" aria-label="Basílica Santo Antônio — início"><img src={BASILICA_CREST} alt="Brasão da Basílica Santo Antônio" /><span><strong>Basílica</strong><small>Santo Antônio</small></span></a>
         <nav aria-label="Navegação principal"><a href="#exposicao">A exposição</a><a href="#acervo">Acervo</a><a href="#como-participar">Como adquirir</a><a href="#contato">Contato</a></nav>
         <a className="mobile-catalog-link" href="#acervo">Acervo</a>
+        <a className="admin-menu-link" href="#admin" aria-label="Acessar área administrativa">Administrativo</a>
         <button className="cart-trigger" onClick={() => setCartOpen(true)} aria-label={`Abrir seleção com ${cart.length} obras`}><span>Minha seleção</span><b>{cart.length}</b></button>
       </header>
 

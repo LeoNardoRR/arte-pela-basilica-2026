@@ -16,8 +16,10 @@ test("admin route survives hash navigation and auth redirects", async () => {
 test("admin uses protected Supabase access and includes a safe demo", async () => {
   const admin = await read("app/Admin.tsx");
   const supabase = await read("app/supabase.ts");
-  assert.match(admin, /signInWithOtp/);
-  assert.match(admin, /shouldCreateUser:\s*true/);
+  assert.match(admin, /signInWithPassword/);
+  assert.match(admin, /resetPasswordForEmail/);
+  assert.match(admin, /PASSWORD_RECOVERY/);
+  assert.match(admin, /updateUser\(\{ password:/);
   assert.match(supabase, /ADMIN_EMAIL\s*=\s*"ribeiroleonardoti@gmail\.com"/);
   assert.match(admin, /admin_get_proposals/);
   assert.match(admin, /admin_update_cart_status/);
@@ -35,6 +37,7 @@ test("catalog provides fixed prices, full-screen gallery and purchase-intent flo
   assert.match(catalog, /aria-label="Fechar galeria"/);
   assert.match(catalog, /galleryCloseRef\.current\?\.focus/);
   assert.match(catalog, /mobile-catalog-link/);
+  assert.match(catalog, /className="admin-menu-link" href="#admin"/);
   assert.match(catalog, /price_cents/);
   assert.match(catalog, /submit_purchase_intent/);
   assert.match(catalog, /Intenção de compra/);
