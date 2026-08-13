@@ -31,13 +31,6 @@ body { margin: 0; background: var(--ivory); color: var(--ink); font-family: "Int
 .admin-auth-form .button { width: 100%; min-width: 0; margin-top: 3px; }
 .password-reset-button { border: 0; padding: 5px; background: transparent; color: var(--navy-2); cursor: pointer; font-size: 11px; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
 .password-reset-button:disabled { cursor: wait; opacity: .55; }
-.admin-demo-entry { display: grid; gap: 12px; margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--line); text-align: center; }
-.admin-demo-entry > span { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .12em; }
-.admin-demo-entry small { color: var(--muted); line-height: 1.5; }
-.button.demo-button { min-width: 0; width: 100%; border: 1px solid #c8cbe8; background: #f0f1fb; color: var(--navy); }
-.button.demo-button:hover { background: #e4e6f7; }
-.demo-banner { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 28px; padding: 16px 18px; border: 1px solid #d6c28f; border-radius: 11px; background: #fff8e7; color: #61480d; font-size: 12px; }
-.demo-banner span { color: #765f27; }
 .admin-title { display: flex; justify-content: space-between; align-items: end; gap: 32px; margin-bottom: 32px; }
 .admin-title > div > p:last-child { max-width: 680px; margin: 14px 0 0; color: var(--muted); font-size: 13px; line-height: 1.65; }
 .admin-refresh { color: var(--navy); font-weight: 700; }
@@ -394,7 +387,6 @@ footer p:last-child { text-align: right; }
   .admin-title { align-items: start; flex-direction: column; }
   .admin-stats { grid-template-columns: 1fr; }
   .admin-toolbar { align-items: stretch; flex-direction: column; }
-  .demo-banner { align-items: flex-start; flex-direction: column; }
   .intent-top { flex-direction: column; }
   .intent-card li { align-items: flex-start; flex-direction: column; gap: 3px; }
   .person-head { padding: 21px 18px; grid-template-columns: 45px 1fr; align-items: start; }

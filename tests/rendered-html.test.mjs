@@ -13,7 +13,7 @@ test("admin route survives hash navigation and auth redirects", async () => {
   assert.match(page, /hashchange/);
 });
 
-test("admin uses protected Supabase access and includes a safe demo", async () => {
+test("admin uses protected Supabase access and has no public demo", async () => {
   const admin = await read("app/Admin.tsx");
   const supabase = await read("app/supabase.ts");
   assert.match(admin, /signInWithPassword/);
@@ -25,8 +25,8 @@ test("admin uses protected Supabase access and includes a safe demo", async () =
   assert.match(admin, /admin_update_cart_status/);
   assert.match(admin, /groupByPerson/);
   assert.match(admin, /Intenções por pessoa/);
-  assert.match(admin, /Modo demonstração/);
-  assert.match(admin, /Nenhum dado real foi modificado/);
+  assert.match(admin, /resetCooldown/);
+  assert.doesNotMatch(admin, /Visualizar demonstração|Modo demonstração|demoMode|demoIntents/);
 });
 
 test("catalog provides fixed prices, full-screen gallery and purchase-intent flow", async () => {
