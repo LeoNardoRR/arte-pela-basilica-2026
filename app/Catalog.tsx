@@ -270,6 +270,8 @@ export function Catalog() {
   const previewWorks = works.filter((work) => work.status === "available").slice(0, 3);
   const totalCents = cart.reduce((sum, item) => sum + item.work.price_cents, 0);
 
+  const [openedFromGallery, setOpenedFromGallery] = useState(false);
+
   function openGallery() {
     setFilter("available");
     setGalleryOpen(true);
@@ -292,11 +294,16 @@ export function Catalog() {
     setCartOpen(false);
     setMessage("");
     setEmailUrl("");
+    if (openedFromGallery) {
+      setGalleryOpen(true);
+      setOpenedFromGallery(false);
+    }
   }
 
-  function openFloatingCart() {
+  function openFloatingCart(fromGallery = false) {
     setSelectedWork(null);
-    setGalleryOpen(false);
+    setOpenedFromGallery(fromGallery);
+    if (fromGallery) setGalleryOpen(false);
     setCartOpen(true);
   }
 
@@ -307,7 +314,7 @@ export function Catalog() {
       <button
         className={`floating-cart floating-cart-${context} ${isExpanded ? "expanded" : "compact"}`}
         type="button"
-        onClick={openFloatingCart}
+        onClick={() => openFloatingCart(context === "gallery")}
         aria-label={`Abrir minha seleção com ${itemLabel}`}
       >
         <span className="selection-bag-icon" aria-hidden="true" />
