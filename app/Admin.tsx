@@ -56,7 +56,16 @@ export function Admin() {
   const [statusFilter, setStatusFilter] = useState<"all" | IntentStatus>("all");
   const [username, setUsername] = useState(ADMIN_EMAIL);
   const [password, setPassword] = useState("");
-  const authorized = session?.user.email?.toLowerCase() === ADMIN_EMAIL;
+  const [openKeys, setOpenKeys] = useState<Set<string>>(new Set());
+
+  const togglePersonOpen = (key: string) => {
+    setOpenKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
 
   const loadProposals = useCallback(async () => {
     setLoading(true); setNotice("");
@@ -120,12 +129,12 @@ export function Admin() {
     {notice && <p className="admin-notice" role="status">{notice}</p>}
     <section className="admin-queue" aria-labelledby="queue-title"><div className="admin-section-heading queue-heading"><div><span className="admin-section-index">02</span><div><p>Organização por pessoa</p><h2 id="queue-title">Fila de atendimento</h2></div></div><small>{people.length} {people.length === 1 ? "pessoa neste filtro" : "pessoas neste filtro"}</small></div>
     <div className="admin-toolbar" aria-label="Filtrar intenções por status">{statusFilters.map((filter) => <button type="button" key={filter.value} className={statusFilter === filter.value ? "active" : ""} aria-pressed={statusFilter === filter.value} onClick={() => setStatusFilter(filter.value)}><span>{filter.label}</span><b>{statusCount(filter.value)}</b></button>)}</div>
-    {loading && !displayedIntents.length ? <p className="admin-notice">Carregando registros…</p> : <div className="people-list">{people.length ? people.map((person) => <details className="person-card" key={person.key}>
-      <summary className="person-summary">
+    {loading && !displayedIntents.length ? <p className="admin-notice">Carregando registros…</p> : <div className="people-list">{people.length ? people.map((person) => <details className="person-card" key={person.key} open={openKeys.has(person.key)}>
+      <summary className="person-summary" onClick={(e) => { e.preventDefault(); togglePersonOpen(person.key); }}>
         <span className="person-avatar" aria-hidden="true">{person.name.charAt(0).toUpperCase()}</span>
         <span className="person-identity"><span className="person-label">Pessoa interessada</span><strong>{person.name}</strong><small>{person.items.length} {person.items.length === 1 ? "obra selecionada" : "obras selecionadas"} · Atualizado em {new Date(person.latest_at).toLocaleDateString("pt-BR")}</small></span>
         <span className="person-total"><span>Valor total ativo</span><strong>{money.format(person.total_cents / 100)}</strong><small>{person.activeCount} {person.activeCount === 1 ? "intenção ativa" : "intenções ativas"}</small></span>
-        <span className="person-expand" aria-hidden="true"><b>Ver detalhes</b><i /></span>
+        <span className="person-expand" aria-hidden="true"><b>{openKeys.has(person.key) ? "Ocultar detalhes" : "Ver detalhes"}</b><i /></span>
       </summary>
       <div className="person-body">
         <div className="person-contact-panel"><div><span>Contato direto</span><strong>{person.name}</strong></div><div className="intent-contact"><a href={`tel:${person.phone}`}><small>Telefone</small><b>{person.phone}</b></a><a href={`mailto:${person.email}`}><small>E-mail</small><b>{person.email}</b></a></div></div>
