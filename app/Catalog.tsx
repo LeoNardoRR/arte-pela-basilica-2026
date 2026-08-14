@@ -466,9 +466,8 @@ export function Catalog() {
       <header className="site-header">
         <a className="brand" href="#conteudo-principal" aria-label="Basílica Santo Antônio — início"><img src={BASILICA_CREST} alt="Brasão da Basílica Santo Antônio" /><span><strong>Basílica</strong><small>Santo Antônio</small></span></a>
         <nav aria-label="Navegação principal"><a href="#exposicao">A exposição</a><a href="#acervo">Acervo</a><a href="#como-participar">Como adquirir</a><a href="#contato">Contato</a></nav>
-        <button className={`ambient-audio-button ${isPlayingAudio ? "playing" : ""}`} type="button" onClick={toggleAmbientAudio} title="Música ambiente da Basílica">
+        <button className={`ambient-audio-button ${isPlayingAudio ? "playing" : ""}`} type="button" onClick={toggleAmbientAudio} aria-label={isPlayingAudio ? "Desligar som ambiente" : "Ligar som ambiente"} title={isPlayingAudio ? "Som ligado" : "Som ambiente"}>
           <span className="audio-icon" aria-hidden="true">{isPlayingAudio ? "🔊" : "🔈"}</span>
-          <span>{isPlayingAudio ? "Som ligado" : "Som ambiente"}</span>
         </button>
         <a className="mobile-catalog-link" href="#acervo">Acervo</a>
         <a className="admin-menu-link" href="#admin" aria-label="Acessar área administrativa">Administrativo</a>
@@ -481,7 +480,7 @@ export function Catalog() {
         <a className="hero-scroll-cue" href="#exposicao"><span>Descubra a coleção</span><i aria-hidden="true" /></a>
       </section>
 
-      <aside className="event-bar" id="exposicao" data-reveal="up"><div className="event-icon" aria-hidden="true">◇</div><div><span>Exposição presencial</span><strong>10 de setembro de 2026</strong></div><div><span>Encontro</span><strong>Hotel anfitrião · detalhes em breve</strong></div><div><span>Acervo online</span><strong>Disponível até 17 de setembro</strong></div><a href="#acervo">Visitar acervo <ArrowIcon /></a></aside>
+      <aside className="event-bar" id="exposicao" data-reveal="up"><div className="event-icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C12 2 9.5 5.5 10.2 7.8C10.6 9.2 12 9.5 12 9.5C12 9.5 13.4 9.2 13.8 7.8C14.5 5.5 12 2 12 2Z" fill="currentColor" opacity="0.9"/><rect x="10.5" y="9" width="3" height="11" rx="1.5" fill="currentColor" opacity="0.85"/><ellipse cx="12" cy="20.5" rx="3.5" ry="1" fill="currentColor" opacity="0.2"/></svg></div><div><span>Exposição presencial</span><strong>10 de setembro de 2026</strong></div><div><span>Local</span><strong>Av. de Cillo, 820 — Americana, SP</strong></div><div><span>Endereço completo</span><strong>Jd. São Pedro · CEP 13466-550</strong></div><a href="#acervo">Visitar acervo <ArrowIcon /></a></aside>
 
       <section className="intro" data-reveal="up"><p className="section-kicker">Arte pela Basílica</p><h2>Uma coleção com propósito.<br />Uma experiência para guardar.</h2><p className="intro-copy">Cada obra possui valor fixo. Escolha suas peças, registre seu interesse e deixe seus dados. A equipe organizará o atendimento e a conclusão da compra presencialmente no evento.</p><div className="numbers"><div><strong>60</strong><span>obras em exposição</span></div><div><strong>10.09</strong><span>encontro presencial</span></div><div><strong>1 gesto</strong><span>em favor da Basílica</span></div></div></section>
 

@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap");
 
 :root {
   --navy: #000666;
@@ -224,7 +224,9 @@ nav a:hover { color: var(--navy); border-color: var(--gold); }
 .hero-content > :nth-child(3) { animation-delay: .24s; }
 .hero-content > :nth-child(4) { animation-delay: .36s; }
 .eyebrow, .section-kicker { margin: 0 0 19px; color: var(--gold); font-size: 11px; line-height: 1.3; letter-spacing: .17em; text-transform: uppercase; font-weight: 700; }
-.hero h1 { margin: 0; max-width: 900px; font: 700 clamp(47px, 5.7vw, 78px)/1.05 "Playfair Display", serif; letter-spacing: -.025em; }
+.hero .eyebrow { display: inline-flex; align-items: center; gap: 10px; }
+.hero .eyebrow::before { content: ''; display: block; width: 18px; height: 1px; background: var(--gold); flex-shrink: 0; animation: eyebrow-grow 2.5s ease-in-out infinite alternate; }
+.hero h1 { margin: 0; max-width: 900px; font: 700 clamp(52px, 6.4vw, 88px)/0.97 "Cormorant Garamond", serif; letter-spacing: -.015em; }
 .hero-content > p:not(.eyebrow) { max-width: 650px; margin: 27px 0 34px; font-size: 17px; line-height: 1.7; color: rgba(255,255,255,.86); }
 .hero-actions { display: flex; gap: 13px; }
 .button { border: 0; border-radius: 10px; padding: 16px 20px; min-width: 210px; display: inline-flex; align-items: center; justify-content: space-between; gap: 25px; text-transform: uppercase; letter-spacing: .06em; font-size: 11px; font-weight: 700; cursor: pointer; }
@@ -247,7 +249,7 @@ nav a:hover { color: var(--navy); border-color: var(--gold); }
 
 .intro { max-width: 1180px; margin: auto; padding: 120px 0 95px; text-align: center; }
 .section-kicker { color: var(--gold); }
-.intro h2, .catalog-heading h2, .how-section h2, .closing h2, .purchase-modal h2 { margin: 0; color: var(--navy); font: 700 clamp(38px, 4vw, 57px)/1.14 "Playfair Display", serif; letter-spacing: -.02em; }
+.intro h2, .catalog-heading h2, .how-section h2, .closing h2, .purchase-modal h2 { margin: 0; color: var(--navy); font: 700 clamp(44px, 4.6vw, 68px)/1.07 "Cormorant Garamond", serif; letter-spacing: -.012em; }
 .intro-copy { max-width: 730px; margin: 28px auto 65px; color: var(--muted); font-size: 16px; line-height: 1.8; }
 .numbers { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .numbers div { padding: 30px 10px; display: flex; flex-direction: column; gap: 8px; border-right: 1px solid var(--line); }
@@ -261,14 +263,18 @@ nav a:hover { color: var(--navy); border-color: var(--gold); }
 .catalog-expand-button { min-width: 220px; background: white; color: var(--navy); border: 1px solid #dad4cf; }
 .catalog-expand-button:hover { border-color: var(--navy-2); background: var(--navy-2); color: white; }
 .catalog-expand-button:disabled { cursor: wait; opacity: .45; }
-.filters { display: flex; background: white; border: 1px solid var(--line); padding: 4px; border-radius: 4px; }
-.filters button { border: 0; border-radius: 2px; background: transparent; padding: 11px 14px; color: var(--muted); font-size: 11px; cursor: pointer; }
-.filters button.active { color: white; background: var(--navy-2); }
-.filters small { margin-left: 4px; font: inherit; opacity: .66; }
+.filters { display: flex; background: rgba(255,255,255,0.72); border: 1px solid rgba(229,224,220,0.8); padding: 4px; border-radius: 50px; backdrop-filter: blur(8px); gap: 2px; }
+.filters button { border: 0; border-radius: 50px; background: transparent; padding: 9px 15px; color: var(--muted); font-size: 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: all 0.22s ease; white-space: nowrap; }
+.filters button::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #c0b8b0; flex-shrink: 0; transition: background 0.22s; }
+.filters button:nth-child(1)::before { background: #6abf77; }
+.filters button:nth-child(2)::before { background: #c9a0a0; }
+.filters button:nth-child(3)::before { background: var(--gold); }
+.filters button.active { color: var(--navy); background: white; box-shadow: 0 2px 10px rgba(0,6,70,0.1); font-weight: 600; }
+.filters small { margin-left: 1px; font: inherit; opacity: .6; }
 .collection-preview { min-height: 570px; padding: clamp(34px, 5vw, 68px); display: grid; grid-template-columns: .82fr 1.18fr; align-items: center; gap: clamp(40px, 7vw, 95px); overflow: hidden; color: var(--navy); background: #f9f7f2; border-top: 1px solid #d8d0c4; border-bottom: 1px solid #d8d0c4; }
 .collection-copy { position: relative; z-index: 4; }
 .collection-label { color: var(--gold); font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
-.collection-copy h3 { max-width: 500px; margin: 18px 0 20px; font: 700 clamp(34px, 4vw, 52px)/1.08 "Playfair Display", serif; letter-spacing: -.025em; }
+.collection-copy h3 { max-width: 500px; margin: 18px 0 20px; font: 700 clamp(38px, 4.5vw, 60px)/1.04 "Cormorant Garamond", serif; letter-spacing: -.012em; }
 .collection-copy > p { max-width: 520px; margin: 0; color: var(--muted); font-size: 14px; line-height: 1.75; }
 .collection-stats { display: flex; gap: 34px; margin: 30px 0; }
 .collection-stats div { display: grid; gap: 3px; }
@@ -295,7 +301,7 @@ nav a:hover { color: var(--navy); border-color: var(--gold); }
 .gallery-overlay { position: fixed; z-index: 120; inset: 0; overflow-y: auto; background: #f3f0eb; animation: gallery-veil-in .45s ease-out both; }
 .gallery-header { min-height: 118px; padding: 23px max(4vw, calc((100vw - 1380px) / 2)); position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; gap: 35px; border-bottom: 1px solid rgba(220,213,207,.9); background: rgba(251,249,248,.94); backdrop-filter: blur(18px); box-shadow: 0 7px 28px rgba(0,6,70,.06); }
 .gallery-header .section-kicker { margin-bottom: 5px; }
-.gallery-header h2 { margin: 0; color: var(--navy); font: 700 clamp(28px,3vw,42px)/1.05 "Playfair Display", serif; }
+.gallery-header h2 { margin: 0; color: var(--navy); font: 700 clamp(32px,3.4vw,50px)/1.03 "Cormorant Garamond", serif; }
 .gallery-header > div:first-child > span { display: inline-block; margin-top: 5px; color: var(--muted); font-size: 10px; }
 .gallery-actions { display: flex; align-items: center; gap: 15px; }
 .gallery-close { width: 48px; height: 48px; flex: 0 0 auto; border: 1px solid #d7d2ce; border-radius: 50%; background: white; color: var(--navy); cursor: pointer; font-size: 29px; line-height: 1; }
@@ -423,10 +429,11 @@ nav a:hover { color: var(--navy); border-color: var(--gold); }
 .corner-specs li { display: flex; justify-content: space-between; font-size: 10px; }
 .corner-specs span { color: rgba(255, 255, 255, 0.5); }
 .corner-specs strong { color: #fbf9f8; font-weight: 500; }
-.work-card { background: transparent; overflow: visible; border-top: 1px solid #cfc7bc; transition: transform .35s; }
-.work-card:hover { transform: translateY(-4px); }
+.work-card { background: transparent; overflow: visible; border-top: 1px solid #cfc7bc; transition: transform .42s cubic-bezier(.2,.7,.2,1); }
+.work-card:hover { transform: translateY(-8px); }
+.work-card:hover .work-image { box-shadow: 0 -3px 0 rgba(183,144,75,0.38), 0 26px 48px rgba(0,0,0,0.13); }
 .work-visual-button { width: 100%; display: block; border: 0; padding: 0; background: transparent; cursor: zoom-in; }
-.work-image { height: 345px; position: relative; overflow: hidden; background: #ebe7df; transition: transform .45s cubic-bezier(.2,.7,.2,1); }
+.work-image { height: 345px; position: relative; overflow: hidden; background: #ebe7df; transition: transform .45s cubic-bezier(.2,.7,.2,1), box-shadow .42s; }
 .artwork-photo { width: 100%; height: 100%; position: relative; z-index: 1; display: block; object-fit: contain; object-position: center; background: #ebe7df; }
 .work-card:hover .work-visual-button .work-image { transform: scale(1.012); }
 .art-frame { position: absolute; inset: 7%; overflow: hidden; border: 9px solid #efe9df; box-shadow: 0 12px 30px rgba(10,10,20,.22), inset 0 0 0 2px rgba(85,61,28,.35); background: inherit; }
@@ -483,7 +490,7 @@ nav a:hover { color: var(--navy); border-color: var(--gold); }
 .experience-guide strong { font: 600 14px "Playfair Display",serif; }
 .experience-guide span { color: rgba(255,255,255,.58); font-size: 8px; letter-spacing: .06em; }
 .detail-copy { padding: clamp(75px,10vw,150px) max(8vw,calc((100vw - 1180px)/2)); display: grid; grid-template-columns: 1fr .7fr; align-items: end; gap: 12vw; background: #f8f5ef; }
-.detail-copy h3 { margin: 15px 0 8px; color: var(--navy); font: 700 clamp(42px,5vw,70px)/1.02 "Playfair Display",serif; }
+.detail-copy h3 { margin: 15px 0 8px; color: var(--navy); font: 700 clamp(48px,5.6vw,80px)/0.97 "Cormorant Garamond",serif; }
 .detail-artist { margin: 0 0 30px; color: var(--muted); }
 .detail-copy dl { margin: 0; padding: 18px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .detail-copy dl div { padding: 7px 0; display: flex; justify-content: space-between; gap: 20px; font-size: 11px; }
@@ -516,15 +523,20 @@ nav a:hover { color: var(--navy); border-color: var(--gold); }
   from { opacity: 0; transform: translateY(34px) scale(.985); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
+@keyframes eyebrow-grow {
+  from { width: 10px; opacity: 0.5; }
+  to { width: 26px; opacity: 1; }
+}
 
 .how-section { padding: 105px max(5vw, calc((100vw - 1180px) / 2)); background: var(--navy); color: white; display: grid; grid-template-columns: 1fr 1fr; gap: 10%; }
 .section-kicker.light { color: #d8b775; }
 .how-section h2 { color: white; }
 .how-section ol { list-style: none; margin: 0; padding: 0; }
-.how-section li { display: grid; grid-template-columns: 52px 1fr; gap: 20px; border-top: 1px solid rgba(255,255,255,.22); padding: 25px 0; }
-.how-section li > span { color: #d8b775; font: 600 18px "Playfair Display", serif; }
-.how-section li strong { font: 600 21px "Playfair Display", serif; }
-.how-section li p { margin: 7px 0 0; color: rgba(255,255,255,.64); font-size: 12px; line-height: 1.6; }
+.how-section li { display: grid; grid-template-columns: 60px 1fr; gap: 24px; border-top: 1px solid rgba(255,255,255,.1); padding: 28px 0; align-items: start; }
+.how-section li > span { width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: linear-gradient(135deg,#c9a45a 0%,#edd98a 45%,#9a7035 100%); color: #fff; font: 700 19px "Cormorant Garamond",serif; box-shadow: 0 4px 18px rgba(183,144,75,0.35),0 0 0 1px rgba(183,144,75,0.2); position: relative; flex-shrink: 0; }
+.how-section li:not(:last-child) > span::after { content: ''; position: absolute; left: 50%; top: calc(100% + 14px); width: 1px; height: 24px; background: linear-gradient(to bottom,rgba(183,144,75,0.4),transparent); transform: translateX(-50%); pointer-events: none; }
+.how-section li strong { font: 600 22px "Cormorant Garamond", serif; }
+.how-section li p { margin: 7px 0 0; color: rgba(255,255,255,.64); font-size: 13px; line-height: 1.65; }
 
 .closing { padding: 100px 5vw; text-align: center; }
 .closing img { width: 70px; height: 95px; object-fit: contain; margin-bottom: 24px; }
@@ -755,36 +767,34 @@ footer p:last-child { text-align: right; }
 }
 
 .ambient-audio-button {
+  width: 38px;
+  height: 38px;
   border: 1px solid rgba(183, 144, 75, 0.4);
   background: rgba(251, 249, 248, 0.8);
-  border-radius: 30px;
-  padding: 6px 14px;
+  border-radius: 50%;
+  padding: 0;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
   color: var(--navy);
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 17px;
   cursor: pointer;
   transition: all 0.25s ease;
+  flex-shrink: 0;
 }
 .ambient-audio-button:hover, .ambient-audio-button.playing {
   border-color: var(--gold);
   background: var(--navy);
-  color: white;
   box-shadow: 0 4px 14px rgba(0, 6, 70, 0.15);
-}
-.ambient-audio-button.playing .audio-icon {
-  animation: pulse 1.5s infinite;
 }
 
 .intent-certificate {
   margin: 20px 0;
   padding: 24px;
   border-radius: 16px;
-  background: linear-gradient(135deg, #ffffff 0%, #faf8f5 100%);
-  border: 1px solid #e2d9cc;
-  box-shadow: 0 10px 30px rgba(0, 6, 70, 0.05);
+  background: linear-gradient(135deg, #fffdf9 0%, #faf8f5 100%);
+  border: 1.5px dashed rgba(183,144,75,0.5);
+  box-shadow: 0 14px 40px rgba(0,6,70,0.07), inset 0 0 0 5px rgba(255,255,255,0.85);
   text-align: left;
   position: relative;
   overflow: hidden;
@@ -795,8 +805,22 @@ footer p:last-child { text-align: right; }
   top: -40px; right: -40px;
   width: 120px; height: 120px;
   border-radius: 50%;
-  background: rgba(183, 144, 75, 0.06);
+  background: rgba(183, 144, 75, 0.08);
   pointer-events: none;
+  z-index: 0;
+}
+.intent-certificate::after {
+  content: "ARTE PELA BASÍLICA 2026";
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%) rotate(-22deg);
+  font: 700 26px/1 "Cormorant Garamond",serif;
+  letter-spacing: 0.16em;
+  color: rgba(183,144,75,0.055);
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
 }
 .certificate-header { display: flex; align-items: center; gap: 14px; padding-bottom: 16px; border-bottom: 1px dashed #e2d9cc; }
 .certificate-header img { width: 42px; height: 42px; border-radius: 6px; object-fit: cover; }
