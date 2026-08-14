@@ -96,18 +96,18 @@ body { margin: 0; background: var(--ivory); color: var(--ink); font-family: "Int
 .people-list { display: grid; gap: 14px; }
 .person-card { overflow: hidden; border: 1px solid #e0d8cf; border-radius: 14px; background: #ffffff; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02); transition: border-color 0.2s, box-shadow 0.2s; }
 .person-card:hover, .person-card[open] { border-color: var(--gold); box-shadow: 0 6px 24px rgba(0, 6, 70, 0.06); }
-.person-summary { padding: 22px 28px; display: grid; grid-template-columns: 46px minmax(0, 1fr) minmax(180px, auto) 110px; align-items: center; gap: 24px; cursor: pointer; list-style: none; }
+.person-summary { padding: 22px 28px; display: grid; grid-template-columns: 46px 1fr 200px 120px; align-items: center; gap: 24px; cursor: pointer; list-style: none; }
 .person-summary::-webkit-details-marker { display: none; }
-.person-avatar { width: 46px; height: 46px; display: grid; place-items: center; border: 1px solid #d4cdb8; border-radius: 50%; color: var(--navy); background: rgba(183, 144, 75, 0.08); font: 600 20px "Playfair Display", serif; }
+.person-avatar { width: 46px; height: 46px; display: grid; place-items: center; border: 1px solid #d4cdb8; border-radius: 50%; color: var(--navy); background: rgba(183, 144, 75, 0.08); font: 600 20px "Playfair Display", serif; flex: 0 0 46px; }
 .person-label { color: var(--gold); font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
 .person-identity { min-width: 0; display: grid; gap: 3px; }
 .person-identity > strong { overflow: hidden; color: var(--navy); font: 600 22px "Playfair Display", serif; text-overflow: ellipsis; white-space: nowrap; }
-.person-identity > small { color: var(--muted); font-size: 11px; }
-.person-total { min-width: 180px; display: grid; justify-items: end; gap: 3px; color: var(--navy); }
+.person-identity > small { color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.person-total { width: 200px; display: grid; justify-items: end; gap: 3px; color: var(--navy); text-align: right; }
 .person-total span, .person-total small { color: var(--muted); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; }
 .person-total strong { font: 600 22px "Playfair Display", serif; color: var(--navy); }
-.person-expand { display: flex; align-items: center; justify-content: flex-end; gap: 8px; color: var(--navy); }
-.person-expand b { font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+.person-expand { width: 120px; display: flex; align-items: center; justify-content: flex-end; gap: 8px; color: var(--navy); }
+.person-expand b { font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; }
 .person-expand i { width: 26px; height: 26px; position: relative; display: grid; place-items: center; border: 1px solid #d4cdb8; border-radius: 50%; background: transparent; font-style: normal; transition: transform 0.25s, border-color 0.2s; }
 .person-expand i::before { content: ""; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: translateY(-2px) rotate(45deg); }
 .person-card[open] .person-expand i { transform: rotate(180deg); }
