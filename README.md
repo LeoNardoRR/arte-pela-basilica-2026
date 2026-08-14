@@ -21,8 +21,10 @@ Uma experiência digital de alto padrão criada para apresentar a exposição be
 - Filtros priorizando obras disponíveis, seguidos de indisponíveis e visão completa.
 - Pré-visualizações que respeitam a proporção original de cada quadro.
 - Galeria responsiva para desktop, tablet e celular.
+- Carrinho flutuante na galeria e no detalhe 3D, com quantidade e valor da seleção sempre visíveis.
 - Detalhe individual com experiência 3D em Three.js.
 - Rotação do quadro por toque ou mouse, com frente, espessura e verso.
+- Guia compacto de interação mantido no canto da própria experiência 3D.
 - Animações com GSAP ScrollTrigger e alternativa estática para `prefers-reduced-motion`.
 - Seleção de obras e registro de intenção de compra sem cobrança online.
 

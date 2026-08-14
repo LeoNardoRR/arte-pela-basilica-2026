@@ -50,6 +50,9 @@ test("catalog provides fixed prices, full-screen gallery and purchase-intent flo
   assert.match(catalog, /submit_purchase_intent/);
   assert.match(catalog, /Intenção de compra/);
   assert.match(catalog, /Sem pagamento online/);
+  assert.match(catalog, /renderFloatingCart\("gallery"\)/);
+  assert.match(catalog, /renderFloatingCart\("detail"\)/);
+  assert.match(catalog, /className="selection-bag-icon"/);
   assert.doesNotMatch(catalog, /updateAmount|MAX_BID|type="number"/);
   assert.doesNotMatch(catalog, /fallbackWorks/);
   assert.match(css, /\.gallery-overlay\s*\{[^}]*position:\s*fixed/);
@@ -69,6 +72,8 @@ test("catalog provides fixed prices, full-screen gallery and purchase-intent flo
   assert.match(css, /aspect-ratio:\s*var\(--artwork-aspect/);
   assert.match(css, /\.arrow-icon::before/);
   assert.match(css, /\.arrow-icon::before\s*\{[^}]*transform:\s*rotate\(45deg\)/);
+  assert.match(css, /\.floating-cart\s*\{[^}]*position:\s*fixed/);
+  assert.match(css, /\.selection-bag-icon::before/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(css, /position:\s*sticky;\s*top:\s*0/);
   assert.match(css, /\.mobile-catalog-link\s*\{[^}]*display:\s*none/);
@@ -86,6 +91,8 @@ test("all 60 catalog slots have public-domain reference art and interactive 3D",
   assert.match(experience, /scrub:\s*0\.35/);
   assert.match(experience, /new THREE\.TextureLoader\(\)\.loadAsync\(reference\.imageUrl\)/);
   assert.match(experience, /frontTexture\.flipY\s*=\s*true/);
+  assert.match(experience, /className="experience-guide"/);
+  assert.match(experience, /Role para avançar · frente, giro e ficha/);
   assert.doesNotMatch(experience, /frontTexture\.rotation/);
   assert.doesNotMatch(experience, /requestAnimationFrame/);
 });

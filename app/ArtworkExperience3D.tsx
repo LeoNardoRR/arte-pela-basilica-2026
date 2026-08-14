@@ -329,11 +329,15 @@ export function ArtworkExperience3D({ work, reference, scrollerRef }: Props) {
         <div className="experience-caption">
           <span>{work.code} · Experiência individual</span>
           <strong>{work.title}</strong>
-          <small>Arraste para girar · role para continuar</small>
+          <small>Visualização 3D interativa</small>
         </div>
         <canvas ref={canvasRef} role="img" tabIndex={0} aria-label={`Quadro 3D interativo de ${work.title}. Arraste para girar.`} />
         <div className="experience-fallback" aria-hidden={ready}>{failed ? "Visualização estática disponível" : "Preparando visualização 3D…"}</div>
-        <div className="experience-progress" aria-hidden="true"><span>Frente</span><span>Giro</span><span>Ficha</span></div>
+        <div className="experience-guide" aria-hidden="true">
+          <small>Como explorar</small>
+          <strong>Arraste para girar</strong>
+          <span>Role para avançar · frente, giro e ficha</span>
+        </div>
       </div>
     </section>
   );
