@@ -98,7 +98,7 @@ export function Catalog() {
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [catalogError, setCatalogError] = useState("");
   const [filter, setFilter] = useState<CatalogFilter>("available");
-  const [cart, setCart] = useState<CartItem[]>(() => readInitialCart());
+  const [cart, setCart] = useState<CartItem[]>(() => loadSavedCart());
   const [cartOpen, setCartOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
