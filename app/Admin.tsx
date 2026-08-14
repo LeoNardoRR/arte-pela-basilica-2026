@@ -57,6 +57,7 @@ export function Admin() {
   const [username, setUsername] = useState(ADMIN_EMAIL);
   const [password, setPassword] = useState("");
   const [openKeys, setOpenKeys] = useState<Set<string>>(new Set());
+  const authorized = session?.user?.email?.toLowerCase() === ADMIN_EMAIL;
 
   const togglePersonOpen = (key: string) => {
     setOpenKeys((prev) => {
