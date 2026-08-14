@@ -131,7 +131,20 @@ body { margin: 0; background: var(--ivory); color: var(--ink); font-family: "Int
 .person-intents-head span { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); }
 .person-intents-head small { color: var(--muted); font-size: 11px; }
 
-.person-intents { display: grid; gap: 16px; }
+.person-intents {
+  max-height: 480px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 8px;
+  display: grid;
+  gap: 16px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(183, 144, 75, 0.4) transparent;
+}
+.person-intents::-webkit-scrollbar { width: 6px; }
+.person-intents::-webkit-scrollbar-track { background: transparent; }
+.person-intents::-webkit-scrollbar-thumb { border-radius: 10px; background: rgba(183, 144, 75, 0.4); }
+.person-intents::-webkit-scrollbar-thumb:hover { background: var(--gold); }
 .intent-group { padding: 20px; border: 1px solid #efe8df; border-radius: 12px; background: #faf9f7; }
 .intent-group-head { display: flex; align-items: center; justify-content: space-between; gap: 15px; }
 .intent-group-head > div { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
