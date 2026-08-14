@@ -302,23 +302,30 @@ export function Catalog() {
 
   function renderFloatingCart(context: "gallery" | "detail") {
     const itemLabel = cart.length === 1 ? "1 obra" : `${cart.length} obras`;
+    const isExpanded = cart.length > 0;
     return (
       <button
-        className={`floating-cart floating-cart-${context}`}
+        className={`floating-cart floating-cart-${context} ${isExpanded ? "expanded" : "compact"}`}
         type="button"
         onClick={openFloatingCart}
         aria-label={`Abrir minha seleção com ${itemLabel}`}
       >
         <span className="selection-bag-icon" aria-hidden="true" />
-        <span className="floating-cart-copy">
-          <small>Minha seleção</small>
-          <strong>{cart.length ? itemLabel : "Escolha suas obras"}</strong>
-        </span>
-        <span className="floating-cart-total" aria-hidden="true">
-          <small>Total</small>
-          <strong>{formatPrice(totalCents)}</strong>
-        </span>
-        <b aria-hidden="true">{cart.length}</b>
+        {isExpanded ? (
+          <>
+            <span className="floating-cart-copy">
+              <small>Minha seleção</small>
+              <strong>{itemLabel}</strong>
+            </span>
+            <span className="floating-cart-total" aria-hidden="true">
+              <small>Total</small>
+              <strong>{formatPrice(totalCents)}</strong>
+            </span>
+            <b aria-hidden="true">{cart.length}</b>
+          </>
+        ) : (
+          <span className="floating-cart-label">Minha seleção</span>
+        )}
       </button>
     );
   }
@@ -336,9 +343,12 @@ export function Catalog() {
           </div>
         </button>
         <div className="work-body">
-          <div className="work-heading"><span className="work-code">{work.code}</span><strong className="work-price">{formatPrice(work.price_cents)}</strong></div>
+          <div className="work-heading">
+            <span className="work-code">{work.code}</span>
+            <strong className="work-price">{formatPrice(work.price_cents)}</strong>
+          </div>
           <h3>{work.title}</h3>
-          <p>{work.artist}</p>
+          <p className="work-artist-name">{work.artist}</p>
           <p className="work-spec">{work.technique} · {work.dimensions}</p>
           <div className="work-card-actions">
             <button
@@ -347,10 +357,11 @@ export function Catalog() {
               disabled={work.status !== "available"}
               onClick={() => (inCart ? removeFromCart(work.id) : addToCart(work))}
             >
-              {inCart ? "Na seleção ✓" : "Adicionar à seleção"}
+              {inCart ? "Na seleção ✓" : "Adicionar"}
             </button>
-            <button className="work-detail-link" type="button" onClick={() => setSelectedWork(work)}>
-              Detalhes & 3D <ArrowIcon direction="up-right" />
+            <button className="button-view-3d" type="button" onClick={() => setSelectedWork(work)}>
+              <span>Detalhes & 3D</span>
+              <ArrowIcon direction="up-right" />
             </button>
           </div>
         </div>
