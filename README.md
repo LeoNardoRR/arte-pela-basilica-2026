@@ -1,4 +1,4 @@
-# Arte pela Basílica — Exposição 2026
+# Arte pela Basílica - Exposição 2026
 
 Uma experiência digital de alto padrão criada para apresentar a exposição beneficente **Arte pela Basílica**, facilitar a descoberta das obras e registrar intenções de compra para conclusão presencial com a equipe do evento.
 
