@@ -97,9 +97,24 @@ export function Catalog() {
   const [works, setWorks] = useState<Artwork[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [catalogError, setCatalogError] = useState("");
+  const [filter, setFilter] = useState<CatalogFilter>("available");
+  const [cart, setCart] = useState<CartItem[]>(() => readInitialCart());
+  const [cartOpen, setCartOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState("");
+  const [emailUrl, setEmailUrl] = useState("");
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [selectedWork, setSelectedWork] = useState<Artwork | null>(null);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [lastIntentData, setLastIntentData] = useState<{ bidderName: string; code: string; date: string; items: Artwork[] } | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const galleryCloseRef = useRef<HTMLButtonElement>(null);
+  const detailCloseRef = useRef<HTMLButtonElement>(null);
+  const detailScrollerRef = useRef<HTMLDivElement>(null);
+  const submittingRef = useRef(false);
+  const modalTriggerRef = useRef<HTMLElement | null>(null);
+  const heroImageRef = useRef<HTMLDivElement>(null);
+  const scrollProgressRef = useRef<HTMLDivElement>(null);
 
   function toggleAmbientAudio() {
     if (!audioRef.current) {
