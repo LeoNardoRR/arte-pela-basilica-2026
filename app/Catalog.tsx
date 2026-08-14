@@ -97,21 +97,25 @@ export function Catalog() {
   const [works, setWorks] = useState<Artwork[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [catalogError, setCatalogError] = useState("");
-  const [filter, setFilter] = useState<CatalogFilter>("available");
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [cartOpen, setCartOpen] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [message, setMessage] = useState("");
-  const [emailUrl, setEmailUrl] = useState("");
-  const [galleryOpen, setGalleryOpen] = useState(false);
-  const [selectedWork, setSelectedWork] = useState<Artwork | null>(null);
-  const galleryCloseRef = useRef<HTMLButtonElement>(null);
-  const detailCloseRef = useRef<HTMLButtonElement>(null);
-  const detailScrollerRef = useRef<HTMLDivElement>(null);
-  const submittingRef = useRef(false);
-  const modalTriggerRef = useRef<HTMLElement | null>(null);
-  const heroImageRef = useRef<HTMLDivElement>(null);
-  const scrollProgressRef = useRef<HTMLDivElement>(null);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [lastIntentData, setLastIntentData] = useState<{ bidderName: string; code: string; date: string; items: Artwork[] } | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  function toggleAmbientAudio() {
+    if (!audioRef.current) {
+      const audio = new Audio("https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=classical-ambient-strings-112190.mp3");
+      audio.loop = true;
+      audio.volume = 0.22;
+      audioRef.current = audio;
+    }
+    if (isPlayingAudio) {
+      audioRef.current.pause();
+      setIsPlayingAudio(false);
+    } else {
+      void audioRef.current.play();
+      setIsPlayingAudio(true);
+    }
+  }
 
   async function loadCatalog() {
     setCatalogLoading(true);
@@ -424,9 +428,16 @@ export function Catalog() {
         "Nova intenção de compra — Arte pela Basílica 2026", "", `Interessado: ${name}`, `WhatsApp: ${phone}`, `E-mail: ${email}`, "",
         "Obras selecionadas:", itemLines, "", `Valor total: ${formatPrice(totalCents)}`, "Conclusão e pagamento: presencial, com a equipe do evento.",
       ].join("\n");
+      const intentCode = `BASILICA-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+      setLastIntentData({
+        bidderName: name,
+        code: intentCode,
+        date: new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" }),
+        items: submittedWorks,
+      });
       setEmailUrl(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(ADMIN_EMAIL)}&su=${encodeURIComponent("Intenção de compra — Arte pela Basílica 2026")}&body=${encodeURIComponent(emailMessage)}`);
       setCart([]);
-      setMessage("Intenção registrada. A equipe recebeu sua seleção e entrará em contato. Nenhuma cobrança foi realizada e a compra será concluída presencialmente.");
+      setMessage("Sua intenção de compra foi registrada com sucesso!");
     }
     setSubmitting(false);
     submittingRef.current = false;
@@ -440,6 +451,10 @@ export function Catalog() {
       <header className="site-header">
         <a className="brand" href="#conteudo-principal" aria-label="Basílica Santo Antônio — início"><img src={BASILICA_CREST} alt="Brasão da Basílica Santo Antônio" /><span><strong>Basílica</strong><small>Santo Antônio</small></span></a>
         <nav aria-label="Navegação principal"><a href="#exposicao">A exposição</a><a href="#acervo">Acervo</a><a href="#como-participar">Como adquirir</a><a href="#contato">Contato</a></nav>
+        <button className={`ambient-audio-button ${isPlayingAudio ? "playing" : ""}`} type="button" onClick={toggleAmbientAudio} title="Música ambiente da Basílica">
+          <span className="audio-icon" aria-hidden="true">{isPlayingAudio ? "🔊" : "🔈"}</span>
+          <span>{isPlayingAudio ? "Som ligado" : "Som ambiente"}</span>
+        </button>
         <a className="mobile-catalog-link" href="#acervo">Acervo</a>
         <a className="admin-menu-link" href="#admin" aria-label="Acessar área administrativa">Administrativo</a>
         <button className="cart-trigger" onClick={() => setCartOpen(true)} aria-label={`Abrir seleção com ${cart.length} obras`}><span>Minha seleção</span><b>{cart.length}</b></button>
@@ -474,7 +489,38 @@ export function Catalog() {
       {selectedWork && <div ref={detailScrollerRef} className="detail-backdrop" role="presentation"><section className="artwork-detail" role="dialog" aria-modal="true" aria-labelledby="detail-title"><button ref={detailCloseRef} className="modal-close detail-close" onClick={() => setSelectedWork(null)} aria-label="Fechar detalhes">×</button><ArtworkExperience3D work={selectedWork} reference={artworkReference(selectedWork)} scrollerRef={detailScrollerRef} /><div className="detail-copy"><div><span className="section-kicker">Ficha da obra</span><h3 id="detail-title">{selectedWork.title}</h3><p className="detail-artist">{selectedWork.artist}</p><dl><div><dt>Técnica</dt><dd>{selectedWork.technique}</dd></div><div><dt>Dimensões</dt><dd>{selectedWork.dimensions}</dd></div><div><dt>Disponibilidade</dt><dd>{statusLabel[selectedWork.status]}</dd></div></dl><p className="reference-credit">Imagem de referência em domínio público: <a href={artworkReference(selectedWork).sourceUrl} target="_blank" rel="noreferrer">{artworkReference(selectedWork).title}, {artworkReference(selectedWork).artist} <ArrowIcon direction="up-right" /></a></p></div><div className="detail-purchase"><div className="detail-price"><span>Valor da obra</span><strong>{formatPrice(selectedWork.price_cents)}</strong><small>Compra e pagamento presenciais</small></div><button className="button primary" disabled={selectedWork.status !== "available" || cart.some((item) => item.work.id === selectedWork.id)} onClick={() => addToCart(selectedWork)}>{cart.some((item) => item.work.id === selectedWork.id) ? "Obra já selecionada" : "Adicionar à seleção"}<ArrowIcon /></button></div></div></section></div>}
 
       {cartOpen && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && closeCart()}><section className="purchase-modal cart-modal" role="dialog" aria-modal="true" aria-labelledby="cart-title"><button className="modal-close" onClick={closeCart} aria-label="Fechar seleção">×</button><p className="section-kicker">Sua seleção</p><h2 id="cart-title">Intenção de compra</h2><p className="modal-note">Confira as obras e deixe seus dados. Esta etapa não realiza pagamento.</p>
-        {message ? <div className={emailUrl ? "success-message" : "success-message error-message"} role="status"><span>{emailUrl ? "✓" : "!"}</span><p>{message}</p>{emailUrl && <a className="button email-button" href={emailUrl} target="_blank" rel="noreferrer">Enviar cópia por Gmail <ArrowIcon direction="up-right" /></a>}<button onClick={closeCart}>Voltar ao acervo</button></div> : cart.length === 0 ? <div className="empty-cart"><p>Sua seleção está vazia. Explore a galeria e escolha as obras de seu interesse.</p><a className="button primary" href="#acervo" onClick={closeCart}>Explorar acervo <ArrowIcon /></a></div> : <form onSubmit={submitPurchaseIntent}><div className="cart-lines">{cart.map((item) => <div className="cart-line" key={item.work.id}><div className={`cart-thumb work-image ${item.work.palette}`}><ArtworkPhoto work={item.work} /></div><div className="cart-line-info"><small>{item.work.code}</small><strong>{item.work.title}</strong><span>{formatPrice(item.work.price_cents)}</span></div><button type="button" onClick={() => removeFromCart(item.work.id)} aria-label={`Remover ${item.work.title}`}>Remover</button></div>)}</div><div className="cart-total"><span>Valor total da seleção</span><strong>{formatPrice(totalCents)}</strong></div><div className="contact-fields"><label>Nome completo<input name="name" required minLength={2} maxLength={120} autoComplete="name" placeholder="Como devemos chamar você?" /></label><label>E-mail<input name="email" type="email" required maxLength={160} autoComplete="email" placeholder="voce@email.com" /></label><label>WhatsApp<input name="phone" type="tel" required minLength={8} maxLength={40} autoComplete="tel" placeholder="(11) 99999-9999" /></label></div><div className="in-person-note"><strong>Sem pagamento online</strong><p>Você está registrando interesse nestas obras. A equipe confirmará a disponibilidade e concluirá a compra presencialmente no evento.</p></div><button className="button primary submit-intent" disabled={submitting}>{submitting ? "Registrando intenção…" : "Registrar intenção de compra"}<ArrowIcon /></button><small className="form-consent">Ao enviar, você concorda em ser contatado pela equipe sobre esta seleção.</small></form>}
+        {message ? (
+          <div className={emailUrl ? "success-message" : "success-message error-message"} role="status">
+            <span>{emailUrl ? "✓" : "!"}</span>
+            <p>{message}</p>
+            {lastIntentData && (
+              <div className="intent-certificate">
+                <div className="certificate-header">
+                  <img src={BASILICA_CREST} alt="" />
+                  <div>
+                    <strong>Selo de Intenção Registrada</strong>
+                    <small>Basílica Santo Antônio · Edição 2026</small>
+                  </div>
+                </div>
+                <div className="certificate-body">
+                  <div className="certificate-row"><span>Protocolo</span><strong>{lastIntentData.code}</strong></div>
+                  <div className="certificate-row"><span>Titular</span><strong>{lastIntentData.bidderName}</strong></div>
+                  <div className="certificate-row"><span>Data de Emissão</span><strong>{lastIntentData.date}</strong></div>
+                  <div className="certificate-items">
+                    <small>Obras reservadas em curadoria:</small>
+                    <ul>{lastIntentData.items.map((w) => <li key={w.id}><b>{w.code}</b> — {w.title}</li>)}</ul>
+                  </div>
+                </div>
+                <div className="certificate-footer">
+                  <span>Preservação do Patrimônio Sacro</span>
+                  <small>Apresente este protocolo na recepção presencial do evento.</small>
+                </div>
+              </div>
+            )}
+            {emailUrl && <a className="button email-button" href={emailUrl} target="_blank" rel="noreferrer">Enviar cópia por Gmail <ArrowIcon direction="up-right" /></a>}
+            <button className="button primary" onClick={closeCart} style={{ marginTop: "16px" }}>Voltar ao acervo</button>
+          </div>
+        ) : cart.length === 0 ? <div className="empty-cart"><p>Sua seleção está vazia. Explore a galeria e escolha as obras de seu interesse.</p><a className="button primary" href="#acervo" onClick={closeCart}>Explorar acervo <ArrowIcon /></a></div> : <form onSubmit={submitPurchaseIntent}><div className="cart-lines">{cart.map((item) => <div className="cart-line" key={item.work.id}><div className={`cart-thumb work-image ${item.work.palette}`}><ArtworkPhoto work={item.work} /></div><div className="cart-line-info"><small>{item.work.code}</small><strong>{item.work.title}</strong><span>{formatPrice(item.work.price_cents)}</span></div><button type="button" onClick={() => removeFromCart(item.work.id)} aria-label={`Remover ${item.work.title}`}>Remover</button></div>)}</div><div className="cart-total"><span>Valor total da seleção</span><strong>{formatPrice(totalCents)}</strong></div><div className="contact-fields"><label>Nome completo<input name="name" required minLength={2} maxLength={120} autoComplete="name" placeholder="Como devemos chamar você?" /></label><label>E-mail<input name="email" type="email" required maxLength={160} autoComplete="email" placeholder="voce@email.com" /></label><label>WhatsApp<input name="phone" type="tel" required minLength={8} maxLength={40} autoComplete="tel" placeholder="(11) 99999-9999" /></label></div><div className="in-person-note"><strong>Sem pagamento online</strong><p>Você está registrando interesse nestas obras. A equipe confirmará a disponibilidade e concluirá a compra presencialmente no evento.</p></div><button className="button primary submit-intent" disabled={submitting}>{submitting ? "Registrando intenção…" : "Registrar intenção de compra"}<ArrowIcon /></button><small className="form-consent">Ao enviar, você concorda em ser contatado pela equipe sobre esta seleção.</small></form>}
       </section></div>}
     </main>
   );
