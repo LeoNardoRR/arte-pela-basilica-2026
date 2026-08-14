@@ -324,6 +324,7 @@ export function Catalog() {
   }
 
   function renderArtworkCard(work: Artwork) {
+    const inCart = cart.some((item) => item.work.id === work.id);
     return (
       <article className={`work-card ${work.status !== "available" ? "unavailable" : ""}`} key={work.id}>
         <button className="work-visual-button" type="button" onClick={() => setSelectedWork(work)} aria-label={`Ver detalhes de ${work.title}`}>
@@ -331,7 +332,7 @@ export function Catalog() {
             <ArtworkPhoto work={work} />
             <span className={`status ${work.status}`}>{statusLabel[work.status]}</span>
             {work.status !== "available" && <div className="sold-overlay"><strong>{statusLabel[work.status]}</strong><span>Indisponível para nova intenção.</span></div>}
-            <span className="view-work">Ver obra</span>
+            <span className="view-work">Ver detalhes & 3D</span>
           </div>
         </button>
         <div className="work-body">
@@ -339,9 +340,19 @@ export function Catalog() {
           <h3>{work.title}</h3>
           <p>{work.artist}</p>
           <p className="work-spec">{work.technique} · {work.dimensions}</p>
-          <button className="work-detail-link" type="button" onClick={() => setSelectedWork(work)}>
-            Ver detalhes <ArrowIcon direction="up-right" />
-          </button>
+          <div className="work-card-actions">
+            <button
+              className={`button-add-cart ${inCart ? "in-cart" : ""}`}
+              type="button"
+              disabled={work.status !== "available"}
+              onClick={() => (inCart ? removeFromCart(work.id) : addToCart(work))}
+            >
+              {inCart ? "Na seleção ✓" : "Adicionar à seleção"}
+            </button>
+            <button className="work-detail-link" type="button" onClick={() => setSelectedWork(work)}>
+              Detalhes & 3D <ArrowIcon direction="up-right" />
+            </button>
+          </div>
         </div>
       </article>
     );

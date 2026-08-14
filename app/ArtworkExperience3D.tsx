@@ -10,6 +10,9 @@ type Artwork3D = {
   title: string;
   artist: string;
   palette: string;
+  technique?: string;
+  dimensions?: string;
+  price_cents?: number;
 };
 
 type Props = {
@@ -327,10 +330,24 @@ export function ArtworkExperience3D({ work, reference, scrollerRef }: Props) {
       <div className="artwork-3d-sticky">
         <img className="experience-preview" src={reference.imageUrl} alt="" aria-hidden="true" referrerPolicy="no-referrer" />
         <div className="experience-caption">
-          <span>{work.code} · Experiência individual</span>
+          <span>{work.code} · Experiência 3D</span>
           <strong>{work.title}</strong>
-          <small>Visualização 3D interativa</small>
+          <small>{work.artist}</small>
         </div>
+        {work.technique && (
+          <div className="experience-corner-details">
+            <div className="corner-detail-header">
+              <span className="corner-tag">{work.code}</span>
+              <strong>Detalhes da Obra</strong>
+            </div>
+            <p className="corner-title">{work.title}</p>
+            <p className="corner-artist">{work.artist}</p>
+            <ul className="corner-specs">
+              <li><span>Técnica:</span> <strong>{work.technique}</strong></li>
+              {work.dimensions && <li><span>Dimensões:</span> <strong>{work.dimensions}</strong></li>}
+            </ul>
+          </div>
+        )}
         <canvas ref={canvasRef} role="img" tabIndex={0} aria-label={`Quadro 3D interativo de ${work.title}. Arraste para girar.`} />
         <div className="experience-fallback" aria-hidden={ready}>{failed ? "Visualização estática disponível" : "Preparando visualização 3D…"}</div>
         <div className="experience-guide" aria-hidden="true">
