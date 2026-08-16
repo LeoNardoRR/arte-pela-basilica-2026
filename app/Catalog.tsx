@@ -503,7 +503,7 @@ export function Catalog() {
       <div className="page-shell" inert={modalOpen ? true : undefined} aria-hidden={modalOpen ? true : undefined}>
       <header className={`site-header ${mobileMenuOpen ? "menu-open" : ""}`}>
         <a className="brand" href="#conteudo-principal" aria-label="Basílica Santo Antônio — início" onClick={() => setMobileMenuOpen(false)}><span className="brand-crest"><img src={BASILICA_CREST} alt="Brasão da Basílica Santo Antônio" /></span><span><small>Vernissage 2026</small><strong>Arte pela Basílica</strong></span></a>
-        <nav className="desktop-nav" aria-label="Navegação principal"><a href="#exposicao"><small>01</small>A exposição</a><a href="#acervo"><small>02</small>Acervo</a><a href="#como-participar"><small>03</small>Como adquirir</a><a href="#doacao"><small>04</small>Doar</a><a href="#parceiros"><small>05</small>Parceiros</a></nav>
+        <nav className="desktop-nav" aria-label="Navegação principal"><a href="#conteudo-principal"><small>01</small>A exposição</a><a href="#acervo"><small>02</small>Acervo</a><a href="#como-participar"><small>03</small>Como adquirir</a><a href="#doacao"><small>04</small>Doar</a><a href="#parceiros"><small>05</small>Parceiros</a></nav>
         <div className="header-actions">
           <button className={`ambient-audio-button ${isPlayingAudio ? "playing" : ""}`} type="button" onClick={toggleAmbientAudio} aria-label={isPlayingAudio ? "Desligar som ambiente" : "Ligar som ambiente"} title={isPlayingAudio ? "Som ligado" : "Som ambiente"}>
             <span className="audio-icon" aria-hidden="true">{isPlayingAudio ? "🔊" : "🔈"}</span><span className="audio-label">Ambiente</span>
@@ -514,7 +514,7 @@ export function Catalog() {
         </div>
         <div className="mobile-menu" id="mobile-menu">
           <p>Explore a edição 2026</p>
-          <nav aria-label="Navegação móvel"><a href="#exposicao" onClick={() => setMobileMenuOpen(false)}><small>01</small><span>A exposição</span></a><a href="#acervo" onClick={() => setMobileMenuOpen(false)}><small>02</small><span>Acervo completo</span></a><a href="#como-participar" onClick={() => setMobileMenuOpen(false)}><small>03</small><span>Como adquirir</span></a><a href="#doacao" onClick={() => setMobileMenuOpen(false)}><small>04</small><span>Doação via PIX</span></a><a href="#parceiros" onClick={() => setMobileMenuOpen(false)}><small>05</small><span>Parceiros</span></a></nav>
+          <nav aria-label="Navegação móvel"><a href="#conteudo-principal" onClick={() => setMobileMenuOpen(false)}><small>01</small><span>A exposição</span></a><a href="#acervo" onClick={() => setMobileMenuOpen(false)}><small>02</small><span>Acervo completo</span></a><a href="#como-participar" onClick={() => setMobileMenuOpen(false)}><small>03</small><span>Como adquirir</span></a><a href="#doacao" onClick={() => setMobileMenuOpen(false)}><small>04</small><span>Doação via PIX</span></a><a href="#parceiros" onClick={() => setMobileMenuOpen(false)}><small>05</small><span>Parceiros</span></a></nav>
           <div><a href="#admin" onClick={() => setMobileMenuOpen(false)}>Área administrativa</a><span>10 setembro · Americana, SP</span></div>
         </div>
       </header>

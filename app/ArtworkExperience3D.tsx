@@ -45,7 +45,7 @@ export function preloadArtworkExperience3D() {
   return modulePreload;
 }
 
-function makeArtworkCanvas(work: Artwork3D, back = false) {
+function makeArtworkCanvas(work: Artwork3D) {
   const canvas = document.createElement("canvas");
   canvas.width = 1024;
   canvas.height = 1365;
@@ -54,22 +54,6 @@ function makeArtworkCanvas(work: Artwork3D, back = false) {
 
   const [, accent, dark] = paletteColors[work.palette] ?? paletteColors.navy;
   context.clearRect(0, 0, canvas.width, canvas.height);
-
-  if (back) {
-    context.fillStyle = dark;
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.globalAlpha = 0.5;
-    context.strokeStyle = "#d8c8aa";
-    context.lineWidth = 3;
-    for (let y = 70; y < canvas.height; y += 34) {
-      context.beginPath();
-      context.moveTo(60, y);
-      context.lineTo(canvas.width - 60, y + 18);
-      context.stroke();
-    }
-    context.globalAlpha = 1;
-    return canvas;
-  }
 
   context.globalAlpha = 0.96;
   context.fillStyle = accent;
@@ -81,6 +65,32 @@ function makeArtworkCanvas(work: Artwork3D, back = false) {
   context.ellipse(800, 1040, 330, 390, 0.16, 0, Math.PI * 2);
   context.fill();
   context.globalAlpha = 1;
+  return canvas;
+}
+
+function makeArtworkBackCanvas(work: Artwork3D, source: CanvasImageSource & { width?: number; height?: number; naturalWidth?: number; naturalHeight?: number }) {
+  const canvas = document.createElement("canvas");
+  canvas.width = source.naturalWidth ?? source.width ?? 1024;
+  canvas.height = source.naturalHeight ?? source.height ?? 1365;
+  const context = canvas.getContext("2d");
+  if (!context) return canvas;
+
+  const [, , dark] = paletteColors[work.palette] ?? paletteColors.navy;
+  context.fillStyle = dark;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.globalAlpha = 0.5;
+  context.strokeStyle = "#d8c8aa";
+  context.lineWidth = Math.max(2, Math.round(canvas.width / 340));
+  for (let y = canvas.height * 0.05; y < canvas.height; y += Math.max(22, canvas.height * 0.025)) {
+    context.beginPath();
+    context.moveTo(canvas.width * 0.06, y);
+    context.lineTo(canvas.width * 0.94, y + canvas.height * 0.013);
+    context.stroke();
+  }
+  context.globalAlpha = 1;
+  context.globalCompositeOperation = "destination-in";
+  context.drawImage(source, 0, 0, canvas.width, canvas.height);
+  context.globalCompositeOperation = "source-over";
   return canvas;
 }
 
@@ -154,7 +164,8 @@ export function ArtworkExperience3D({ work, reference, scrollerRef }: Props) {
         } catch {
           frontTexture = new THREE.CanvasTexture(makeArtworkCanvas(work));
         }
-        const backTexture = new THREE.CanvasTexture(makeArtworkCanvas(work, true));
+        const textureImage = frontTexture.image as CanvasImageSource & { width?: number; height?: number; naturalWidth?: number; naturalHeight?: number };
+        const backTexture = new THREE.CanvasTexture(makeArtworkBackCanvas(work, textureImage));
         frontTexture.colorSpace = THREE.SRGBColorSpace;
         backTexture.colorSpace = THREE.SRGBColorSpace;
         frontTexture.flipY = true;
@@ -171,8 +182,9 @@ export function ArtworkExperience3D({ work, reference, scrollerRef }: Props) {
           else object.visible = false;
         });
 
-        const textureImage = frontTexture.image as { width?: number; height?: number } | undefined;
-        const imageAspect = (textureImage?.width ?? 768) / Math.max(textureImage?.height ?? 1024, 1);
+        const imageWidth = textureImage.naturalWidth ?? textureImage.width ?? 768;
+        const imageHeight = textureImage.naturalHeight ?? textureImage.height ?? 1024;
+        const imageAspect = imageWidth / Math.max(imageHeight, 1);
         const widthScale = THREE.MathUtils.clamp(imageAspect / 0.75, 0.55, 2.15);
         const progress = { value: 0 };
         let responsiveScale = 1;

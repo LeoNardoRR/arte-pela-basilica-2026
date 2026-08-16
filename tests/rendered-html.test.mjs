@@ -48,6 +48,8 @@ test("catalog provides flexible prices, full-screen gallery and timed pre-reserv
   assert.match(catalog, /phoneDigits\.length < 8/);
   assert.match(catalog, /mobile-menu-toggle/);
   assert.match(catalog, /aria-controls="mobile-menu"/);
+  assert.match(catalog, /href="#conteudo-principal"><small>01<\/small>A exposição/);
+  assert.match(catalog, /href="#conteudo-principal" onClick=\{\(\) => setMobileMenuOpen\(false\)\}><small>01<\/small><span>A exposição/);
   assert.match(catalog, /Parceiros desta edição/);
   assert.match(catalog, /className="admin-menu-link" href="#admin"/);
   assert.match(catalog, /price_cents/);
@@ -80,6 +82,8 @@ test("catalog provides flexible prices, full-screen gallery and timed pre-reserv
   assert.match(css, /@media \(max-width:\s*950px\)[\s\S]*\.gallery-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2/);
   assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*\.gallery-grid\s*\{[^}]*grid-template-columns:\s*1fr/);
   assert.match(css, /\.artwork-photo\s*\{[^}]*object-fit:\s*contain/);
+  assert.match(css, /#acervo\s*\{[^}]*scroll-margin-top:\s*18px/);
+  assert.match(css, /\.work-image\.navy,[^}]*\{\s*background:\s*transparent/);
   assert.match(css, /aspect-ratio:\s*var\(--artwork-aspect/);
   assert.match(css, /\.arrow-icon::before/);
   assert.match(css, /\.arrow-icon::before\s*\{[^}]*transform:\s*rotate\(45deg\)/);
@@ -102,6 +106,8 @@ test("all 84 supplied catalog slots use the real local artwork images and intera
   assert.match(experience, /touch-action:\s*pan-y|canvas\.dataset\.rotation/);
   assert.match(experience, /scrub:\s*0\.35/);
   assert.match(experience, /new THREE\.TextureLoader\(\)\.loadAsync\(reference\.imageUrl\)/);
+  assert.match(experience, /makeArtworkBackCanvas\(work, textureImage\)/);
+  assert.match(experience, /globalCompositeOperation = "destination-in"/);
   assert.match(experience, /frontTexture\.flipY\s*=\s*true/);
   assert.match(experience, /className="experience-guide"/);
   assert.match(experience, /className="experience-zoom"/);
