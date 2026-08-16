@@ -17,7 +17,8 @@ html { scroll-behavior: smooth; scroll-padding-top: 96px; }
 body { margin: 0; background: var(--ivory); color: var(--ink); font-family: "Inter", sans-serif; -webkit-font-smoothing: antialiased; }
 [id] { scroll-margin-top: 0; }
 #acervo { scroll-margin-top: -52px; }
-#como-participar, #doacao { scroll-margin-top: -52px; }
+#como-participar { scroll-margin-top: -52px; }
+#doacao { scroll-margin-top: 120px; }
 .skip-link { position: fixed; z-index: 300; top: 10px; left: 10px; padding: 12px 16px; border-radius: 8px; background: white; color: var(--navy); font-weight: 800; transform: translateY(-150%); }
 .skip-link:focus { transform: translateY(0); }
 .not-found-page { min-height: 100svh; padding: 8vw; display: grid; place-content: center; justify-items: start; background: var(--ivory); }
@@ -194,6 +195,7 @@ a { color: inherit; text-decoration: none; }
 .scroll-progress { width: 100%; height: 3px; position: fixed; z-index: 200; top: 0; left: 0; transform: scaleX(0); transform-origin: left center; background: linear-gradient(90deg,#8d6b2f,#e1c786); box-shadow: 0 1px 8px rgba(183,144,75,.45); pointer-events: none; }
 [data-reveal] { opacity: 0; transform: translateY(42px); transition: opacity .85s cubic-bezier(.2,.75,.25,1), transform .85s cubic-bezier(.2,.75,.25,1); }
 [data-reveal].is-visible { opacity: 1; transform: translateY(0); }
+[data-reveal].anchor-target { opacity: 1; transform: none; transition: none; }
 
 .site-header {
   min-height: 96px; padding: 0 max(3.2vw, calc((100vw - 1440px) / 2)); display: flex; align-items: stretch; justify-content: space-between; gap: clamp(18px,2.8vw,46px);
@@ -614,7 +616,8 @@ footer p:last-child { text-align: right; }
 @media (max-width: 950px) {
   html { scroll-padding-top: 82px; }
   #acervo { scroll-margin-top: -50px; }
-  #como-participar, #doacao { scroll-margin-top: -50px; }
+  #como-participar { scroll-margin-top: -50px; }
+  #doacao { scroll-margin-top: 80px; }
   .desktop-nav { display: none; }
   .site-header { min-height: 82px; padding-inline: 4vw; align-items: center; justify-content: space-between; gap: 20px; }
   .header-actions { margin-left: auto; }
@@ -986,7 +989,8 @@ footer p:last-child { text-align: right; }
 @media (max-width: 620px) {
   html { scroll-padding-top: 75px; }
   #acervo { scroll-margin-top: -55px; }
-  #como-participar, #doacao { scroll-margin-top: -55px; }
+  #como-participar { scroll-margin-top: -55px; }
+  #doacao { scroll-margin-top: 24px; }
   .ambient-audio-button { width: 37px; min-width: 37px; height: 37px; padding: 0; border-radius: 50%; }
   .ambient-audio-button .audio-label { display: none; }
   .donation-section { width: calc(100vw - 24px); margin-top: 56px; padding: 30px 20px; gap: 28px; }

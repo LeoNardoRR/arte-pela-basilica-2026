@@ -51,8 +51,8 @@ test("catalog provides flexible prices, full-screen gallery and timed pre-reserv
   assert.match(catalog, /mobile-menu-toggle/);
   assert.match(catalog, /aria-controls="mobile-menu"/);
   assert.match(catalog, /aria-label=\{mobileMenuOpen \? "Fechar menu" : "Abrir menu"\}/);
-  assert.match(catalog, /href="#conteudo-principal"><small>01<\/small>A exposição/);
-  assert.match(catalog, /href="#conteudo-principal" onClick=\{\(\) => setMobileMenuOpen\(false\)\}><small>01<\/small><span>A exposição/);
+  assert.match(catalog, /href="#conteudo-principal" onClick=\{\(event\) => navigateToSection\(event, "conteudo-principal"\)\}><small>01<\/small>A exposição/);
+  assert.match(catalog, /href="#conteudo-principal" onClick=\{\(event\) => navigateToSection\(event, "conteudo-principal"\)\}><small>01<\/small><span>A exposição/);
   assert.match(catalog, /Parceiros desta edição/);
   assert.match(catalog, /className="admin-menu-link" href="#admin"/);
   assert.match(catalog, /price_cents/);
@@ -74,6 +74,9 @@ test("catalog provides flexible prices, full-screen gallery and timed pre-reserv
   assert.match(css, /\.gallery-overlay\s*\{[^}]*position:\s*fixed/);
   assert.match(catalog, /IntersectionObserver/);
   assert.match(catalog, /requestAnimationFrame/);
+  assert.match(catalog, /target\.classList\.add\("is-visible", "anchor-target"\)/);
+  assert.match(css, /\[data-reveal\]\.anchor-target\s*\{[^}]*transform:\s*none;[^}]*transition:\s*none/);
+  assert.match(catalog, /target\.scrollIntoView\(\{ behavior: "smooth", block: "start" \}\)/);
   assert.match(catalog, /useState<CatalogFilter>\("available"\)/);
   assert.match(catalog, /Em exposição <small>\{availableCount\}<\/small>/);
   assert.match(catalog, /reservableCount/);
@@ -101,8 +104,10 @@ test("catalog provides flexible prices, full-screen gallery and timed pre-reserv
   assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*\.gallery-grid\s*\{[^}]*grid-template-columns:\s*1fr/);
   assert.match(css, /\.artwork-photo\s*\{[^}]*object-fit:\s*contain/);
   assert.match(css, /#acervo\s*\{[^}]*scroll-margin-top:\s*-52px/);
+  assert.match(css, /#doacao\s*\{[^}]*scroll-margin-top:\s*120px/);
   assert.match(css, /@media \(max-width:\s*950px\)[\s\S]*?#acervo\s*\{[^}]*scroll-margin-top:\s*-50px/);
   assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*?#acervo\s*\{[^}]*scroll-margin-top:\s*-55px/);
+  assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*?#doacao\s*\{[^}]*scroll-margin-top:\s*24px/);
   assert.match(css, /\.how-section\s*\{[^}]*min-height:\s*100svh/);
   assert.match(css, /\.donation-section\s*\{[^}]*margin:\s*clamp\(72px,9vw,132px\) auto 120px/);
   assert.match(css, /\.view-work\s*\{[^}]*display:\s*inline-flex/);
