@@ -1,8 +1,10 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import { ADMIN_EMAIL, supabase } from "./supabase";
 import { ArtworkExperience3D } from "./ArtworkExperience3D";
+import { artworkRotationDegrees } from "./artworkAdjustments";
 import { CURATED_ARTWORKS, CuratedArtworkImage } from "./artworkImages";
 import { DonationSection } from "./DonationSection";
 import { publicAsset } from "./publicAsset";
@@ -78,9 +80,15 @@ function ArrowIcon({ direction = "right" }: { direction?: "right" | "up-right" |
 
 function ArtworkPhoto({ work, eager = false }: { work: Artwork; eager?: boolean }) {
   const reference = artworkReference(work);
+  const rotation = artworkRotationDegrees(work.code);
+  const correctionStyle = {
+    "--artwork-rotation": `${rotation}deg`,
+    "--artwork-correction-scale": rotation ? "0.985" : "1",
+  } as CSSProperties;
   return (
     <img
       className="artwork-photo"
+      style={correctionStyle}
       src={eager ? reference.imageUrl : reference.thumbnailUrl}
       alt={`Imagem oficial de ${reference.title}`}
       loading={eager ? "eager" : "lazy"}
@@ -450,10 +458,6 @@ export function Catalog() {
               onClick={() => (inCart ? removeFromCart(work.id) : addToCart(work))}
             >
               {inCart ? "Na seleção ✓" : !work.price_cents ? "Valor pendente" : "Adicionar"}
-            </button>
-            <button className="button-view-3d" type="button" onClick={() => setSelectedWork(work)}>
-              <span>Detalhes & 3D</span>
-              <ArrowIcon direction="up-right" />
             </button>
           </div>
         </div>

@@ -1,7 +1,9 @@
 "use client";
 
 import { RefObject, useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import type * as ThreeTypes from "three";
+import { artworkRotationDegrees } from "./artworkAdjustments";
 import type { CuratedArtworkImage } from "./artworkImages";
 import { publicAsset } from "./publicAsset";
 
@@ -187,6 +189,11 @@ function makeDepthShellGeometry(THREE: typeof ThreeTypes, outline: ThreeTypes.Ve
 }
 
 export function ArtworkExperience3D({ work, reference, scrollerRef }: Props) {
+  const uprightRotationDegrees = artworkRotationDegrees(work.code);
+  const previewStyle = {
+    "--artwork-rotation": `${uprightRotationDegrees}deg`,
+    "--artwork-correction-scale": uprightRotationDegrees ? "0.985" : "1",
+  } as CSSProperties;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stageRef = useRef<HTMLElement>(null);
   const controlsRef = useRef({ zoomIn: () => {}, zoomOut: () => {}, resetZoom: () => {} });
@@ -316,6 +323,7 @@ export function ArtworkExperience3D({ work, reference, scrollerRef }: Props) {
 
           product.rotation.y = halfTurns * Math.PI + manualYaw;
           product.rotation.x = THREE.MathUtils.lerp(-0.04, 0.04, entrance) - exit * 0.13 + manualPitch;
+          product.rotation.z = THREE.MathUtils.degToRad(uprightRotationDegrees);
           product.position.y = THREE.MathUtils.lerp(0.08, 0, entrance) + exit * 1.85;
           const scale = THREE.MathUtils.lerp(0.88, 1, entrance) * punch * responsiveScale * zoom;
           product.scale.set(scale * widthScale, scale, scale);
@@ -467,12 +475,12 @@ export function ArtworkExperience3D({ work, reference, scrollerRef }: Props) {
       cancelled = true;
       cleanup();
     };
-  }, [reference.imageUrl, scrollerRef, work]);
+  }, [reference.imageUrl, scrollerRef, uprightRotationDegrees, work]);
 
   return (
     <section ref={stageRef} className={`artwork-3d-stage ${ready ? "is-ready" : ""}`} aria-label={`Visualização tridimensional de ${work.title}`}>
       <div className="artwork-3d-sticky">
-        <img className="experience-preview" src={reference.imageUrl} alt="" aria-hidden="true" referrerPolicy="no-referrer" />
+        <img className="experience-preview" style={previewStyle} src={reference.imageUrl} alt="" aria-hidden="true" referrerPolicy="no-referrer" />
         <div className="experience-caption">
           <span>{work.code} · Vista interativa</span>
           <strong>{work.title}</strong>

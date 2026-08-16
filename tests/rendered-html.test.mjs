@@ -90,6 +90,8 @@ test("catalog provides flexible prices, full-screen gallery and timed pre-reserv
   assert.match(catalog, /<ArtworkExperience3D/);
   assert.match(catalog, /CURATED_ARTWORKS/);
   assert.match(catalog, /<ArtworkPhoto work=\{work\}/);
+  assert.doesNotMatch(catalog, /button-view-3d|<span>Detalhes & 3D<\/span>/);
+  assert.doesNotMatch(css, /\.button-view-3d/);
   assert.doesNotMatch(catalog, /[→↗↑↓←]/);
   assert.match(css, /\.gallery-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3/);
   assert.match(css, /@media \(max-width:\s*1200px\)[\s\S]*\.gallery-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3/);
@@ -111,6 +113,7 @@ test("catalog provides flexible prices, full-screen gallery and timed pre-reserv
 
 test("all 84 supplied catalog slots use the real local artwork images and interactive 3D", async () => {
   const images = await read("app/artworkImages.ts");
+  const adjustments = await read("app/artworkAdjustments.ts");
   const experience = await read("app/ArtworkExperience3D.tsx");
   assert.match(images, /length: 84/);
   assert.match(images, /Imagem fornecida pela organização do Vernissage 2026/);
@@ -128,6 +131,8 @@ test("all 84 supplied catalog slots use the real local artwork images and intera
   assert.match(experience, /const smoothingRadius = 4/);
   assert.match(experience, /makeDepthShellGeometry/);
   assert.match(experience, /geometry\.computeVertexNormals\(\)/);
+  assert.match(experience, /product\.rotation\.z = THREE\.MathUtils\.degToRad\(uprightRotationDegrees\)/);
+  for (const slot of [38, 43, 59, 79, 81, 83]) assert.match(adjustments, new RegExp(`\\b${slot}:`));
   assert.match(experience, /depthShell\.name = "SilhouetteDepth"/);
   assert.match(experience, /model\.position\.sub\(centeredPivot\)/);
   assert.match(experience, /className="experience-guide"/);
