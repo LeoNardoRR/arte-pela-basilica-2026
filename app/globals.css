@@ -622,14 +622,15 @@ footer p:last-child { text-align: right; }
   .mobile-menu-toggle i::after { top: 16px; }
   .menu-open .mobile-menu-toggle i::before { top: 13px; transform: rotate(45deg); }
   .menu-open .mobile-menu-toggle i::after { top: 13px; transform: rotate(-45deg); }
-  .mobile-menu { min-height: calc(100svh - 82px); padding: 40px 5vw 26px; position: absolute; top: 100%; left: 0; right: 0; overflow-y: auto; background: #f8f5f0; border-top: 1px solid #d8cebf; color: var(--navy); }
+  .mobile-menu { min-height: calc(100svh - 82px); padding: 32px 5vw 24px; position: absolute; top: 100%; left: 0; right: 0; overflow-y: auto; background: #f8f5f0; border-top: 1px solid #d8cebf; color: var(--navy); }
   .menu-open .mobile-menu { display: block; }
-  .mobile-menu > p { margin: 0 0 26px; color: var(--gold); font-size: 9px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; }
+  .mobile-menu > p { margin: 0 0 20px; color: var(--gold); font-size: 8px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
   .mobile-menu nav { display: grid; border-top: 1px solid #d8cebf; }
-  .mobile-menu nav a { min-height: 68px; display: grid; grid-template-columns: 44px 1fr; align-items: center; border-bottom: 1px solid #d8cebf; }
-  .mobile-menu nav small { color: var(--gold); font-size: 8px; letter-spacing: .14em; }
-  .mobile-menu nav span { font: 600 clamp(24px,6vw,33px) "Cormorant Garamond",serif; }
-  .mobile-menu > div { margin-top: 28px; display: flex; justify-content: space-between; gap: 18px; color: var(--muted); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+  .mobile-menu nav a { min-height: 62px; display: grid; grid-template-columns: 34px minmax(0,1fr) 18px; align-items: center; gap: 8px; border-bottom: 1px solid #d8cebf; }
+  .mobile-menu nav a::after { content: ""; width: 7px; height: 7px; justify-self: end; border-top: 1px solid currentColor; border-right: 1px solid currentColor; opacity: .42; transform: rotate(45deg); }
+  .mobile-menu nav small { color: var(--gold); font-size: 7px; font-weight: 700; letter-spacing: .16em; }
+  .mobile-menu nav span { font: 600 clamp(18px,4.8vw,21px)/1.08 "Cormorant Garamond",serif; letter-spacing: .01em; }
+  .mobile-menu > div { margin-top: 22px; display: flex; align-items: center; justify-content: space-between; gap: 18px; color: var(--muted); font-size: 8px; line-height: 1.45; letter-spacing: .08em; text-transform: uppercase; }
   .mobile-menu > div a { color: var(--navy); font-weight: 800; }
   .admin-stats { grid-template-columns: repeat(2, 1fr); }
   .admin-stats div:nth-child(odd) { border-left: 0; }
@@ -707,7 +708,11 @@ footer p:last-child { text-align: right; }
   .ambient-audio-button .audio-label { display: none; }
   .mobile-menu-toggle { min-height: 39px; padding-left: 8px; }
   .mobile-menu-toggle > span { display: none; }
-  .mobile-menu { min-height: calc(100svh - 75px); padding-top: 30px; }
+  .mobile-menu { min-height: calc(100svh - 75px); padding: 24px 5vw 22px; }
+  .mobile-menu > p { margin-bottom: 16px; font-size: 7px; }
+  .mobile-menu nav a { min-height: 56px; grid-template-columns: 29px minmax(0,1fr) 16px; gap: 7px; }
+  .mobile-menu nav span { font-size: clamp(17px,4.8vw,19px); }
+  .mobile-menu > div { margin-top: 18px; font-size: 7px; }
   .header-cta { padding: 12px 14px; font-size: 10px; }
   .hero { min-height: 600px; height: 82svh; align-items: end; }
   .hero-content { padding-bottom: 105px; }

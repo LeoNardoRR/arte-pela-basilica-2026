@@ -111,6 +111,9 @@ test("catalog provides flexible prices, full-screen gallery and timed pre-reserv
   assert.match(css, /position:\s*sticky;\s*top:\s*0/);
   assert.match(css, /\.mobile-menu-toggle,\.mobile-menu\s*\{[^}]*display:\s*none/);
   assert.match(css, /\.menu-open \.mobile-menu\s*\{[^}]*display:\s*block/);
+  assert.match(css, /\.mobile-menu nav a\s*\{[^}]*grid-template-columns:\s*34px minmax\(0,1fr\) 18px/);
+  assert.match(css, /\.mobile-menu nav a::after/);
+  assert.match(css, /\.mobile-menu nav span\s*\{[^}]*clamp\(18px,4\.8vw,21px\)/);
 });
 
 test("all 84 supplied catalog slots use the real local artwork images and interactive 3D", async () => {
