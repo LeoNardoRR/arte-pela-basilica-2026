@@ -40,6 +40,7 @@ test("admin uses protected Supabase access and has no public demo", async () => 
   assert.match(css, /\.admin-stats\s*\{[^}]*background:\s*var\(--navy\)/);
   assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*\.admin-price-grid\s*\{[^}]*grid-template-columns:\s*1fr/);
   assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*\.admin-toolbar\s*\{[^}]*position:\s*sticky/);
+  assert.match(css, /\.person-contact-panel \.intent-contact b\s*\{[^}]*overflow-wrap:\s*anywhere/);
   assert.doesNotMatch(admin, /resetPasswordForEmail|PASSWORD_RECOVERY|updateUser\(\{ password:|Criar ou redefinir senha|Visualizar demonstração|Modo demonstração|demoMode|demoIntents/);
 });
 

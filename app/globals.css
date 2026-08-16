@@ -123,13 +123,14 @@ body { margin: 0; background: var(--ivory); color: var(--ink); font-family: "Int
 
 .person-body { padding: 0 28px 28px; border-top: 1px solid #efe8df; background: #ffffff; }
 .person-contact-panel { padding: 20px 0; display: grid; grid-template-columns: minmax(140px, 0.65fr) 1.35fr; align-items: center; gap: 24px; border-bottom: 1px solid #efe8df; }
+.person-contact-panel > div:first-child { display: grid; gap: 5px; }
 .person-contact-panel > div:first-child span { color: var(--gold); font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
 .person-contact-panel > div:first-child strong { color: var(--navy); font-size: 15px; font-family: "Playfair Display", serif; }
 .person-contact-panel .intent-contact { margin: 0; gap: 16px; }
-.person-contact-panel .intent-contact a { padding: 10px 16px; border: 1px solid #e0d8cf; border-radius: 8px; background: #faf9f7; transition: border-color 0.2s, background 0.2s; }
+.person-contact-panel .intent-contact a { min-width: 0; padding: 10px 16px; display: grid; gap: 4px; border: 1px solid #e0d8cf; border-radius: 8px; background: #faf9f7; transition: border-color 0.2s, background 0.2s; }
 .person-contact-panel .intent-contact a:hover { border-color: var(--gold); background: #ffffff; }
 .person-contact-panel .intent-contact small { color: var(--muted); font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
-.person-contact-panel .intent-contact b { color: var(--navy); font-size: 13px; font-weight: 600; }
+.person-contact-panel .intent-contact b { min-width: 0; overflow-wrap: anywhere; color: var(--navy); font-size: 13px; font-weight: 600; }
 
 .person-intents-head { padding: 18px 0 12px; display: flex; align-items: center; justify-content: space-between; color: var(--navy); }
 .person-intents-head span { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); }
@@ -1128,7 +1129,8 @@ footer p:last-child { text-align: right; }
   .person-card { border-radius: 2px; }
   .person-summary { min-height: 0; padding: 18px 14px; }
   .person-body { margin: 0; padding: 0 14px 18px; }
-  .person-contact-panel .intent-contact a { min-height: 54px; border-radius: 2px; }
+  .person-contact-panel { gap: 14px; }
+  .person-contact-panel .intent-contact a { min-height: 60px; border-radius: 2px; }
   .intent-group { padding: 17px 0; }
   .intent-actions button { min-height: 46px; }
 }
