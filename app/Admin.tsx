@@ -6,7 +6,7 @@ import { publicAsset } from "./publicAsset";
 import { ADMIN_EMAIL, supabase } from "./supabase";
 
 const BASILICA_CREST = publicAsset("/logo-basilica.jpeg");
-const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 type IntentStatus = "reserved" | "submitted" | "reviewed" | "approved" | "declined" | "paid" | "expired";
 type IntentItem = { artwork_id: number; artwork_code: string; artwork_title: string; artwork_status: "available" | "reserved" | "sold"; amount_cents: number };
 type Intent = { id: string; bidder_name: string; bidder_email: string; bidder_phone: string; preferred_payment_method: string; total_cents: number; status: IntentStatus; created_at: string; expires_at: string | null; confirmation_code: string | null; extra_contribution_cents: number; items: IntentItem[] };
@@ -32,6 +32,27 @@ const statusActions: Record<IntentStatus, Array<{ status: IntentStatus; label: s
 };
 
 function cleanAdminUrl() { if (window.location.search || window.location.hash.includes("access_token=")) window.history.replaceState({}, "", `${window.location.pathname}#admin`); }
+
+function formatPriceDraft(cents: number | null) {
+  return cents === null ? "" : (cents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: false });
+}
+
+function normalizePriceDraft(value: string) {
+  const cleaned = value.replace(/[^\d,.]/g, "");
+  const decimalSeparator = Math.max(cleaned.lastIndexOf(","), cleaned.lastIndexOf("."));
+  if (decimalSeparator < 0) return cleaned.replace(/\D/g, "");
+  const reais = cleaned.slice(0, decimalSeparator).replace(/\D/g, "");
+  const centavos = cleaned.slice(decimalSeparator + 1).replace(/\D/g, "").slice(0, 2);
+  return `${reais},${centavos}`;
+}
+
+function priceDraftToCents(value: string) {
+  const normalized = normalizePriceDraft(value);
+  if (!/^\d+(?:,\d{0,2})?$/.test(normalized)) return null;
+  const [reais, centavos = ""] = normalized.split(",");
+  const cents = Number(reais) * 100 + Number(centavos.padEnd(2, "0"));
+  return Number.isSafeInteger(cents) && cents >= 100 ? cents : null;
+}
 
 function groupByPerson(intents: Intent[]): PersonGroup[] {
   const groups = new Map<string, PersonGroup>();
@@ -120,12 +141,13 @@ export function Admin() {
   }
 
   async function updateArtworkPrice(artwork: ArtworkPrice) {
-    const value = priceDrafts[artwork.id] ?? (artwork.price_cents ? String(artwork.price_cents / 100) : "");
-    const cents = value.trim() ? Number(value.replace(/\D/g, "")) * 100 : null;
+    const value = priceDrafts[artwork.id] ?? formatPriceDraft(artwork.price_cents);
+    const cents = priceDraftToCents(value);
+    if (cents === null) { setNotice("Informe um valor válido, usando vírgula para os centavos. Exemplo: 520,50."); return; }
     setChangingId(`price-${artwork.id}`); setNotice("");
     const { error } = await supabase.rpc("admin_update_artwork_price", { artwork_id: artwork.id, new_price_cents: cents });
     if (error) setNotice(error.message || "Não foi possível salvar o valor.");
-    else { await loadProposals(); setNotice(`Valor de ${artwork.title} atualizado.`); }
+    else { setPriceDrafts((drafts) => ({ ...drafts, [artwork.id]: formatPriceDraft(cents) })); await loadProposals(); setNotice(`Valor de ${artwork.title} atualizado.`); }
     setChangingId("");
   }
 
@@ -173,7 +195,7 @@ export function Admin() {
         <div className="person-intents" tabIndex={person.intents.length > 2 ? 0 : undefined} aria-label={`Histórico de intenções de ${person.name}`}>{person.intents.map((intent, index) => <section className="intent-group" key={intent.id}><div className="intent-group-head"><div><span className="intent-number">Pré-reserva {intent.confirmation_code || String(index + 1).padStart(2, "0")}</span><span className={`intent-status ${intent.status}`}>{statusLabels[intent.status]}</span><time>{new Date(intent.created_at).toLocaleString("pt-BR")}{intent.expires_at ? ` · expira ${new Date(intent.expires_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}` : ""}</time></div><strong>{money.format(intent.total_cents / 100)}</strong></div><ul>{intent.items.map((item) => <li key={`${intent.id}-${item.artwork_id}`}><span><small>{item.artwork_code}</small><b>{item.artwork_title}</b></span><strong>{money.format(item.amount_cents / 100)}</strong></li>)}</ul>{intent.extra_contribution_cents > 0 && <p className="intent-extra-offer">Oferta adicional: <strong>{money.format(intent.extra_contribution_cents / 100)}</strong></p>}{statusActions[intent.status].length > 0 && <div className="intent-actions" aria-label={`Ações para intenção de ${person.name}`}>{statusActions[intent.status].map((action) => <button key={action.status} className={action.status} disabled={changingId === intent.id} onClick={() => updateStatus(intent, action.status)}>{changingId === intent.id ? "Salvando…" : action.label}</button>)}</div>}</section>)}</div>
       </div>
     </details>) : <p className="admin-notice empty-state">Nenhuma intenção encontrada neste filtro.</p>}</div>}</section>
-    <section className="admin-pricing" aria-labelledby="pricing-title"><div className="admin-section-heading"><div><span className="admin-section-index">03</span><div><p>Obras e valores</p><h2 id="pricing-title">Controle do acervo</h2></div></div><small>Atualizações aparecem imediatamente no catálogo</small></div><div className="admin-price-grid">{artworkPrices.map((artwork) => <article key={artwork.id}><span><b>{artwork.code}</b><small className={`artwork-admin-status ${artwork.status}`}>{artwork.status === "available" ? "Disponível" : artwork.status === "reserved" ? "Pré-reservada" : "Adquirida"}</small></span><label><span className="sr-only">Valor padrão de {artwork.title}</span><div><i>R$</i><input inputMode="numeric" value={priceDrafts[artwork.id] ?? (artwork.price_cents ? String(artwork.price_cents / 100) : "")} onChange={(event) => setPriceDrafts((drafts) => ({ ...drafts, [artwork.id]: event.target.value.replace(/\D/g, "") }))} aria-label={`Valor padrão de ${artwork.title}`} placeholder="Informe o valor" /><button type="button" disabled={changingId === `price-${artwork.id}`} onClick={() => updateArtworkPrice(artwork)}>{changingId === `price-${artwork.id}` ? "…" : "Salvar"}</button></div></label><button className={`artwork-availability-action ${artwork.status}`} type="button" disabled={artwork.status === "available" || changingId === `availability-${artwork.id}`} onClick={() => makeArtworkAvailable(artwork)}>{changingId === `availability-${artwork.id}` ? "Liberando…" : artwork.status === "available" ? "Já disponível" : "Tornar disponível"}</button></article>)}</div></section>
+    <section className="admin-pricing" aria-labelledby="pricing-title"><div className="admin-section-heading"><div><span className="admin-section-index">03</span><div><p>Obras e valores</p><h2 id="pricing-title">Controle do acervo</h2></div></div><small>Atualizações aparecem imediatamente no catálogo</small></div><div className="admin-price-grid">{artworkPrices.map((artwork) => <article key={artwork.id}><span><b>{artwork.code}</b><small className={`artwork-admin-status ${artwork.status}`}>{artwork.status === "available" ? "Disponível" : artwork.status === "reserved" ? "Pré-reservada" : "Adquirida"}</small></span><label><span className="sr-only">Valor padrão de {artwork.title}</span><div><i>R$</i><input inputMode="decimal" maxLength={15} value={priceDrafts[artwork.id] ?? formatPriceDraft(artwork.price_cents)} onChange={(event) => setPriceDrafts((drafts) => ({ ...drafts, [artwork.id]: normalizePriceDraft(event.target.value) }))} aria-label={`Valor padrão de ${artwork.title}`} placeholder="0,00" /><button type="button" disabled={changingId === `price-${artwork.id}`} onClick={() => updateArtworkPrice(artwork)}>{changingId === `price-${artwork.id}` ? "…" : "Salvar"}</button></div></label><button className={`artwork-availability-action ${artwork.status}`} type="button" disabled={artwork.status === "available" || changingId === `availability-${artwork.id}`} onClick={() => makeArtworkAvailable(artwork)}>{changingId === `availability-${artwork.id}` ? "Liberando…" : artwork.status === "available" ? "Já disponível" : "Tornar disponível"}</button></article>)}</div></section>
   </div>;
 
   return <main className="admin-page"><header className="admin-header"><a className="admin-back" href="#conteudo-principal"><span className="arrow-icon arrow-left" aria-hidden="true" /><span>Voltar à exposição</span></a><a className="admin-brand" href="#conteudo-principal" aria-label="Arte pela Basílica — voltar à exposição"><span className="admin-brand-crest"><img src={BASILICA_CREST} alt="" /></span><span><small>Vernissage 2026</small><strong>Arte pela Basílica</strong></span></a><div className="admin-header-actions"><span>Gestão presencial</span>{session && <button onClick={logout}>Sair</button>}</div></header><section className="admin-wrap">{content}</section></main>;
