@@ -44,7 +44,9 @@ test("catalog provides flexible prices, full-screen gallery and timed pre-reserv
   assert.match(catalog, /event\.key !== "Tab"/);
   assert.match(catalog, /submittingRef\.current/);
   assert.match(catalog, /phoneDigits\.length < 8/);
-  assert.match(catalog, /mobile-catalog-link/);
+  assert.match(catalog, /mobile-menu-toggle/);
+  assert.match(catalog, /aria-controls="mobile-menu"/);
+  assert.match(catalog, /Parceiros desta edição/);
   assert.match(catalog, /className="admin-menu-link" href="#admin"/);
   assert.match(catalog, /price_cents/);
   assert.match(catalog, /submit_pre_reservation/);
@@ -78,7 +80,8 @@ test("catalog provides flexible prices, full-screen gallery and timed pre-reserv
   assert.match(css, /\.selection-bag-icon::before/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(css, /position:\s*sticky;\s*top:\s*0/);
-  assert.match(css, /\.mobile-catalog-link\s*\{[^}]*display:\s*none/);
+  assert.match(css, /\.mobile-menu-toggle,\.mobile-menu\s*\{[^}]*display:\s*none/);
+  assert.match(css, /\.menu-open \.mobile-menu\s*\{[^}]*display:\s*block/);
 });
 
 test("all 84 supplied catalog slots use the real local artwork images and interactive 3D", async () => {

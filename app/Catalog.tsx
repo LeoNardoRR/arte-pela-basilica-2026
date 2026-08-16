@@ -114,6 +114,7 @@ export function Catalog() {
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [selectedWork, setSelectedWork] = useState<Artwork | null>(null);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [lastIntentData, setLastIntentData] = useState<{ bidderName: string; code: string; date: string; items: Artwork[] } | null>(null);
   const [reservationReceipt, setReservationReceipt] = useState<ReservationReceipt | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -485,15 +486,22 @@ export function Catalog() {
       <div className="scroll-progress" ref={scrollProgressRef} aria-hidden="true" />
       <a className="skip-link" href="#conteudo-principal">Pular para o conteúdo</a>
       <div className="page-shell" inert={modalOpen ? true : undefined} aria-hidden={modalOpen ? true : undefined}>
-      <header className="site-header">
-        <a className="brand" href="#conteudo-principal" aria-label="Basílica Santo Antônio — início"><img src={BASILICA_CREST} alt="Brasão da Basílica Santo Antônio" /><span><strong>Basílica</strong><small>Santo Antônio</small></span></a>
-        <nav aria-label="Navegação principal"><a href="#exposicao">A exposição</a><a href="#acervo">Acervo</a><a href="#como-participar">Como adquirir</a><a href="#doacao">Doar</a><a href="#parceiros">Parceiros</a></nav>
-        <button className={`ambient-audio-button ${isPlayingAudio ? "playing" : ""}`} type="button" onClick={toggleAmbientAudio} aria-label={isPlayingAudio ? "Desligar som ambiente" : "Ligar som ambiente"} title={isPlayingAudio ? "Som ligado" : "Som ambiente"}>
-          <span className="audio-icon" aria-hidden="true">{isPlayingAudio ? "🔊" : "🔈"}</span>
-        </button>
-        <a className="mobile-catalog-link" href="#acervo">Acervo</a>
-        <a className="admin-menu-link" href="#admin" aria-label="Acessar área administrativa">Administrativo</a>
-        <button className="cart-trigger" onClick={() => setCartOpen(true)} aria-label={`Abrir seleção com ${cart.length} obras`}><span>Minha seleção</span><b>{cart.length}</b></button>
+      <header className={`site-header ${mobileMenuOpen ? "menu-open" : ""}`}>
+        <a className="brand" href="#conteudo-principal" aria-label="Basílica Santo Antônio — início" onClick={() => setMobileMenuOpen(false)}><span className="brand-crest"><img src={BASILICA_CREST} alt="Brasão da Basílica Santo Antônio" /></span><span><small>Vernissage 2026</small><strong>Arte pela Basílica</strong></span></a>
+        <nav className="desktop-nav" aria-label="Navegação principal"><a href="#exposicao"><small>01</small>A exposição</a><a href="#acervo"><small>02</small>Acervo</a><a href="#como-participar"><small>03</small>Como adquirir</a><a href="#doacao"><small>04</small>Doar</a><a href="#parceiros"><small>05</small>Parceiros</a></nav>
+        <div className="header-actions">
+          <button className={`ambient-audio-button ${isPlayingAudio ? "playing" : ""}`} type="button" onClick={toggleAmbientAudio} aria-label={isPlayingAudio ? "Desligar som ambiente" : "Ligar som ambiente"} title={isPlayingAudio ? "Som ligado" : "Som ambiente"}>
+            <span className="audio-icon" aria-hidden="true">{isPlayingAudio ? "🔊" : "🔈"}</span><span className="audio-label">Ambiente</span>
+          </button>
+          <a className="admin-menu-link" href="#admin" aria-label="Acessar área administrativa">Administrativo</a>
+          <button className="cart-trigger" onClick={() => setCartOpen(true)} aria-label={`Abrir seleção com ${cart.length} obras`}><span>Minha seleção</span><b>{cart.length}</b></button>
+          <button className="mobile-menu-toggle" type="button" aria-expanded={mobileMenuOpen} aria-controls="mobile-menu" onClick={() => setMobileMenuOpen((open) => !open)}><span>{mobileMenuOpen ? "Fechar" : "Menu"}</span><i aria-hidden="true" /></button>
+        </div>
+        <div className="mobile-menu" id="mobile-menu">
+          <p>Explore a edição 2026</p>
+          <nav aria-label="Navegação móvel"><a href="#exposicao" onClick={() => setMobileMenuOpen(false)}><small>01</small><span>A exposição</span></a><a href="#acervo" onClick={() => setMobileMenuOpen(false)}><small>02</small><span>Acervo completo</span></a><a href="#como-participar" onClick={() => setMobileMenuOpen(false)}><small>03</small><span>Como adquirir</span></a><a href="#doacao" onClick={() => setMobileMenuOpen(false)}><small>04</small><span>Doação via PIX</span></a><a href="#parceiros" onClick={() => setMobileMenuOpen(false)}><small>05</small><span>Parceiros</span></a></nav>
+          <div><a href="#admin" onClick={() => setMobileMenuOpen(false)}>Área administrativa</a><span>10 setembro · Americana, SP</span></div>
+        </div>
       </header>
 
       <section className="hero" id="conteudo-principal">
@@ -503,6 +511,8 @@ export function Catalog() {
       </section>
 
       <aside className="event-bar" id="exposicao" data-reveal="up"><div className="event-icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C12 2 9.5 5.5 10.2 7.8C10.6 9.2 12 9.5 12 9.5C12 9.5 13.4 9.2 13.8 7.8C14.5 5.5 12 2 12 2Z" fill="currentColor" opacity="0.9"/><rect x="10.5" y="9" width="3" height="11" rx="1.5" fill="currentColor" opacity="0.85"/><ellipse cx="12" cy="20.5" rx="3.5" ry="1" fill="currentColor" opacity="0.2"/></svg></div><div><span>Exposição presencial</span><strong>10 de setembro de 2026</strong></div><div><span>Local</span><strong>Av. de Cillo, 820 — Americana, SP</strong></div><div><span>Endereço completo</span><strong>Jd. São Pedro · CEP 13466-550</strong></div><a href="#acervo">Visitar acervo <ArrowIcon /></a></aside>
+
+      <section className="sponsors-section" id="parceiros" data-reveal="up"><div className="sponsors-heading"><div><p className="section-kicker">Parceiros desta edição</p><h2>Juntos pela preservação.</h2></div><p>Empresas e apoiadores que tornam o Arte pela Basílica possível.</p></div><div className="sponsor-logos"><figure><img src={publicAsset("/sponsors/hotel-florenca.png")} alt="Hotel Florença" /><figcaption>Hotel Florença</figcaption></figure><figure><img src={publicAsset("/sponsors/contatto.png")} alt="Contatto Transportes" /><figcaption>Contatto Transportes</figcaption></figure><figure><img src={publicAsset("/sponsors/beauty-flor.webp")} alt="Buquê de Flor" /><figcaption>Buquê de Flor</figcaption></figure><figure><img src={publicAsset("/sponsors/quadrum.jpg")} alt="Quadrum" /><figcaption>Quadrum</figcaption></figure><figure><img src={publicAsset("/sponsors/juarez-godoy.jpg")} alt="Juarez Godoy Arte e Cultura" /><figcaption>Juarez Godoy</figcaption></figure></div></section>
 
       <section className="intro" data-reveal="up"><p className="section-kicker">Arte pela Basílica</p><h2>Uma coleção com propósito.<br />Uma experiência para guardar.</h2><p className="intro-copy">Escolha suas peças, informe uma oferta adicional se desejar e faça uma pré-reserva de 30 minutos. Durante o prazo, as obras ficam bloqueadas para outros visitantes e a conclusão acontece presencialmente.</p><div className="numbers"><div><strong>84</strong><span>obras reais no catálogo</span></div><div><strong>30 min</strong><span>de bloqueio temporário</span></div><div><strong>1 gesto</strong><span>em favor da Basílica</span></div></div></section>
 
@@ -516,8 +526,6 @@ export function Catalog() {
       <section className="how-section" id="como-participar" data-reveal="up"><div><p className="section-kicker light">Como adquirir</p><h2>Sua obra bloqueada.<br />A compra, presencial.</h2></div><ol><li><span>01</span><div><strong>Escolha as obras</strong><p>Explore o acervo, confira os valores e adicione as peças à sua seleção.</p></div></li><li><span>02</span><div><strong>Faça a pré-reserva</strong><p>Informe seus dados e, se quiser, acrescente uma oferta acima do valor padrão.</p></div></li><li><span>03</span><div><strong>Conclua em 30 minutos</strong><p>Vá à Basílica, apresente o protocolo e efetue o pagamento presencial antes da expiração.</p></div></li></ol></section>
 
       <DonationSection />
-
-      <section className="sponsors-section" id="parceiros" data-reveal="up"><p className="section-kicker">Realização e parceiros</p><h2>Quem torna este encontro possível.</h2><div className="sponsor-logos"><img src={publicAsset("/sponsors/hotel-florenca.png")} alt="Hotel Florença" /><img src={publicAsset("/sponsors/contatto.png")} alt="Contatto Transportes" /><img src={publicAsset("/sponsors/beauty-flor.webp")} alt="Buquê de Flor" /><img src={publicAsset("/sponsors/quadrum.jpg")} alt="Quadrum" /><img src={publicAsset("/sponsors/juarez-godoy.jpg")} alt="Juarez Godoy Arte e Cultura" /></div></section>
 
       <section className="closing" id="contato" data-reveal="up"><img src={BASILICA_CREST} alt="" /><p className="section-kicker">10 de setembro de 2026</p><h2>Leve uma obra.<br />Faça parte desta história.</h2><p>A pré-reserva bloqueia a obra por 30 minutos, mas não gera cobrança online. A posse somente é confirmada após o pagamento presencial dentro do prazo.</p><button className="button primary" onClick={() => setCartOpen(true)}>Revisar minha seleção <ArrowIcon /></button></section>
 
