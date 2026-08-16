@@ -20,6 +20,8 @@ test("admin uses protected Supabase access and has no public demo", async () => 
   assert.match(supabase, /ADMIN_EMAIL\s*=\s*"ribeiroleonardoti@gmail\.com"/);
   assert.match(admin, /admin_get_proposals/);
   assert.match(admin, /admin_update_cart_status/);
+  assert.match(admin, /admin_set_artwork_available/);
+  assert.match(admin, /Tornar disponível/);
   assert.match(admin, /groupByPerson/);
   assert.match(admin, /Intenções por pessoa/);
   assert.match(admin, /Fila de atendimento/);
@@ -102,10 +104,13 @@ test("all 84 supplied catalog slots use the real local artwork images and intera
   assert.match(experience, /new THREE\.TextureLoader\(\)\.loadAsync\(reference\.imageUrl\)/);
   assert.match(experience, /frontTexture\.flipY\s*=\s*true/);
   assert.match(experience, /className="experience-guide"/);
-  assert.match(experience, /Role para avançar · frente, perfil e verso/);
+  assert.match(experience, /className="experience-zoom"/);
+  assert.match(experience, /useWheelZoom/);
+  assert.match(experience, /autoYaw \+= elapsed/);
+  assert.match(experience, /Arraste para girar · use os controles para ampliar/);
   assert.doesNotMatch(experience, /artist|technique|Artista|Técnica/);
   assert.doesNotMatch(experience, /frontTexture\.rotation/);
-  assert.doesNotMatch(experience, /requestAnimationFrame/);
+  assert.match(experience, /requestAnimationFrame\(animateIdle\)/);
 });
 
 test("database migration installs the 84-work catalog and protected price control", async () => {
@@ -118,6 +123,11 @@ test("database migration installs the 84-work catalog and protected price contro
   assert.match(migration, /is_basilica_admin/);
   assert.match(correction, /price_cents is null/);
   assert.match(correction, /when id = 1 then 52000 else null/);
+  const availability = await read("supabase/migrations/20260816033000_admin_restore_artwork_availability.sql");
+  assert.match(availability, /admin_set_artwork_available/);
+  assert.match(availability, /status = 'available'/);
+  assert.match(availability, /reserved_until = null/);
+  assert.match(availability, /is_basilica_admin/);
 });
 
 test("reservation notification and donation callout are explicit but respectful", async () => {

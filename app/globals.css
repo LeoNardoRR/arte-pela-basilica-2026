@@ -12,6 +12,7 @@
 }
 
 * { box-sizing: border-box; }
+.sr-only { width: 1px; height: 1px; padding: 0; position: absolute; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 html { scroll-behavior: smooth; scroll-padding-top: 124px; }
 body { margin: 0; background: var(--ivory); color: var(--ink); font-family: "Inter", sans-serif; -webkit-font-smoothing: antialiased; }
 [id] { scroll-margin-top: 0; }
@@ -498,6 +499,11 @@ a { color: inherit; text-decoration: none; }
 .experience-guide small { color: #d8b775; font-size: 7px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
 .experience-guide strong { font: 600 14px "Playfair Display",serif; }
 .experience-guide span { color: rgba(255,255,255,.58); font-size: 8px; letter-spacing: .06em; }
+.experience-zoom { position: absolute; z-index: 3; right: clamp(24px,6vw,82px); bottom: clamp(24px,5vh,52px); display: grid; grid-template-columns: auto 38px 52px 38px; align-items: center; border: 1px solid rgba(216,183,117,.32); background: rgba(7,11,42,.72); color: white; backdrop-filter: blur(14px); }
+.experience-zoom > span { padding: 0 13px; color: #d8b775; font-size: 7px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.experience-zoom button { height: 38px; padding: 0; border: 0; border-left: 1px solid rgba(255,255,255,.14); background: transparent; color: white; cursor: pointer; font: 600 15px "Inter",sans-serif; }
+.experience-zoom button:nth-of-type(2) { color: #d8b775; font-size: 8px; }
+.experience-zoom button:hover,.experience-zoom button:focus-visible { background: rgba(216,183,117,.16); outline: 0; }
 .detail-copy { padding: clamp(75px,10vw,150px) max(8vw,calc((100vw - 1180px)/2)); display: grid; grid-template-columns: 1fr .7fr; align-items: end; gap: 12vw; background: #f8f5ef; }
 .detail-copy h3 { margin: 15px 0 8px; color: var(--navy); font: 700 clamp(48px,5.6vw,80px)/0.97 "Cormorant Garamond",serif; }
 .detail-artist { margin: 0 0 30px; color: var(--muted); }
@@ -777,6 +783,8 @@ footer p:last-child { text-align: right; }
   .experience-caption strong { max-width: 200px; font-size: 17px; }
   .experience-caption small { max-width: 210px; line-height: 1.45; }
   .experience-guide { width: min(285px,calc(100vw - 40px)); left: 20px; bottom: 92px; padding: 12px 14px; }
+  .experience-zoom { right: 20px; bottom: 28px; grid-template-columns: 36px 50px 36px; }
+  .experience-zoom > span { display: none; }
   .detail-copy { padding: 70px 24px; grid-template-columns: 1fr; gap: 55px; }
   .detail-copy h3 { font-size: 42px; }
   .detail-price { margin: 23px 0; }
@@ -927,13 +935,21 @@ footer p:last-child { text-align: right; }
 .sponsor-logos figcaption { padding-top: 10px; color: var(--muted); font-size: 7px; font-weight: 700; letter-spacing: .12em; text-align: center; text-transform: uppercase; }
 
 .admin-price-grid { max-height: 480px; padding: 12px; display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; overflow: auto; border: 1px solid var(--line); background: white; }
-.admin-price-grid > label { padding: 12px; display: grid; gap: 9px; border: 1px solid #eee8e0; }
-.admin-price-grid > label > span { display: flex; justify-content: space-between; color: var(--navy); }
+.admin-price-grid > article { padding: 12px; display: grid; gap: 9px; border: 1px solid #eee8e0; }
+.admin-price-grid > article > span { display: flex; justify-content: space-between; align-items: center; color: var(--navy); }
 .admin-price-grid small { color: var(--muted); font-size: 9px; }
-.admin-price-grid > label > div { display: grid; grid-template-columns: auto 1fr auto; align-items: center; border: 1px solid #d8d1ca; }
+.admin-price-grid label > div { display: grid; grid-template-columns: auto 1fr auto; align-items: center; border: 1px solid #d8d1ca; }
 .admin-price-grid i { padding-left: 9px; color: var(--gold); font-size: 10px; font-style: normal; }
 .admin-price-grid input { min-width: 0; padding: 9px; border: 0; outline: 0; }
-.admin-price-grid button { align-self: stretch; border: 0; background: var(--navy); color: white; cursor: pointer; font-size: 9px; font-weight: 700; text-transform: uppercase; }
+.admin-price-grid label button { align-self: stretch; border: 0; background: var(--navy); color: white; cursor: pointer; font-size: 9px; font-weight: 700; text-transform: uppercase; }
+.artwork-admin-status { padding: 4px 7px; border-radius: 99px; font-weight: 700; }
+.artwork-admin-status.available { background: #e3efe4; color: #286238; }
+.artwork-admin-status.reserved { background: #fff0c8; color: #795514; }
+.artwork-admin-status.sold { background: #f4dfe3; color: var(--wine); }
+.artwork-availability-action { min-height: 34px; border: 1px solid var(--wine); background: transparent; color: var(--wine); cursor: pointer; font-size: 9px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.artwork-availability-action:hover:not(:disabled) { background: var(--wine); color: white; }
+.artwork-availability-action.available { border-color: #cfd8cf; color: #5e715f; }
+.artwork-availability-action:disabled { cursor: default; opacity: .62; }
 .intent-extra-offer { margin: 10px 0 0; padding: 10px 12px; display: flex; justify-content: space-between; background: #f7f2e8; color: var(--gold); font-size: 11px; }
 
 @media (max-width: 800px) {

@@ -100,6 +100,7 @@ function alphaMixMaterial(THREE: typeof ThreeTypes, texture: ThreeTypes.Texture,
 export function ArtworkExperience3D({ work, reference, scrollerRef }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stageRef = useRef<HTMLElement>(null);
+  const controlsRef = useRef({ zoomIn: () => {}, zoomOut: () => {}, resetZoom: () => {} });
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
 
@@ -183,7 +184,12 @@ export function ArtworkExperience3D({ work, reference, scrollerRef }: Props) {
         let responsiveScale = 1;
         let manualYaw = 0;
         let manualPitch = 0;
+        let autoYaw = 0;
+        let zoom = 1;
         let pointerId: number | null = null;
+        let animationFrame = 0;
+        let lastFrame = performance.now();
+        let lastInteraction = performance.now() - 4000;
         let startX = 0;
         let startY = 0;
         let startYaw = 0;
@@ -203,15 +209,29 @@ export function ArtworkExperience3D({ work, reference, scrollerRef }: Props) {
           product.rotation.y = halfTurns * Math.PI + manualYaw;
           product.rotation.x = THREE.MathUtils.lerp(-0.04, 0.04, entrance) - exit * 0.13 + manualPitch;
           product.position.y = THREE.MathUtils.lerp(0.08, 0, entrance) + exit * 1.85;
-          const scale = THREE.MathUtils.lerp(0.88, 1, entrance) * punch * responsiveScale;
+          const scale = THREE.MathUtils.lerp(0.88, 1, entrance) * punch * responsiveScale * zoom;
           product.scale.set(scale * widthScale, scale, scale);
+          product.rotation.y += autoYaw;
           canvas.style.opacity = String(1 - THREE.MathUtils.smoothstep(exit, 0.7, 1));
           canvas.dataset.rotation = product.rotation.y.toFixed(3);
+          canvas.dataset.zoom = zoom.toFixed(2);
         };
 
         const render = () => {
           applyProgress();
           renderer.render(scene, camera);
+        };
+
+        const markInteraction = () => { lastInteraction = performance.now(); };
+        const setZoom = (nextZoom: number) => {
+          zoom = THREE.MathUtils.clamp(nextZoom, 0.72, 1.65);
+          markInteraction();
+          render();
+        };
+        controlsRef.current = {
+          zoomIn: () => setZoom(zoom + 0.14),
+          zoomOut: () => setZoom(zoom - 0.14),
+          resetZoom: () => setZoom(1),
         };
 
         const resize = () => {
@@ -238,6 +258,7 @@ export function ArtworkExperience3D({ work, reference, scrollerRef }: Props) {
           startY = event.clientY;
           startYaw = manualYaw;
           startPitch = manualPitch;
+          markInteraction();
           canvas.setPointerCapture(pointerId);
           stage.classList.add("is-dragging");
         };
@@ -248,6 +269,7 @@ export function ArtworkExperience3D({ work, reference, scrollerRef }: Props) {
           if (Math.abs(deltaX) < Math.abs(deltaY) && event.pointerType === "touch") return;
           manualYaw = startYaw + deltaX * 0.012;
           manualPitch = THREE.MathUtils.clamp(startPitch + deltaY * 0.003, -0.22, 0.22);
+          markInteraction();
           render();
         };
         const endDrag = (event: PointerEvent) => {
@@ -265,13 +287,19 @@ export function ArtworkExperience3D({ work, reference, scrollerRef }: Props) {
           event.preventDefault();
           manualYaw += increment[0];
           manualPitch = THREE.MathUtils.clamp(manualPitch + increment[1], -0.22, 0.22);
+          markInteraction();
           render();
+        };
+        const useWheelZoom = (event: WheelEvent) => {
+          event.preventDefault();
+          setZoom(zoom + (event.deltaY < 0 ? 0.1 : -0.1));
         };
         canvas.addEventListener("pointerdown", beginDrag);
         canvas.addEventListener("pointermove", drag);
         canvas.addEventListener("pointerup", endDrag);
         canvas.addEventListener("pointercancel", endDrag);
         canvas.addEventListener("keydown", useKeyboard);
+        canvas.addEventListener("wheel", useWheelZoom, { passive: false });
 
         const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         let trigger: ReturnType<typeof ScrollTrigger.create> | null = null;
@@ -287,6 +315,14 @@ export function ArtworkExperience3D({ work, reference, scrollerRef }: Props) {
               render();
             },
           });
+          const animateIdle = (now: number) => {
+            const elapsed = Math.min(now - lastFrame, 50);
+            lastFrame = now;
+            if (pointerId === null && now - lastInteraction > 2200) autoYaw += elapsed * 0.00011;
+            render();
+            animationFrame = requestAnimationFrame(animateIdle);
+          };
+          animationFrame = requestAnimationFrame(animateIdle);
         }
 
         resize();
@@ -294,12 +330,15 @@ export function ArtworkExperience3D({ work, reference, scrollerRef }: Props) {
 
         cleanup = () => {
           trigger?.kill();
+          cancelAnimationFrame(animationFrame);
           resizeObserver.disconnect();
           canvas.removeEventListener("pointerdown", beginDrag);
           canvas.removeEventListener("pointermove", drag);
           canvas.removeEventListener("pointerup", endDrag);
           canvas.removeEventListener("pointercancel", endDrag);
           canvas.removeEventListener("keydown", useKeyboard);
+          canvas.removeEventListener("wheel", useWheelZoom);
+          controlsRef.current = { zoomIn: () => {}, zoomOut: () => {}, resetZoom: () => {} };
           frontTexture.dispose();
           backTexture.dispose();
           product.traverse((object) => {
@@ -333,11 +372,17 @@ export function ArtworkExperience3D({ work, reference, scrollerRef }: Props) {
         </div>
         <div className="experience-edition-mark" aria-hidden="true"><span>Vernissage</span><strong>2026</strong></div>
         <canvas ref={canvasRef} role="img" tabIndex={0} aria-label={`Quadro 3D interativo de ${work.title}. Arraste para girar.`} />
+        <div className="experience-zoom" aria-label="Controles de zoom">
+          <span>Zoom</span>
+          <button type="button" onClick={() => controlsRef.current.zoomOut()} aria-label="Reduzir quadro">−</button>
+          <button type="button" onClick={() => controlsRef.current.resetZoom()} aria-label="Restaurar zoom">100%</button>
+          <button type="button" onClick={() => controlsRef.current.zoomIn()} aria-label="Ampliar quadro">+</button>
+        </div>
         <div className="experience-fallback" aria-hidden={ready}>{failed ? "Visualização estática disponível" : "Preparando visualização 3D…"}</div>
         <div className="experience-guide" aria-hidden="true">
           <small>Como explorar</small>
           <strong>Arraste para girar</strong>
-          <span>Role para avançar · frente, perfil e verso</span>
+          <span>Arraste para girar · use os controles para ampliar</span>
         </div>
       </div>
     </section>
