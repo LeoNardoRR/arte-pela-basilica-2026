@@ -16,7 +16,7 @@
 html { scroll-behavior: smooth; scroll-padding-top: 96px; }
 body { margin: 0; background: var(--ivory); color: var(--ink); font-family: "Inter", sans-serif; -webkit-font-smoothing: antialiased; }
 [id] { scroll-margin-top: 0; }
-#acervo { scroll-margin-top: 18px; }
+#acervo { scroll-margin-top: -52px; }
 .skip-link { position: fixed; z-index: 300; top: 10px; left: 10px; padding: 12px 16px; border-radius: 8px; background: white; color: var(--navy); font-weight: 800; transform: translateY(-150%); }
 .skip-link:focus { transform: translateY(0); }
 .not-found-page { min-height: 100svh; padding: 8vw; display: grid; place-content: center; justify-items: start; background: var(--ivory); }
@@ -611,6 +611,7 @@ footer p:last-child { text-align: right; }
 
 @media (max-width: 950px) {
   html { scroll-padding-top: 82px; }
+  #acervo { scroll-margin-top: -50px; }
   .desktop-nav { display: none; }
   .site-header { min-height: 82px; padding-inline: 4vw; align-items: center; justify-content: space-between; gap: 20px; }
   .header-actions { margin-left: auto; }
@@ -974,7 +975,7 @@ footer p:last-child { text-align: right; }
 
 @media (max-width: 620px) {
   html { scroll-padding-top: 75px; }
-  #acervo { scroll-margin-top: 12px; }
+  #acervo { scroll-margin-top: -55px; }
   .reservation-toast { right: 12px; bottom: max(12px,env(safe-area-inset-bottom)); }
   .experience-edition-mark { width: 70px; height: 70px; top: 94px; right: 18px; }
   .experience-edition-mark strong { font-size: 16px; }

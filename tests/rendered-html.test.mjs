@@ -98,7 +98,9 @@ test("catalog provides flexible prices, full-screen gallery and timed pre-reserv
   assert.match(css, /@media \(max-width:\s*950px\)[\s\S]*\.gallery-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2/);
   assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*\.gallery-grid\s*\{[^}]*grid-template-columns:\s*1fr/);
   assert.match(css, /\.artwork-photo\s*\{[^}]*object-fit:\s*contain/);
-  assert.match(css, /#acervo\s*\{[^}]*scroll-margin-top:\s*18px/);
+  assert.match(css, /#acervo\s*\{[^}]*scroll-margin-top:\s*-52px/);
+  assert.match(css, /@media \(max-width:\s*950px\)[\s\S]*?#acervo\s*\{[^}]*scroll-margin-top:\s*-50px/);
+  assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*?#acervo\s*\{[^}]*scroll-margin-top:\s*-55px/);
   assert.match(css, /\.work-image\.navy,[^}]*\{\s*background:\s*transparent/);
   assert.match(css, /aspect-ratio:\s*var\(--artwork-aspect/);
   assert.match(css, /\.arrow-icon::before/);
