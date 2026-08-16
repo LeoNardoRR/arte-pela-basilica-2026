@@ -107,6 +107,85 @@ function alphaMixMaterial(THREE: typeof ThreeTypes, texture: ThreeTypes.Texture,
   return material;
 }
 
+function makeSilhouetteOutline(
+  THREE: typeof ThreeTypes,
+  source: CanvasImageSource & { width?: number; height?: number; naturalWidth?: number; naturalHeight?: number },
+) {
+  const sourceWidth = source.naturalWidth ?? source.width ?? 768;
+  const sourceHeight = source.naturalHeight ?? source.height ?? 1024;
+  const sampleWidth = 180;
+  const sampleHeight = Math.max(120, Math.round(sampleWidth * sourceHeight / Math.max(sourceWidth, 1)));
+  const canvas = document.createElement("canvas");
+  canvas.width = sampleWidth;
+  canvas.height = sampleHeight;
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+  if (!context) return null;
+
+  context.clearRect(0, 0, sampleWidth, sampleHeight);
+  context.drawImage(source, 0, 0, sampleWidth, sampleHeight);
+  const pixels = context.getImageData(0, 0, sampleWidth, sampleHeight).data;
+  const rows: Array<{ y: number; left: number; right: number }> = [];
+  const rowStep = Math.max(1, Math.round(sampleHeight / 150));
+
+  for (let y = 0; y < sampleHeight; y += rowStep) {
+    let left = sampleWidth;
+    let right = -1;
+    for (let x = 0; x < sampleWidth; x += 1) {
+      if (pixels[(y * sampleWidth + x) * 4 + 3] > 18) {
+        left = Math.min(left, x);
+        right = x;
+      }
+    }
+    if (right >= left) rows.push({ y, left, right });
+  }
+  if (rows.length < 3) return null;
+
+  const smoothingRadius = 4;
+  const smoothedRows = rows.map((row, index) => {
+    const nearby = rows.slice(Math.max(0, index - smoothingRadius), Math.min(rows.length, index + smoothingRadius + 1));
+    return {
+      y: row.y,
+      left: nearby.reduce((sum, item) => sum + item.left, 0) / nearby.length,
+      right: nearby.reduce((sum, item) => sum + item.right, 0) / nearby.length,
+    };
+  });
+
+  const toPoint = (x: number, y: number) => new THREE.Vector2(
+    (x / sampleWidth - 0.5) * 1.5,
+    (0.5 - y / sampleHeight) * 2,
+  );
+  const outline = [
+    ...smoothedRows.map((row) => toPoint(row.left, row.y)),
+    ...smoothedRows.slice().reverse().map((row) => toPoint(row.right, row.y)),
+  ];
+  return outline;
+}
+
+function makeDepthShellGeometry(THREE: typeof ThreeTypes, outline: ThreeTypes.Vector2[], depth: number) {
+  const positions: number[] = [];
+  const indices: number[] = [];
+  const halfDepth = depth / 2;
+
+  for (const z of [-halfDepth, halfDepth]) {
+    outline.forEach((point) => positions.push(point.x, point.y, z));
+  }
+  for (let index = 0; index < outline.length; index += 1) {
+    const next = (index + 1) % outline.length;
+    const backCurrent = index;
+    const backNext = next;
+    const frontCurrent = index + outline.length;
+    const frontNext = next + outline.length;
+    indices.push(backCurrent, frontNext, frontCurrent, backCurrent, backNext, frontNext);
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  geometry.computeBoundingSphere();
+  return geometry;
+}
+
 export function ArtworkExperience3D({ work, reference, scrollerRef }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stageRef = useRef<HTMLElement>(null);
@@ -154,7 +233,10 @@ export function ArtworkExperience3D({ work, reference, scrollerRef }: Props) {
 
         const gltf = await new GLTFLoader().loadAsync(publicAsset("/models/product.glb"));
         if (cancelled) return;
-        const product = gltf.scene;
+        const model = gltf.scene;
+        const product = new THREE.Group();
+        product.name = "ArtworkPivot";
+        product.add(model);
         scene.add(product);
 
         const [base, , dark] = paletteColors[work.palette] ?? paletteColors.navy;
@@ -169,18 +251,38 @@ export function ArtworkExperience3D({ work, reference, scrollerRef }: Props) {
         frontTexture.colorSpace = THREE.SRGBColorSpace;
         backTexture.colorSpace = THREE.SRGBColorSpace;
         frontTexture.flipY = true;
-        backTexture.flipY = false;
+        backTexture.flipY = true;
         frontTexture.needsUpdate = true;
         backTexture.needsUpdate = true;
 
         const frontMaterial = alphaMixMaterial(THREE, frontTexture, base);
         const backMaterial = alphaMixMaterial(THREE, backTexture, dark);
-        product.traverse((object) => {
+        model.traverse((object) => {
           if (!(object instanceof THREE.Mesh)) return;
-          if (object.name === "Front") object.material = frontMaterial;
-          else if (object.name === "Back") object.material = backMaterial;
+          if (object.name === "Front") {
+            object.material = frontMaterial;
+            object.renderOrder = 2;
+          } else if (object.name === "Back") {
+            object.material = backMaterial;
+            object.renderOrder = 2;
+          }
           else object.visible = false;
         });
+
+        const silhouette = makeSilhouetteOutline(THREE, textureImage);
+        if (silhouette) {
+          const depth = 0.18;
+          const depthGeometry = makeDepthShellGeometry(THREE, silhouette, depth);
+          const edgeMaterial = new THREE.MeshStandardMaterial({ color: dark, roughness: 0.82, metalness: 0.015, side: THREE.DoubleSide });
+          const depthShell = new THREE.Mesh(depthGeometry, edgeMaterial);
+          depthShell.name = "SilhouetteDepth";
+          depthShell.renderOrder = 1;
+          model.add(depthShell);
+        }
+
+        const centeredBounds = new THREE.Box3().setFromObject(model);
+        const centeredPivot = centeredBounds.getCenter(new THREE.Vector3());
+        model.position.sub(centeredPivot);
 
         const imageWidth = textureImage.naturalWidth ?? textureImage.width ?? 768;
         const imageHeight = textureImage.naturalHeight ?? textureImage.height ?? 1024;

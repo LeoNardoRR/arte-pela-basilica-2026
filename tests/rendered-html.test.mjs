@@ -123,6 +123,13 @@ test("all 84 supplied catalog slots use the real local artwork images and intera
   assert.match(experience, /makeArtworkBackCanvas\(work, textureImage\)/);
   assert.match(experience, /globalCompositeOperation = "destination-in"/);
   assert.match(experience, /frontTexture\.flipY\s*=\s*true/);
+  assert.match(experience, /backTexture\.flipY\s*=\s*true/);
+  assert.match(experience, /makeSilhouetteOutline/);
+  assert.match(experience, /const smoothingRadius = 4/);
+  assert.match(experience, /makeDepthShellGeometry/);
+  assert.match(experience, /geometry\.computeVertexNormals\(\)/);
+  assert.match(experience, /depthShell\.name = "SilhouetteDepth"/);
+  assert.match(experience, /model\.position\.sub\(centeredPivot\)/);
   assert.match(experience, /className="experience-guide"/);
   assert.match(experience, /className="experience-zoom"/);
   assert.match(experience, /useWheelZoom/);
