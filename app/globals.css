@@ -1078,7 +1078,7 @@ footer p:last-child { text-align: right; }
 .admin-stats strong { color: white; font-family: "Cormorant Garamond",serif; font-size: clamp(29px,2.6vw,39px); }
 .admin-stats small { color: rgba(255,255,255,.58); }
 .admin-pricing,.admin-queue { min-width: 0; }
-.admin-price-grid { max-height: min(62vh,620px); padding: 12px; gap: 10px; border-color: #d7cec2; background: #eee8de; overscroll-behavior: contain; scrollbar-color: rgba(0,6,102,.35) transparent; }
+.admin-price-grid { max-height: min(62vh,620px); padding: 12px; gap: 10px; overflow-x: hidden; overflow-y: auto; contain: layout paint; border-color: #d7cec2; background: #eee8de; overscroll-behavior: contain; scrollbar-color: rgba(0,6,102,.35) transparent; }
 .admin-price-grid > article { min-width: 0; padding: 16px; gap: 12px; border: 1px solid #ddd4c8; background: #fff; }
 .admin-price-grid > article > span b { font: 700 16px "Inter",sans-serif; letter-spacing: .02em; }
 .admin-price-grid label > div { min-height: 44px; }
@@ -1134,7 +1134,7 @@ footer p:last-child { text-align: right; }
   .admin-stats div { min-height: 128px; padding: 19px 15px; }
   .admin-stats strong { font-size: clamp(25px,7vw,31px); }
   .admin-stats span { font-size: 7px; }
-  .admin-price-grid { max-height: 64svh; padding: 8px; grid-template-columns: 1fr; scroll-snap-type: y proximity; }
+  .admin-price-grid { height: min(64svh,640px); max-height: none; padding: 8px; grid-template-columns: 1fr; scroll-snap-type: y proximity; }
   .admin-price-grid > article { padding: 14px; scroll-snap-align: start; }
   .admin-price-grid input { min-height: 44px; font-size: 16px; }
   .admin-price-grid label button { min-width: 72px; min-height: 44px; }
