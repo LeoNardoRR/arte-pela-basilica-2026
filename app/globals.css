@@ -314,6 +314,7 @@ a { color: inherit; text-decoration: none; }
 .gallery-close { width: 48px; height: 48px; flex: 0 0 auto; border: 1px solid #d7d2ce; border-radius: 50%; background: white; color: var(--navy); cursor: pointer; font-size: 29px; line-height: 1; }
 .gallery-close:hover { border-color: var(--navy-2); background: var(--navy-2); color: white; }
 .gallery-content { width: min(1260px, 92vw); margin: auto; padding: 62px 0 150px; }
+.gallery-availability-note { margin: 0 0 34px; padding: 15px 18px; border-left: 3px solid var(--gold); background: #fffaf0; color: var(--muted); font-size: 12px; line-height: 1.6; }
 .gallery-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 64px 34px; align-items: start; }
 .gallery-grid .work-card { animation: gallery-card-in .7s cubic-bezier(.2,.75,.25,1) both; }
 .gallery-grid .work-card:nth-child(3n+2) { animation-delay: .06s; }
@@ -460,6 +461,7 @@ a { color: inherit; text-decoration: none; }
 .status { position: absolute; z-index: 4; left: 16px; top: 16px; padding: 7px 10px; border-radius: 20px; font-size: 9px; text-transform: uppercase; letter-spacing: .09em; background: white; color: var(--navy); }
 .status.reserved { color: #714b0a; background: #fff1cb; }
 .status.sold { color: white; background: var(--wine); }
+.status.price-pending { color: #654a17; background: #fff4d6; }
 .sold-overlay { position: absolute; z-index: 3; inset: auto 0 0; padding: 48px 18px 18px; display: flex; align-items: end; justify-content: space-between; gap: 12px; color: white; background: linear-gradient(transparent,rgba(0,6,50,.82)); }
 .sold-overlay strong { font: 700 20px "Playfair Display", serif; }
 .sold-overlay span { max-width: 170px; font-size: 9px; line-height: 1.45; text-align: right; }
@@ -621,6 +623,8 @@ footer p:last-child { text-align: right; }
 .success-message .email-button { width: 100%; min-width: 0; margin: 16px 0 12px; background: #1670a8; color: white; }
 .success-message .email-button:hover { background: #105b8a; }
 .success-message button { border: 0; background: transparent; color: var(--navy-2); font-weight: 700; cursor: pointer; }
+.success-message .error-retry { width: 100%; margin-top: 16px; padding: 14px 18px; background: var(--navy-2); color: white; }
+.confirmation-email-note { display: block; margin: 14px 0 0; color: var(--muted); font-size: 10px; line-height: 1.55; }
 
 @media (max-width: 1200px) {
   .gallery-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
@@ -903,14 +907,17 @@ footer p:last-child { text-align: right; }
 .notification-enabled,.notification-denied { display: block; margin-top: 9px; font-size: 9px; font-weight: 700; }
 .notification-enabled { color: #2f6a39; }
 .notification-denied { color: var(--wine); }
-.reservation-toast { width: min(310px,calc(100vw - 24px)); position: fixed; z-index: 95; right: 18px; bottom: 18px; }
+.reservation-toast { width: min(310px,calc(100vw - 24px)); position: fixed; z-index: 95; right: 18px; bottom: 18px; overflow: hidden; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,.16); }
 .reservation-toast .reservation-countdown.compact { position: static; border-color: rgba(183,144,75,.55); background: rgba(255,250,240,.97); backdrop-filter: blur(14px); }
+.reservation-toast-open { width: 100%; padding: 9px 12px; border: 1px solid rgba(183,144,75,.55); border-top: 0; background: var(--navy); color: white; cursor: pointer; font: 800 9px "Inter",sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+.reservation-toast-open:hover,.reservation-toast-open:focus-visible { background: var(--wine); }
 @keyframes countdown-pulse { 50% { box-shadow: 0 0 0 5px rgba(180,74,54,.12); } }
 
 .extra-offer { margin-top: 7px; display: grid; gap: 5px; color: var(--muted); font-size: 9px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
 .extra-offer > span { width: min(180px,100%); display: flex; align-items: center; border: 1px solid #d8d1ca; border-radius: 8px; background: white; overflow: hidden; }
 .extra-offer b { padding-left: 10px; color: var(--gold); font-size: 11px; }
 .extra-offer input { width: 100%; min-width: 0; padding: 9px; border: 0; outline: 0; color: var(--navy); font-weight: 700; }
+.form-error { margin: 14px 0; padding: 12px 14px; border: 1px solid #d59b8f; border-radius: 8px; background: #fff2ef; color: #8f241b; font-size: 12px; font-weight: 700; }
 
 .donation-section { width: min(1240px,92vw); margin: 0 auto 120px; padding: clamp(34px,6vw,76px); display: grid; grid-template-columns: 1fr minmax(320px,.75fr); gap: clamp(40px,7vw,100px); align-items: center; border: 1px solid #d9cfbf; background: #f5f0e8; }
 .donation-copy h2,.sponsors-section h2 { margin: 8px 0 22px; color: var(--navy); font: 600 clamp(34px,5vw,62px)/1 "Cormorant Garamond",serif; }

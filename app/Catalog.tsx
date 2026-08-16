@@ -10,6 +10,7 @@ import { ReservationCountdown } from "./ReservationCountdown";
 
 const BASILICA_CREST = publicAsset("/logo-basilica.jpeg");
 const CART_STORAGE_KEY = "arte-pela-basilica-cart-v2";
+const RESERVATION_STORAGE_KEY = "arte-pela-basilica-active-reservation-v1";
 
 type Artwork = {
   id: number;
@@ -26,7 +27,9 @@ type Artwork = {
 
 type CartItem = { work: Artwork; extraOfferCents: number };
 type ReservationReceipt = { confirmation_code: string; expires_at: string; total_cents: number };
+type LastIntentData = { bidderName: string; code: string; date: string; items: Artwork[]; purchaseContext: "event" | "outside"; totalCents: number };
 type CatalogFilter = "all" | "available" | "unavailable";
+type SavedReservation = { receipt: ReservationReceipt; intent: LastIntentData; emailUrl: string };
 
 const statusLabel = {
   available: "Disponível",
@@ -37,7 +40,7 @@ const statusLabel = {
 const money = new Intl.NumberFormat("pt-BR", {
   style: "currency",
   currency: "BRL",
-  maximumFractionDigits: 0,
+  maximumFractionDigits: 2,
 });
 
 function formatPrice(cents: number) {
@@ -46,6 +49,16 @@ function formatPrice(cents: number) {
 
 function displayPrice(cents: number | null) {
   return cents ? formatPrice(cents) : "Valor a confirmar";
+}
+
+function parseOfferCents(reais: string) {
+  const normalized = reais.trim().replace(/\s/g, "").replace(/\./g, "").replace(",", ".").replace(/[^\d.]/g, "");
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? Math.min(100000000, Math.max(0, Math.round(parsed * 100))) : 0;
+}
+
+function offerInputValue(cents: number) {
+  return cents ? (cents / 100).toLocaleString("pt-BR", { minimumFractionDigits: cents % 100 ? 2 : 0, maximumFractionDigits: 2 }) : "";
 }
 
 function artworkReference(work: Artwork): CuratedArtworkImage {
@@ -101,6 +114,17 @@ function loadSavedCart(): CartItem[] {
   }
 }
 
+function loadSavedReservation(): SavedReservation | null {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(RESERVATION_STORAGE_KEY) || "null") as SavedReservation | null;
+    if (!parsed?.receipt?.confirmation_code || !parsed.receipt.expires_at || !parsed.intent?.code) return null;
+    if (new Date(parsed.receipt.expires_at).getTime() <= Date.now()) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
 export function Catalog() {
   const [works, setWorks] = useState<Artwork[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(true);
@@ -110,13 +134,14 @@ export function Catalog() {
   const [cartOpen, setCartOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
-  const [emailUrl, setEmailUrl] = useState("");
+  const [formError, setFormError] = useState("");
+  const [emailUrl, setEmailUrl] = useState(() => loadSavedReservation()?.emailUrl ?? "");
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [selectedWork, setSelectedWork] = useState<Artwork | null>(null);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [lastIntentData, setLastIntentData] = useState<{ bidderName: string; code: string; date: string; items: Artwork[] } | null>(null);
-  const [reservationReceipt, setReservationReceipt] = useState<ReservationReceipt | null>(null);
+  const [lastIntentData, setLastIntentData] = useState<LastIntentData | null>(() => loadSavedReservation()?.intent ?? null);
+  const [reservationReceipt, setReservationReceipt] = useState<ReservationReceipt | null>(() => loadSavedReservation()?.receipt ?? null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const galleryCloseRef = useRef<HTMLButtonElement>(null);
   const detailCloseRef = useRef<HTMLButtonElement>(null);
@@ -225,6 +250,15 @@ export function Catalog() {
     }
   }, [cart]);
 
+  useEffect(() => {
+    if (!reservationReceipt || !lastIntentData) return;
+    try {
+      localStorage.setItem(RESERVATION_STORAGE_KEY, JSON.stringify({ receipt: reservationReceipt, intent: lastIntentData, emailUrl } satisfies SavedReservation));
+    } catch {
+      // The on-screen receipt remains available when browser storage is unavailable.
+    }
+  }, [reservationReceipt, lastIntentData, emailUrl]);
+
   const modalOpen = cartOpen || galleryOpen || Boolean(selectedWork);
 
   useEffect(() => {
@@ -299,6 +333,7 @@ export function Catalog() {
   }, [filter, works]);
 
   const availableCount = works.filter((work) => work.status === "available").length;
+  const reservableCount = works.filter((work) => work.status === "available" && Boolean(work.price_cents)).length;
   const previewWorks = works.filter((work) => work.status === "available").slice(0, 3);
   const totalCents = cart.reduce((sum, item) => sum + (item.work.price_cents ?? 0) + item.extraOfferCents, 0);
 
@@ -317,13 +352,14 @@ export function Catalog() {
     }
     setCart((items) => items.some((item) => item.work.id === work.id) ? items : [...items, { work, extraOfferCents: 0 }]);
     setMessage("");
+    setFormError("");
     setEmailUrl("");
     setReservationReceipt(null);
     setSelectedWork(null);
   }
 
   function updateExtraOffer(id: number, reais: string) {
-    const cents = Math.min(100000000, Math.max(0, Number(reais.replace(/\D/g, "")) * 100 || 0));
+    const cents = parseOfferCents(reais);
     setCart((items) => items.map((item) => item.work.id === id ? { ...item, extraOfferCents: cents } : item));
   }
 
@@ -336,11 +372,16 @@ export function Catalog() {
   function closeCart() {
     setCartOpen(false);
     setMessage("");
-    setEmailUrl("");
+    if (!reservationReceipt) setEmailUrl("");
     if (openedFromGallery) {
       setGalleryOpen(true);
       setOpenedFromGallery(false);
     }
+  }
+
+  function openActiveReservation() {
+    setMessage("Sua pré-reserva está ativa e continua bloqueada temporariamente.");
+    setCartOpen(true);
   }
 
   function openFloatingCart(fromGallery = false) {
@@ -388,7 +429,7 @@ export function Catalog() {
         <button className="work-visual-button" type="button" onClick={() => setSelectedWork(work)} aria-label={`Ver detalhes de ${work.title}`}>
           <div className={`work-image ${work.palette}`}>
             <ArtworkPhoto work={work} />
-            <span className={`status ${work.status}`}>{statusLabel[work.status]}</span>
+            <span className={`status ${work.status} ${work.status === "available" && !work.price_cents ? "price-pending" : ""}`}>{work.status === "available" && !work.price_cents ? "Aguardando valor" : statusLabel[work.status]}</span>
             {work.status === "reserved" && work.reserved_until && <ReservationCountdown expiresAt={work.reserved_until} compact />}
             {work.status !== "available" && <div className="sold-overlay"><strong>{statusLabel[work.status]}</strong><span>Indisponível para nova intenção.</span></div>}
             <span className="view-work">Ver detalhes & 3D</span>
@@ -441,6 +482,7 @@ export function Catalog() {
     submittingRef.current = true;
     setSubmitting(true);
     setMessage("");
+    setFormError("");
     setEmailUrl("");
     const form = new FormData(event.currentTarget);
     const name = String(form.get("name") || "").trim();
@@ -452,13 +494,13 @@ export function Catalog() {
 
     const phoneDigits = phone.replace(/\D/g, "");
     if (phoneDigits.length < 8 || phoneDigits.length > 15) {
-      setMessage("Informe um WhatsApp válido, com DDD.");
+      setFormError("Informe um WhatsApp válido, com DDD.");
       setSubmitting(false);
       submittingRef.current = false;
       return;
     }
 
-    const { data, error } = await supabase.rpc("submit_pre_reservation", {
+    const response = await supabase.rpc("submit_pre_reservation", {
       bidder_name: name,
       bidder_email: email,
       bidder_phone: phone,
@@ -466,6 +508,7 @@ export function Catalog() {
       extra_contribution_cents: submittedItems.reduce((sum, item) => sum + item.extraOfferCents, 0),
       hold_minutes: 30,
     });
+    const { data, error } = response;
 
     if (error) {
       const safeMessages = ["Preencha nome, e-mail e WhatsApp corretamente.", "A seleção deve ter entre 1 e 20 obras.", "A seleção contém dados inválidos.", "Uma obra não pode aparecer duas vezes na mesma seleção.", "Uma ou mais obras não estão mais disponíveis para pré-reserva."];
@@ -480,14 +523,17 @@ export function Catalog() {
         "Confirmação de pré-reserva — Arte pela Basílica 2026", "", `Protocolo: ${receipt.confirmation_code}`, `Interessado: ${name}`, `WhatsApp: ${phone}`, `E-mail: ${email}`, "",
         "Obras selecionadas:", itemLines, "", `Valor total: ${formatPrice(totalCents)}`, "", paymentInstruction,
       ].join("\n");
-      setLastIntentData({
+      const intentData: LastIntentData = {
         bidderName: name,
         code: receipt.confirmation_code,
         date: new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" }),
         items: submittedWorks,
-      });
+        purchaseContext: purchaseContext === "outside" ? "outside" : "event",
+        totalCents,
+      };
+      setLastIntentData(intentData);
       setReservationReceipt(receipt);
-      setEmailUrl(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}&bcc=${encodeURIComponent(ADMIN_EMAIL)}&su=${encodeURIComponent(`Confirmação de pré-reserva — ${receipt.confirmation_code}`)}&body=${encodeURIComponent(emailMessage)}`);
+      setEmailUrl(`mailto:${encodeURIComponent(ADMIN_EMAIL)}?cc=${encodeURIComponent(email)}&subject=${encodeURIComponent(`Confirmação de pré-reserva — ${receipt.confirmation_code}`)}&body=${encodeURIComponent(emailMessage)}`);
       setCart([]);
       setMessage("Sua pré-reserva foi registrada e as obras estão bloqueadas temporariamente.");
       void loadCatalog();
@@ -510,7 +556,7 @@ export function Catalog() {
           </button>
           <a className="admin-menu-link" href="#admin" aria-label="Acessar área administrativa">Administrativo</a>
           <button className="cart-trigger" onClick={() => setCartOpen(true)} aria-label={`Abrir seleção com ${cart.length} obras`}><span>Minha seleção</span><b>{cart.length}</b></button>
-          <button className="mobile-menu-toggle" type="button" aria-expanded={mobileMenuOpen} aria-controls="mobile-menu" onClick={() => setMobileMenuOpen((open) => !open)}><span>{mobileMenuOpen ? "Fechar" : "Menu"}</span><i aria-hidden="true" /></button>
+          <button className="mobile-menu-toggle" type="button" aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={mobileMenuOpen} aria-controls="mobile-menu" onClick={() => setMobileMenuOpen((open) => !open)}><span>{mobileMenuOpen ? "Fechar" : "Menu"}</span><i aria-hidden="true" /></button>
         </div>
         <div className="mobile-menu" id="mobile-menu">
           <p>Explore a edição 2026</p>
@@ -532,9 +578,9 @@ export function Catalog() {
       <section className="intro" data-reveal="up"><p className="section-kicker">Arte pela Basílica</p><h2>Uma coleção com propósito.<br />Uma experiência para guardar.</h2><p className="intro-copy">Escolha suas peças, informe uma oferta adicional se desejar e faça uma pré-reserva temporária. O projeto transforma arte e participação comunitária em apoio financeiro à Basílica Santo Antônio.</p></section>
 
       <section className="catalog-section" id="acervo" aria-busy={catalogLoading}>
-        <div className="catalog-heading" data-reveal="up"><div><p className="section-kicker">Catálogo da exposição</p><h2>Obras selecionadas</h2><p>{catalogLoading ? "Preparando o acervo…" : `${availableCount} obras disponíveis para intenção de compra.`}</p></div><button className="button catalog-expand-button" type="button" onClick={openGallery} disabled={catalogLoading || works.length === 0}>Entrar na galeria <ArrowIcon direction="up-right" /></button></div>
+        <div className="catalog-heading" data-reveal="up"><div><p className="section-kicker">Catálogo da exposição</p><h2>Obras selecionadas</h2><p>{catalogLoading ? "Preparando o acervo…" : reservableCount ? `${reservableCount} ${reservableCount === 1 ? "obra disponível" : "obras disponíveis"} para pré-reserva.` : `${availableCount} obras em exposição · valores sendo confirmados pela equipe.`}</p></div><button className="button catalog-expand-button" type="button" onClick={openGallery} disabled={catalogLoading || works.length === 0}>Entrar na galeria <ArrowIcon direction="up-right" /></button></div>
         {catalogError ? <div className="catalog-error" role="alert"><p>{catalogError}</p><button className="button primary" onClick={loadCatalog}>Tentar novamente <ArrowIcon /></button></div> : (
-          <div className="collection-preview" data-reveal="up"><div className="collection-copy"><span className="collection-label">Curadoria 2026</span><h3>Observe os detalhes. Escolha com calma.</h3><p>Uma galeria editorial para descobrir cada obra sem distrações. Ao abrir os detalhes, arraste o quadro com o dedo ou mouse para observar frente, espessura e verso.</p><div className="collection-stats"><div><strong>{works.length}</strong><span>obras catalogadas</span></div><div><strong>{availableCount}</strong><span>disponíveis agora</span></div></div><button className="button gallery-open-button" type="button" onClick={openGallery} disabled={catalogLoading || works.length === 0}>Abrir galeria <ArrowIcon direction="up-right" /></button></div><div className="preview-curation" aria-hidden="true">{previewWorks.map((work, index) => <div className={`preview-piece preview-piece-${index + 1}`} key={work.id}><div className={`work-image ${work.palette}`}><ArtworkPhoto work={work} eager /></div><div className="preview-piece-caption"><span>{work.code}</span><strong>{work.title}</strong><small>{work.dimensions}</small></div></div>)}</div></div>
+          <div className="collection-preview" data-reveal="up"><div className="collection-copy"><span className="collection-label">Curadoria 2026</span><h3>Observe os detalhes. Escolha com calma.</h3><p>Uma galeria editorial para descobrir cada obra sem distrações. Ao abrir os detalhes, arraste o quadro com o dedo ou mouse para observar frente, espessura e verso.</p><div className="collection-stats"><div><strong>{works.length}</strong><span>obras catalogadas</span></div><div><strong>{reservableCount}</strong><span>pré-reservas liberadas</span></div></div><button className="button gallery-open-button" type="button" onClick={openGallery} disabled={catalogLoading || works.length === 0}>Abrir galeria <ArrowIcon direction="up-right" /></button></div><div className="preview-curation" aria-hidden="true">{previewWorks.map((work, index) => <div className={`preview-piece preview-piece-${index + 1}`} key={work.id}><div className={`work-image ${work.palette}`}><ArtworkPhoto work={work} eager /></div><div className="preview-piece-caption"><span>{work.code}</span><strong>{work.title}</strong><small>{work.dimensions}</small></div></div>)}</div></div>
         )}
       </section>
 
@@ -547,11 +593,12 @@ export function Catalog() {
       <footer><div className="brand footer-brand"><img src={BASILICA_CREST} alt="" /><span><strong>Basílica</strong><small>Santo Antônio</small></span></div><p>Arte pela Basílica · Edição 2026<br /><a href="https://commons.wikimedia.org/wiki/File:Air.ogg" target="_blank" rel="noreferrer">Áudio: Bach, Air · U.S. Air Force Band · domínio público</a></p><p><a className="admin-link" href="#admin">Área administrativa</a><br />Acervo online até 17 de setembro</p></footer>
       </div>
 
-      {galleryOpen && <section className="gallery-overlay" role="dialog" aria-modal="true" aria-labelledby="gallery-title"><header className="gallery-header"><div><p className="section-kicker">Acervo 2026</p><h2 id="gallery-title">Galeria de obras</h2><span>{visibleWorks.length} {visibleWorks.length === 1 ? "obra exibida" : "obras exibidas"}</span></div><div className="gallery-actions"><div className="filters" aria-label="Filtrar obras"><button aria-pressed={filter === "available"} className={filter === "available" ? "active" : ""} onClick={() => setFilter("available")}>Disponíveis <small>{availableCount}</small></button><button aria-pressed={filter === "unavailable"} className={filter === "unavailable" ? "active" : ""} onClick={() => setFilter("unavailable")}>Indisponíveis <small>{works.length - availableCount}</small></button><button aria-pressed={filter === "all"} className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>Todas <small>{works.length}</small></button></div><button ref={galleryCloseRef} className="gallery-close" type="button" onClick={() => setGalleryOpen(false)} aria-label="Fechar galeria">×</button></div></header><div className="gallery-content"><div className="gallery-grid" aria-live="polite">{visibleWorks.map(renderArtworkCard)}{visibleWorks.length === 0 && <p className="catalog-empty">Nenhuma obra encontrada neste filtro.</p>}</div></div>{renderFloatingCart("gallery")}</section>}
+      {galleryOpen && <section className="gallery-overlay" role="dialog" aria-modal="true" aria-labelledby="gallery-title"><header className="gallery-header"><div><p className="section-kicker">Acervo 2026</p><h2 id="gallery-title">Galeria de obras</h2><span>{visibleWorks.length} {visibleWorks.length === 1 ? "obra exibida" : "obras exibidas"}</span></div><div className="gallery-actions"><div className="filters" aria-label="Filtrar obras"><button aria-pressed={filter === "available"} className={filter === "available" ? "active" : ""} onClick={() => setFilter("available")}>Em exposição <small>{availableCount}</small></button><button aria-pressed={filter === "unavailable"} className={filter === "unavailable" ? "active" : ""} onClick={() => setFilter("unavailable")}>Indisponíveis <small>{works.length - availableCount}</small></button><button aria-pressed={filter === "all"} className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>Todas <small>{works.length}</small></button></div><button ref={galleryCloseRef} className="gallery-close" type="button" onClick={() => setGalleryOpen(false)} aria-label="Fechar galeria">×</button></div></header><div className="gallery-content">{reservableCount === 0 && <p className="gallery-availability-note">As obras podem ser exploradas normalmente. A pré-reserva será liberada assim que os valores oficiais forem confirmados pela equipe.</p>}<div className="gallery-grid" aria-live="polite">{visibleWorks.map(renderArtworkCard)}{visibleWorks.length === 0 && <p className="catalog-empty">Nenhuma obra encontrada neste filtro.</p>}</div></div>{renderFloatingCart("gallery")}</section>}
 
-      {selectedWork && <div ref={detailScrollerRef} className="detail-backdrop" role="presentation"><section className="artwork-detail" role="dialog" aria-modal="true" aria-labelledby="detail-title"><button ref={detailCloseRef} className="modal-close detail-close" onClick={() => setSelectedWork(null)} aria-label="Fechar detalhes">×</button><ArtworkExperience3D work={selectedWork} reference={artworkReference(selectedWork)} scrollerRef={detailScrollerRef} /><div className="detail-copy"><div><span className="section-kicker">Dados do catálogo</span><h3 id="detail-title">{selectedWork.title}</h3><dl><div><dt>Dimensões</dt><dd>{selectedWork.dimensions}</dd></div><div><dt>Disponibilidade</dt><dd>{statusLabel[selectedWork.status]}</dd></div></dl><p className="reference-credit">Imagem e informações fornecidas no Catálogo Vernissage 2026.</p></div><div className="detail-purchase"><div className="detail-price"><span>Valor informado no catálogo</span><strong>{displayPrice(selectedWork.price_cents)}</strong>{selectedWork.price_cents ? <small>Você pode acrescentar uma oferta na pré-reserva</small> : <small>Pré-reserva indisponível até a definição do valor.</small>}</div>{selectedWork.status === "reserved" && selectedWork.reserved_until && <ReservationCountdown expiresAt={selectedWork.reserved_until} />}<button className="button primary" disabled={selectedWork.status !== "available" || !selectedWork.price_cents || cart.some((item) => item.work.id === selectedWork.id)} onClick={() => addToCart(selectedWork)}>{cart.some((item) => item.work.id === selectedWork.id) ? "Obra já selecionada" : !selectedWork.price_cents ? "Valor a confirmar" : "Pré-reservar esta obra"}<ArrowIcon /></button></div></div></section></div>}
+      {selectedWork && <div ref={detailScrollerRef} className="detail-backdrop" role="presentation"><section className="artwork-detail" role="dialog" aria-modal="true" aria-labelledby="detail-title"><button ref={detailCloseRef} className="modal-close detail-close" onClick={() => setSelectedWork(null)} aria-label="Fechar detalhes">×</button><ArtworkExperience3D work={selectedWork} reference={artworkReference(selectedWork)} scrollerRef={detailScrollerRef} /><div className="detail-copy"><div><span className="section-kicker">Dados do catálogo</span><h3 id="detail-title">{selectedWork.title}</h3><dl><div><dt>Dimensões</dt><dd>{selectedWork.dimensions}</dd></div><div><dt>Disponibilidade</dt><dd>{selectedWork.status === "available" && !selectedWork.price_cents ? "Aguardando confirmação do valor" : statusLabel[selectedWork.status]}</dd></div></dl><p className="reference-credit">Imagem e informações fornecidas no Catálogo Vernissage 2026.</p></div><div className="detail-purchase"><div className="detail-price"><span>Valor informado no catálogo</span><strong>{displayPrice(selectedWork.price_cents)}</strong>{selectedWork.status !== "available" ? <small>Esta obra não está disponível para uma nova pré-reserva.</small> : selectedWork.price_cents ? <small>Você pode acrescentar uma oferta na pré-reserva</small> : <small>Pré-reserva indisponível até a definição do valor.</small>}</div>{selectedWork.status === "reserved" && selectedWork.reserved_until && <ReservationCountdown expiresAt={selectedWork.reserved_until} />}<button className="button primary" disabled={selectedWork.status !== "available" || !selectedWork.price_cents || cart.some((item) => item.work.id === selectedWork.id)} onClick={() => addToCart(selectedWork)}>{cart.some((item) => item.work.id === selectedWork.id) ? "Obra já selecionada" : selectedWork.status !== "available" ? "Obra indisponível" : !selectedWork.price_cents ? "Valor a confirmar" : "Pré-reservar esta obra"}<ArrowIcon /></button></div></div></section></div>}
 
       {cartOpen && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && closeCart()}><section className="purchase-modal cart-modal" role="dialog" aria-modal="true" aria-labelledby="cart-title"><button className="modal-close" onClick={closeCart} aria-label="Fechar seleção">×</button><p className="section-kicker">Sua seleção</p><h2 id="cart-title">Pré-reserva temporária</h2><p className="modal-note">Ao confirmar, as obras serão bloqueadas por 30 minutos. No evento, o pagamento acontece no Hotel Florença; fora do evento, a equipe orientará o pagamento.</p>
+        {formError && <p className="form-error" role="alert">{formError}</p>}
         {message ? (
           <div className={emailUrl ? "success-message" : "success-message error-message"} role="status">
             <span>{emailUrl ? "✓" : "!"}</span>
@@ -569,6 +616,8 @@ export function Catalog() {
                   <div className="certificate-row"><span>Protocolo</span><strong>{lastIntentData.code}</strong></div>
                   <div className="certificate-row"><span>Titular</span><strong>{lastIntentData.bidderName}</strong></div>
                   <div className="certificate-row"><span>Data de Emissão</span><strong>{lastIntentData.date}</strong></div>
+                  <div className="certificate-row"><span>Forma de conclusão</span><strong>{lastIntentData.purchaseContext === "outside" ? "Fora do evento · orientação da equipe" : "No evento · Hotel Florença"}</strong></div>
+                  <div className="certificate-row"><span>Valor total</span><strong>{formatPrice(lastIntentData.totalCents)}</strong></div>
                   <div className="certificate-items">
                     <small>Obras reservadas em curadoria:</small>
                     <ul>{lastIntentData.items.map((w) => <li key={w.id}><b>{w.code}</b> — {w.title}</li>)}</ul>
@@ -581,12 +630,12 @@ export function Catalog() {
               </div>
             )}
             {reservationReceipt && <ReservationCountdown expiresAt={reservationReceipt.expires_at} allowNotifications />}
-            {emailUrl && <a className="button email-button" href={emailUrl} target="_blank" rel="noreferrer">Abrir confirmação no Gmail <ArrowIcon direction="up-right" /></a>}
-            <button className="button primary" onClick={closeCart} style={{ marginTop: "16px" }}>Voltar ao acervo</button>
+            {emailUrl && <><small className="confirmation-email-note">A pré-reserva já está registrada. Este botão apenas prepara uma cópia para você e para a equipe.</small><a className="button email-button" href={emailUrl}>Preparar cópia por e-mail <ArrowIcon direction="up-right" /></a></>}
+            {emailUrl ? <button className="button primary" onClick={closeCart} style={{ marginTop: "16px" }}>Voltar ao acervo</button> : <button className="button primary error-retry" onClick={() => { setMessage(""); void loadCatalog(); }}>Corrigir dados e revisar seleção</button>}
           </div>
-        ) : cart.length === 0 ? <div className="empty-cart"><p>Sua seleção está vazia. Explore a galeria e escolha as obras de seu interesse.</p><a className="button primary" href="#acervo" onClick={closeCart}>Explorar acervo <ArrowIcon /></a></div> : <form onSubmit={submitPurchaseIntent}><div className="cart-lines">{cart.map((item) => <div className="cart-line" key={item.work.id}><div className={`cart-thumb work-image ${item.work.palette}`}><ArtworkPhoto work={item.work} /></div><div className="cart-line-info"><small>{item.work.code}</small><strong>{item.work.title}</strong><span>{displayPrice(item.work.price_cents)}</span><label className="extra-offer">Oferta adicional (opcional)<span><b>R$</b><input inputMode="numeric" value={item.extraOfferCents ? String(item.extraOfferCents / 100) : ""} onChange={(event) => updateExtraOffer(item.work.id, event.target.value)} placeholder="0" aria-label={`Oferta adicional para ${item.work.title}`} /></span></label></div><button type="button" onClick={() => removeFromCart(item.work.id)} aria-label={`Remover ${item.work.title}`}>Remover</button></div>)}</div><div className="cart-total"><span>Valor base + ofertas</span><strong>{formatPrice(totalCents)}</strong></div><div className="contact-fields"><label>Nome completo<input name="name" required minLength={2} maxLength={120} autoComplete="name" placeholder="Como devemos chamar você?" /></label><label>E-mail<input name="email" type="email" required maxLength={160} autoComplete="email" placeholder="voce@email.com" /></label><label>WhatsApp<input name="phone" type="tel" required minLength={8} maxLength={40} autoComplete="tel" placeholder="(11) 99999-9999" /></label></div><fieldset className="purchase-context"><legend>Quando você fará a compra?</legend><label><input type="radio" name="purchase_context" value="event" defaultChecked /><span><strong>No dia do evento</strong><small>Pagamento no Hotel Florença</small></span></label><label><input type="radio" name="purchase_context" value="outside" /><span><strong>Fora do evento</strong><small>A equipe enviará a orientação de pagamento</small></span></label></fieldset><div className="in-person-note"><strong>Bloqueio temporário · sem pagamento online</strong><p>Durante o evento, o pagamento será feito no Hotel Florença. Para reservas fora do evento, a orientação seguirá na confirmação por e-mail.</p></div><button className="button primary submit-intent" disabled={submitting}>{submitting ? "Bloqueando obras…" : "Confirmar pré-reserva por 30 min"}<ArrowIcon /></button><small className="form-consent">Ao enviar, você concorda em ser contatado pela equipe sobre esta pré-reserva.</small></form>}
+        ) : cart.length === 0 ? <div className="empty-cart"><p>Sua seleção está vazia. Explore a galeria e escolha as obras de seu interesse.</p><a className="button primary" href="#acervo" onClick={closeCart}>Explorar acervo <ArrowIcon /></a></div> : <form onSubmit={submitPurchaseIntent}><div className="cart-lines">{cart.map((item) => <div className="cart-line" key={item.work.id}><div className={`cart-thumb work-image ${item.work.palette}`}><ArtworkPhoto work={item.work} /></div><div className="cart-line-info"><small>{item.work.code}</small><strong>{item.work.title}</strong><span>{displayPrice(item.work.price_cents)}</span><label className="extra-offer">Oferta adicional (opcional)<span><b>R$</b><input inputMode="decimal" defaultValue={offerInputValue(item.extraOfferCents)} onChange={(event) => updateExtraOffer(item.work.id, event.target.value)} placeholder="0,00" aria-label={`Oferta adicional para ${item.work.title}`} /></span></label></div><button type="button" onClick={() => removeFromCart(item.work.id)} aria-label={`Remover ${item.work.title}`}>Remover</button></div>)}</div><div className="cart-total"><span>Valor base + ofertas</span><strong>{formatPrice(totalCents)}</strong></div><div className="contact-fields"><label>Nome completo<input name="name" required minLength={2} maxLength={120} autoComplete="name" placeholder="Como devemos chamar você?" /></label><label>E-mail<input name="email" type="email" required maxLength={160} autoComplete="email" placeholder="voce@email.com" /></label><label>WhatsApp<input name="phone" type="tel" required minLength={8} maxLength={40} autoComplete="tel" placeholder="(11) 99999-9999" /></label></div><fieldset className="purchase-context"><legend>Quando você fará a compra?</legend><label><input type="radio" name="purchase_context" value="event" defaultChecked /><span><strong>No dia do evento</strong><small>Pagamento no Hotel Florença</small></span></label><label><input type="radio" name="purchase_context" value="outside" /><span><strong>Fora do evento</strong><small>A equipe enviará a orientação de pagamento</small></span></label></fieldset><div className="in-person-note"><strong>Bloqueio temporário · sem pagamento online</strong><p>Durante o evento, o pagamento será feito no Hotel Florença. Para reservas fora do evento, a orientação seguirá na confirmação por e-mail.</p></div><button className="button primary submit-intent" disabled={submitting}>{submitting ? "Bloqueando obras…" : "Confirmar pré-reserva por 30 min"}<ArrowIcon /></button><small className="form-consent">Ao enviar, você concorda em ser contatado pela equipe sobre esta pré-reserva.</small></form>}
       </section></div>}
-      {reservationReceipt && !cartOpen && <div className="reservation-toast"><ReservationCountdown expiresAt={reservationReceipt.expires_at} compact allowNotifications /></div>}
+      {reservationReceipt && !cartOpen && <div className="reservation-toast"><ReservationCountdown expiresAt={reservationReceipt.expires_at} compact allowNotifications /><button type="button" className="reservation-toast-open" onClick={openActiveReservation}>Ver protocolo</button></div>}
     </main>
   );
 }
