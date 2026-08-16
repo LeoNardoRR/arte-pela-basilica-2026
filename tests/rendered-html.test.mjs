@@ -25,7 +25,9 @@ test("admin uses protected Supabase access and has no public demo", async () => 
   assert.match(admin, /groupByPerson/);
   assert.match(admin, /Intenções por pessoa/);
   assert.match(admin, /Fila de atendimento/);
+  assert.ok(admin.indexOf('id="queue-title"') < admin.indexOf('id="pricing-title"'));
   assert.match(admin, /statusFilters\.map/);
+  assert.match(admin, /className="people-list" tabIndex=\{people\.length > 4 \? 0 : undefined\} aria-label="Pessoas na fila de atendimento"/);
   assert.match(admin, /Histórico de intenções/);
   assert.match(admin, /tabIndex=\{person\.intents\.length > 2/);
   assert.match(admin, /<details className="person-card"/);
@@ -40,6 +42,9 @@ test("admin uses protected Supabase access and has no public demo", async () => 
   assert.match(css, /\.admin-stats\s*\{[^}]*background:\s*var\(--navy\)/);
   assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*\.admin-price-grid\s*\{[^}]*grid-template-columns:\s*1fr/);
   assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*\.admin-toolbar\s*\{[^}]*position:\s*sticky/);
+  assert.match(css, /\.people-list\s*\{[^}]*max-height:\s*min\(72vh,\s*760px\)[^}]*overflow-y:\s*auto/);
+  assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*\.people-list\s*\{[^}]*max-height:\s*min\(68svh,\s*640px\)/);
+  assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*\.person-intents\s*\{[^}]*max-height:\s*none[^}]*overflow:\s*visible/);
   assert.match(css, /\.person-contact-panel \.intent-contact b\s*\{[^}]*overflow-wrap:\s*anywhere/);
   assert.doesNotMatch(admin, /resetPasswordForEmail|PASSWORD_RECOVERY|updateUser\(\{ password:|Criar ou redefinir senha|Visualizar demonstração|Modo demonstração|demoMode|demoIntents/);
 });

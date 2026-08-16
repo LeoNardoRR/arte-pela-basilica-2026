@@ -102,7 +102,21 @@ body { margin: 0; background: var(--ivory); color: var(--ink); font-family: "Int
 .admin-toolbar button:hover, .admin-toolbar button.active { color: var(--navy); border-color: var(--navy); background: #ffffff; box-shadow: 0 2px 8px rgba(0, 6, 70, 0.06); }
 .admin-toolbar button.active b { background: var(--navy); color: white; }
 
-.people-list { display: grid; gap: 14px; }
+.people-list {
+  max-height: min(72vh, 760px);
+  padding: 2px 10px 12px 2px;
+  display: grid;
+  gap: 14px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 6, 102, 0.35) transparent;
+}
+.people-list::-webkit-scrollbar { width: 7px; }
+.people-list::-webkit-scrollbar-track { background: transparent; }
+.people-list::-webkit-scrollbar-thumb { border-radius: 99px; background: rgba(0, 6, 102, 0.28); }
+.people-list::-webkit-scrollbar-thumb:hover { background: rgba(0, 6, 102, 0.5); }
 .person-card { overflow: hidden; border: 1px solid #e0d8cf; border-radius: 14px; background: #ffffff; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02); transition: border-color 0.2s, box-shadow 0.2s; }
 .person-card:hover, .person-card[open] { border-color: var(--gold); box-shadow: 0 6px 24px rgba(0, 6, 70, 0.06); }
 .person-summary { padding: 22px 28px; display: grid; grid-template-columns: 46px 1fr 200px 120px; align-items: center; gap: 24px; cursor: pointer; list-style: none; }
@@ -1126,11 +1140,13 @@ footer p:last-child { text-align: right; }
   .admin-price-grid label button { min-width: 72px; min-height: 44px; }
   .admin-toolbar { position: sticky; z-index: 20; top: 76px; width: calc(100vw - 24px); margin-bottom: 18px; padding: 9px 0; }
   .admin-toolbar button,.admin-toolbar button:first-child { min-height: 44px; padding: 0 14px; }
+  .people-list { max-height: min(68svh, 640px); padding-right: 6px; gap: 12px; }
   .person-card { border-radius: 2px; }
   .person-summary { min-height: 0; padding: 18px 14px; }
   .person-body { margin: 0; padding: 0 14px 18px; }
   .person-contact-panel { gap: 14px; }
   .person-contact-panel .intent-contact a { min-height: 60px; border-radius: 2px; }
+  .person-intents { max-height: none; padding-right: 0; overflow: visible; }
   .intent-group { padding: 17px 0; }
   .intent-actions button { min-height: 46px; }
 }
