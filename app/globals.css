@@ -13,7 +13,7 @@
 
 * { box-sizing: border-box; }
 .sr-only { width: 1px; height: 1px; padding: 0; position: absolute; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
-html { scroll-behavior: smooth; scroll-padding-top: 124px; }
+html { scroll-behavior: smooth; scroll-padding-top: 96px; }
 body { margin: 0; background: var(--ivory); color: var(--ink); font-family: "Inter", sans-serif; -webkit-font-smoothing: antialiased; }
 [id] { scroll-margin-top: 0; }
 .skip-link { position: fixed; z-index: 300; top: 10px; left: 10px; padding: 12px 16px; border-radius: 8px; background: white; color: var(--navy); font-weight: 800; transform: translateY(-150%); }
@@ -625,6 +625,7 @@ footer p:last-child { text-align: right; }
 }
 
 @media (max-width: 950px) {
+  html { scroll-padding-top: 82px; }
   .desktop-nav { display: none; }
   .site-header { min-height: 82px; padding-inline: 4vw; align-items: center; justify-content: space-between; gap: 20px; }
   .header-actions { margin-left: auto; }
@@ -914,7 +915,14 @@ footer p:last-child { text-align: right; }
 .donation-copy > p:not(.section-kicker) { max-width: 590px; color: var(--muted); font-size: 15px; line-height: 1.8; }
 .donation-copy > small { display: block; max-width: 540px; padding-top: 18px; border-top: 1px solid #d9cfbf; color: #7a746b; line-height: 1.6; }
 .donation-pix-card { min-height: 270px; padding: 28px; display: flex; gap: 24px; align-items: center; background: white; border: 1px solid #ddd4ca; }
-.donation-pix-card img { width: 170px; height: 170px; }
+.qr-code-slot { width: 170px; height: 170px; flex: 0 0 170px; padding: 9px; display: grid; place-items: center; position: relative; border: 1px solid #cfc2ae; background: #fffdf9; }
+.qr-code-slot::before,.qr-code-slot::after { content: ""; width: 22px; height: 22px; position: absolute; border-color: var(--navy); opacity: .6; }
+.qr-code-slot::before { top: 7px; left: 7px; border-top: 2px solid; border-left: 2px solid; }
+.qr-code-slot::after { right: 7px; bottom: 7px; border-right: 2px solid; border-bottom: 2px solid; }
+.qr-code-slot img { width: 150px; height: 150px; display: block; }
+.qr-code-placeholder { width: 100%; height: 100%; display: grid; place-content: center; gap: 8px; border: 1px dashed #d9cfbf; text-align: center; }
+.qr-code-placeholder span { color: var(--navy); font-size: 9px; letter-spacing: .12em; }
+.qr-code-placeholder strong { margin: 0; color: var(--gold); font: 600 22px/1 "Cormorant Garamond",serif; }
 .donation-pix-card span { display: block; color: var(--gold); font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
 .donation-pix-card strong { display: block; margin: 8px 0 16px; color: var(--navy); font: 600 22px/1.15 "Cormorant Garamond",serif; }
 .donation-pix-card button { cursor: pointer; }
@@ -977,7 +985,7 @@ footer p:last-child { text-align: right; }
 }
 
 @media (max-width: 620px) {
-  html { scroll-padding-top: 94px; }
+  html { scroll-padding-top: 75px; }
   .reservation-toast { right: 12px; bottom: max(12px,env(safe-area-inset-bottom)); }
   .experience-edition-mark { width: 70px; height: 70px; top: 94px; right: 18px; }
   .experience-edition-mark strong { font-size: 16px; }

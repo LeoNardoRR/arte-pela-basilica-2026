@@ -164,17 +164,11 @@ export function ArtworkExperience3D({ work, reference, scrollerRef }: Props) {
 
         const frontMaterial = alphaMixMaterial(THREE, frontTexture, base);
         const backMaterial = alphaMixMaterial(THREE, backTexture, dark);
-        const goldFrameMaterial = new THREE.MeshStandardMaterial({
-          color: 0x9f7b3e,
-          roughness: 0.38,
-          metalness: 0.68,
-        });
-
         product.traverse((object) => {
           if (!(object instanceof THREE.Mesh)) return;
           if (object.name === "Front") object.material = frontMaterial;
           else if (object.name === "Back") object.material = backMaterial;
-          else object.material = goldFrameMaterial;
+          else object.visible = false;
         });
 
         const textureImage = frontTexture.image as { width?: number; height?: number } | undefined;

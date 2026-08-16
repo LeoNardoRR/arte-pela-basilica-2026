@@ -137,8 +137,17 @@ test("reservation notification and donation callout are explicit but respectful"
   assert.match(countdown, /Notification\.requestPermission/);
   assert.match(countdown, /remaining <= 5 \* 60/);
   assert.match(donation, /donation-attention-button/);
+  assert.match(donation, /qr-code-slot/);
+  assert.match(donation, /Espaço reservado para o futuro QR Code PIX/);
   assert.match(css, /@keyframes donation-pulse/);
-  assert.match(css, /scroll-padding-top:\s*94px/);
+  assert.match(css, /scroll-padding-top:\s*96px/);
+  assert.match(css, /scroll-padding-top:\s*75px/);
+});
+
+test("3D presentation preserves each artwork's own frame and silhouette", async () => {
+  const experience = await read("app/ArtworkExperience3D.tsx");
+  assert.doesNotMatch(experience, /goldFrameMaterial/);
+  assert.match(experience, /else object\.visible = false/);
 });
 
 test("production metadata and hosting configuration are preserved", async () => {

@@ -50,13 +50,20 @@ export function DonationSection() {
         <small>A doação é independente da pré-reserva e não substitui o pagamento presencial da obra.</small>
       </div>
       <div className="donation-pix-card">
-        {PIX_KEY && qrUrl ? (
-          <>
+        <div className={`qr-code-slot ${qrUrl ? "is-ready" : "is-pending"}`}>
+          {qrUrl ? (
             <img src={qrUrl} alt="QR Code PIX para doação à Basílica Santo Antônio" />
-            <div><span>PIX para doação</span><strong>Escaneie pelo aplicativo do seu banco</strong><button className="donation-attention-button" type="button" onClick={copyKey}>{copied ? "Chave copiada" : "Copiar chave PIX"}</button></div>
-          </>
+          ) : (
+            <div className="qr-code-placeholder" role="img" aria-label="Espaço reservado para o futuro QR Code PIX">
+              <span>QR Code PIX</span>
+              <strong>Em breve</strong>
+            </div>
+          )}
+        </div>
+        {PIX_KEY && qrUrl ? (
+          <div><span>PIX para doação</span><strong>Escaneie pelo aplicativo do seu banco</strong><button className="donation-attention-button" type="button" onClick={copyKey}>{copied ? "Chave copiada" : "Copiar chave PIX"}</button></div>
         ) : (
-          <div className="pix-pending"><span>PIX para doação</span><strong>Quero contribuir com a Basílica</strong><p>Enquanto o QR Code oficial é configurado, fale diretamente com a equipe para receber a orientação.</p><a className="donation-attention-button" href={`mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent("Quero contribuir com o Arte pela Basílica")}`}>Quero doar</a></div>
+          <div className="pix-pending"><span>PIX para doação</span><strong>Espaço reservado para o QR Code oficial</strong><p>Assim que o PIX for configurado, o código aparecerá aqui. Enquanto isso, fale com a equipe para receber a orientação.</p><a className="donation-attention-button" href={`mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent("Quero contribuir com o Arte pela Basílica")}`}>Quero doar</a></div>
         )}
       </div>
     </section>
