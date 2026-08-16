@@ -131,7 +131,7 @@ body { margin: 0; background: var(--ivory); color: var(--ink); font-family: "Int
 .person-total strong { font: 600 22px "Playfair Display", serif; color: var(--navy); }
 .person-expand { width: 120px; display: flex; align-items: center; justify-content: flex-end; gap: 8px; color: var(--navy); }
 .person-expand b { font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; }
-.person-expand i { width: 26px; height: 26px; position: relative; display: grid; place-items: center; border: 1px solid #d4cdb8; border-radius: 50%; background: transparent; font-style: normal; transition: transform 0.25s, border-color 0.2s; }
+.person-expand i { width: 26px; height: 26px; min-width: 26px; flex: 0 0 26px; position: relative; display: grid; place-items: center; border: 1px solid #d4cdb8; border-radius: 50%; background: transparent; font-style: normal; transition: transform 0.25s, border-color 0.2s; }
 .person-expand i::before { content: ""; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: translateY(-2px) rotate(45deg); }
 .person-card[open] .person-expand i { transform: rotate(180deg); }
 
