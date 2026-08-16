@@ -2,6 +2,7 @@ const ARTWORK_ROTATION_CORRECTIONS: Record<number, number> = {
   38: 0.35,
   43: 0.45,
   59: -0.9,
+  66: -0.8,
   79: 0.32,
   81: 0.28,
   83: -1.8,

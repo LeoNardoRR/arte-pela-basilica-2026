@@ -132,7 +132,7 @@ test("all 84 supplied catalog slots use the real local artwork images and intera
   assert.match(experience, /makeDepthShellGeometry/);
   assert.match(experience, /geometry\.computeVertexNormals\(\)/);
   assert.match(experience, /product\.rotation\.z = THREE\.MathUtils\.degToRad\(uprightRotationDegrees\)/);
-  for (const slot of [38, 43, 59, 79, 81, 83]) assert.match(adjustments, new RegExp(`\\b${slot}:`));
+  for (const slot of [38, 43, 59, 66, 79, 81, 83]) assert.match(adjustments, new RegExp(`\\b${slot}:`));
   assert.match(experience, /depthShell\.name = "SilhouetteDepth"/);
   assert.match(experience, /model\.position\.sub\(centeredPivot\)/);
   assert.match(experience, /className="experience-guide"/);
