@@ -91,6 +91,8 @@ test("catalog provides flexible prices, full-screen gallery and timed pre-reserv
   assert.match(catalog, /CURATED_ARTWORKS/);
   assert.match(catalog, /<ArtworkPhoto work=\{work\}/);
   assert.doesNotMatch(catalog, /button-view-3d|<span>Detalhes & 3D<\/span>/);
+  assert.match(catalog, /Abrir experiência 3D de/);
+  assert.match(catalog, /<span className="view-work">Abrir experiência 3D<\/span>/);
   assert.doesNotMatch(css, /\.button-view-3d/);
   assert.doesNotMatch(catalog, /[→↗↑↓←]/);
   assert.match(css, /\.gallery-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3/);
@@ -101,6 +103,13 @@ test("catalog provides flexible prices, full-screen gallery and timed pre-reserv
   assert.match(css, /#acervo\s*\{[^}]*scroll-margin-top:\s*-52px/);
   assert.match(css, /@media \(max-width:\s*950px\)[\s\S]*?#acervo\s*\{[^}]*scroll-margin-top:\s*-50px/);
   assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*?#acervo\s*\{[^}]*scroll-margin-top:\s*-55px/);
+  assert.match(css, /\.how-section\s*\{[^}]*min-height:\s*100svh/);
+  assert.match(css, /\.donation-section\s*\{[^}]*margin:\s*clamp\(72px,9vw,132px\) auto 120px/);
+  assert.match(css, /\.view-work\s*\{[^}]*display:\s*inline-flex/);
+  assert.match(css, /\.gallery-close\s*\{[^}]*position:\s*fixed/);
+  assert.match(css, /\.modal-close\.detail-close\s*\{[^}]*position:\s*fixed/);
+  assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*\.ambient-audio-button\s*\{[^}]*width:\s*37px;[^}]*min-width:\s*37px/);
+  assert.match(css, /@media \(max-width:\s*370px\)[\s\S]*\.site-header\s*\{[^}]*padding-inline:\s*10px/);
   assert.match(css, /\.work-image\.navy,[^}]*\{\s*background:\s*transparent/);
   assert.match(css, /aspect-ratio:\s*var\(--artwork-aspect/);
   assert.match(css, /\.arrow-icon::before/);
@@ -141,10 +150,11 @@ test("all 84 supplied catalog slots use the real local artwork images and intera
   assert.match(experience, /depthShell\.name = "SilhouetteDepth"/);
   assert.match(experience, /model\.position\.sub\(centeredPivot\)/);
   assert.match(experience, /className="experience-guide"/);
+  assert.match(experience, /Toque ou arraste para girar/);
   assert.match(experience, /className="experience-zoom"/);
   assert.match(experience, /useWheelZoom/);
   assert.match(experience, /autoYaw \+= elapsed/);
-  assert.match(experience, /Arraste para girar · use os controles para ampliar/);
+  assert.match(experience, /Explore frente, espessura e verso · use os controles para ampliar/);
   assert.doesNotMatch(experience, /artist|technique|Artista|Técnica/);
   assert.doesNotMatch(experience, /frontTexture\.rotation/);
   assert.match(experience, /requestAnimationFrame\(animateIdle\)/);

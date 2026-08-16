@@ -17,6 +17,7 @@ html { scroll-behavior: smooth; scroll-padding-top: 96px; }
 body { margin: 0; background: var(--ivory); color: var(--ink); font-family: "Inter", sans-serif; -webkit-font-smoothing: antialiased; }
 [id] { scroll-margin-top: 0; }
 #acervo { scroll-margin-top: -52px; }
+#como-participar, #doacao { scroll-margin-top: -52px; }
 .skip-link { position: fixed; z-index: 300; top: 10px; left: 10px; padding: 12px 16px; border-radius: 8px; background: white; color: var(--navy); font-weight: 800; transform: translateY(-150%); }
 .skip-link:focus { transform: translateY(0); }
 .not-found-page { min-height: 100svh; padding: 8vw; display: grid; place-content: center; justify-items: start; background: var(--ivory); }
@@ -526,7 +527,7 @@ a { color: inherit; text-decoration: none; }
   to { width: 26px; opacity: 1; }
 }
 
-.how-section { padding: 105px max(5vw, calc((100vw - 1180px) / 2)); background: var(--navy); color: white; display: grid; grid-template-columns: 1fr 1fr; gap: 10%; }
+.how-section { min-height: 100svh; padding: 105px max(5vw, calc((100vw - 1180px) / 2)); background: var(--navy); color: white; display: grid; grid-template-columns: 1fr 1fr; gap: 10%; align-items: center; }
 .section-kicker.light { color: #d8b775; }
 .how-section h2 { color: white; }
 .how-section ol { list-style: none; margin: 0; padding: 0; }
@@ -550,6 +551,7 @@ footer p:last-child { text-align: right; }
 .purchase-modal { position: relative; width: min(540px, 100%); padding: 42px; border-radius: 17px; background: var(--ivory); box-shadow: 0 25px 80px rgba(0,0,0,.3); }
 .cart-modal { width: min(780px, 100%); max-height: calc(100vh - 44px); overflow-y: auto; }
 .modal-close { position: absolute; top: 18px; right: 18px; width: 35px; height: 35px; border: 0; border-radius: 50%; background: #eae5e0; color: var(--navy); font-size: 25px; cursor: pointer; }
+.modal-close.detail-close { position: fixed; z-index: 170; top: 24px; right: 26px; width: 48px; height: 48px; border: 1px solid rgba(255,255,255,.5); background: rgba(7,11,42,.78); color: white; backdrop-filter: blur(12px); }
 .purchase-modal h2 { font-size: 39px; }
 .modal-note { color: var(--muted); font-size: 12px; line-height: 1.65; margin: 17px 0 25px; }
 .purchase-modal form { display: grid; gap: 14px; }
@@ -612,6 +614,7 @@ footer p:last-child { text-align: right; }
 @media (max-width: 950px) {
   html { scroll-padding-top: 82px; }
   #acervo { scroll-margin-top: -50px; }
+  #como-participar, #doacao { scroll-margin-top: -50px; }
   .desktop-nav { display: none; }
   .site-header { min-height: 82px; padding-inline: 4vw; align-items: center; justify-content: space-between; gap: 20px; }
   .header-actions { margin-left: auto; }
@@ -741,10 +744,11 @@ footer p:last-child { text-align: right; }
   .preview-piece-caption small { display: none; }
   .gallery-header { min-height: 0; padding: 15px 4vw; display: grid; gap: 12px; }
   .gallery-header h2 { font-size: 31px; }
-  .gallery-actions { width: 100%; gap: 8px; }
-  .gallery-actions .filters { flex: 1; overflow-x: auto; }
+  .gallery-actions { width: 100%; min-width: 0; gap: 8px; }
+  .gallery-actions .filters { width: 100%; min-width: 0; flex: 1; overflow-x: auto; overscroll-behavior-inline: contain; scrollbar-width: none; }
+  .gallery-actions .filters::-webkit-scrollbar { display: none; }
   .filters button { white-space: nowrap; }
-  .gallery-close { width: 44px; height: 44px; }
+  .gallery-close { width: 44px; height: 44px; position: fixed; z-index: 14; top: 12px; right: 12px; box-shadow: 0 8px 24px rgba(0,6,70,.13); }
   .gallery-content { width: 92vw; padding-top: 22px; }
   .floating-cart { min-width: 0; min-height: 60px; left: 12px; right: 12px; bottom: max(12px,env(safe-area-inset-bottom)); grid-template-columns: 32px minmax(0,1fr) auto 28px; gap: 9px; padding: 8px 10px 8px 13px; }
   .floating-cart-copy strong { font-size: 13px; }
@@ -767,8 +771,9 @@ footer p:last-child { text-align: right; }
   .sold-overlay { padding: 45px 10px 12px; display: block; }
   .sold-overlay strong { font-size: 17px; }
   .sold-overlay span { display: none; }
-  .view-work { display: none; }
-  .detail-close { top: 15px; right: 15px; width: 44px; height: 44px; }
+  .view-work { min-height: 36px; left: 8px; right: 8px; bottom: 8px; padding: 8px 9px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid rgba(216,183,117,.65); border-radius: 4px; color: white; background: rgba(0,6,70,.9); font-size: 8px; line-height: 1.25; letter-spacing: .08em; text-align: center; opacity: 1; transform: none; backdrop-filter: blur(8px); }
+  .work-card:hover .view-work { transform: none; }
+  .modal-close.detail-close { top: 15px; right: 15px; width: 44px; height: 44px; }
   .artwork-3d-stage { height: 220svh; }
   .experience-preview { width: 74vw; height: 62vh; }
   .experience-caption { top: 76px; left: 20px; }
@@ -781,7 +786,7 @@ footer p:last-child { text-align: right; }
   .detail-copy h3 { font-size: 42px; }
   .detail-price { margin: 23px 0; }
   .detail-price strong { font-size: 32px; }
-  .how-section { padding-top: 85px; padding-bottom: 85px; }
+  .how-section { min-height: 100svh; padding-top: 85px; padding-bottom: 85px; }
   .modal-backdrop { padding: 0; align-items: end; }
   .purchase-modal { border-radius: 20px 20px 0 0; padding: 32px 20px 26px; }
   .cart-modal { width: 100%; max-height: 94svh; }
@@ -904,7 +909,7 @@ footer p:last-child { text-align: right; }
 .extra-offer input { width: 100%; min-width: 0; padding: 9px; border: 0; outline: 0; color: var(--navy); font-weight: 700; }
 .form-error { margin: 14px 0; padding: 12px 14px; border: 1px solid #d59b8f; border-radius: 8px; background: #fff2ef; color: #8f241b; font-size: 12px; font-weight: 700; }
 
-.donation-section { width: min(1240px,92vw); margin: 0 auto 120px; padding: clamp(34px,6vw,76px); display: grid; grid-template-columns: 1fr minmax(320px,.75fr); gap: clamp(40px,7vw,100px); align-items: center; border: 1px solid #d9cfbf; background: #f5f0e8; }
+.donation-section { width: min(1240px,92vw); margin: clamp(72px,9vw,132px) auto 120px; padding: clamp(34px,6vw,76px); display: grid; grid-template-columns: 1fr minmax(320px,.75fr); gap: clamp(40px,7vw,100px); align-items: center; border: 1px solid #d9cfbf; background: #f5f0e8; }
 .donation-copy h2,.sponsors-section h2 { margin: 8px 0 22px; color: var(--navy); font: 600 clamp(34px,5vw,62px)/1 "Cormorant Garamond",serif; }
 .donation-copy > p:not(.section-kicker) { max-width: 590px; color: var(--muted); font-size: 15px; line-height: 1.8; }
 .donation-copy > small { display: block; max-width: 540px; padding-top: 18px; border-top: 1px solid #d9cfbf; color: #7a746b; line-height: 1.6; }
@@ -955,7 +960,7 @@ footer p:last-child { text-align: right; }
 .intent-extra-offer { margin: 10px 0 0; padding: 10px 12px; display: flex; justify-content: space-between; background: #f7f2e8; color: var(--gold); font-size: 11px; }
 
 @media (max-width: 800px) {
-  .donation-section { grid-template-columns: 1fr; margin-bottom: 80px; }
+  .donation-section { grid-template-columns: 1fr; margin-top: 72px; margin-bottom: 80px; }
   .donation-pix-card { flex-direction: column; align-items: flex-start; }
   .sponsors-section { margin-top: 54px; }
   .sponsors-heading { align-items: flex-start; flex-direction: column; gap: 12px; }
@@ -981,12 +986,22 @@ footer p:last-child { text-align: right; }
 @media (max-width: 620px) {
   html { scroll-padding-top: 75px; }
   #acervo { scroll-margin-top: -55px; }
+  #como-participar, #doacao { scroll-margin-top: -55px; }
+  .ambient-audio-button { width: 37px; min-width: 37px; height: 37px; padding: 0; border-radius: 50%; }
+  .ambient-audio-button .audio-label { display: none; }
+  .donation-section { width: calc(100vw - 24px); margin-top: 56px; padding: 30px 20px; gap: 28px; }
+  .donation-pix-card { width: 100%; min-height: 0; padding: 22px 18px; gap: 20px; }
+  .donation-pix-card > div:last-child, .pix-pending { width: 100%; }
+  .qr-code-slot { align-self: center; }
+  .donation-attention-button { width: 100%; min-height: 46px; }
   .reservation-toast { right: 12px; bottom: max(12px,env(safe-area-inset-bottom)); }
   .experience-edition-mark { width: 70px; height: 70px; top: 94px; right: 18px; }
   .experience-edition-mark strong { font-size: 16px; }
 }
 
 @media (max-width: 370px) {
+  .site-header { padding-inline: 10px; gap: 6px; }
+  .header-actions { gap: 6px; }
   .brand small { display: none; }
   .brand strong { font-size: 14px; }
   .gallery-header { padding-inline: 12px; }

@@ -434,13 +434,13 @@ export function Catalog() {
     const canReserve = work.status === "available" && Boolean(work.price_cents);
     return (
       <article className={`work-card ${work.status !== "available" ? "unavailable" : ""}`} key={work.id}>
-        <button className="work-visual-button" type="button" onClick={() => setSelectedWork(work)} aria-label={`Ver detalhes de ${work.title}`}>
+        <button className="work-visual-button" type="button" onClick={() => setSelectedWork(work)} aria-label={`Abrir experiência 3D de ${work.title}`}>
           <div className={`work-image ${work.palette}`}>
             <ArtworkPhoto work={work} />
             <span className={`status ${work.status} ${work.status === "available" && !work.price_cents ? "price-pending" : ""}`}>{work.status === "available" && !work.price_cents ? "Aguardando valor" : statusLabel[work.status]}</span>
             {work.status === "reserved" && work.reserved_until && <ReservationCountdown expiresAt={work.reserved_until} compact />}
             {work.status !== "available" && <div className="sold-overlay"><strong>{statusLabel[work.status]}</strong><span>Indisponível para nova intenção.</span></div>}
-            <span className="view-work">Ver detalhes & 3D</span>
+            <span className="view-work">Abrir experiência 3D</span>
           </div>
         </button>
         <div className="work-body">

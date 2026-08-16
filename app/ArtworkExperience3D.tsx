@@ -497,8 +497,8 @@ export function ArtworkExperience3D({ work, reference, scrollerRef }: Props) {
         <div className="experience-fallback" aria-hidden={ready}>{failed ? "Visualização estática disponível" : "Preparando visualização 3D…"}</div>
         <div className="experience-guide" aria-hidden="true">
           <small>Como explorar</small>
-          <strong>Arraste para girar</strong>
-          <span>Arraste para girar · use os controles para ampliar</span>
+          <strong>Toque ou arraste para girar</strong>
+          <span>Explore frente, espessura e verso · use os controles para ampliar</span>
         </div>
       </div>
     </section>
