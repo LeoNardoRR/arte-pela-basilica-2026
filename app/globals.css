@@ -1017,6 +1017,122 @@ footer p:last-child { text-align: right; }
   .gallery-grid .work-body h3 { font-size: 17px; }
 }
 
+/* Painel administrativo — linguagem editorial da exposição */
+.admin-page { background: #f7f3ec; }
+.admin-header {
+  min-height: 88px;
+  padding: 0 max(3.2vw,calc((100vw - 1440px)/2));
+  position: sticky;
+  z-index: 80;
+  top: 0;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 24px;
+  border-top: 3px solid var(--navy);
+  border-bottom: 1px solid #d9d1c7;
+  background: rgba(251,249,248,.96);
+  box-shadow: 0 10px 32px rgba(0,6,70,.05);
+  backdrop-filter: blur(18px);
+}
+.admin-back { justify-self: start; color: var(--navy); font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.admin-brand { display: flex; align-items: center; gap: 12px; color: var(--navy); }
+.admin-brand-crest { width: 48px; height: 58px; padding: 5px; display: grid; place-items: center; border-inline: 1px solid #d8c79f; }
+.admin-brand-crest img { width: 38px; height: 48px; object-fit: cover; }
+.admin-brand > span:last-child { display: grid; gap: 3px; }
+.admin-brand small { color: var(--gold); font-size: 7px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
+.admin-brand strong { font: 600 19px/1 "Cormorant Garamond",serif; white-space: nowrap; }
+.admin-header-actions { justify-self: end; display: flex; align-items: center; gap: 18px; }
+.admin-header-actions > span { color: var(--muted); font-size: 8px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.admin-header .admin-header-actions button { min-width: 74px; min-height: 40px; padding: 0 16px; border: 1px solid var(--navy); border-radius: 2px; color: var(--navy); font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.admin-wrap { width: min(1240px,92vw); padding: 64px 0 110px; }
+.admin-dashboard { gap: 68px; }
+.admin-title { position: relative; align-items: center; padding: 20px 0 38px; border-bottom: 1px solid #cfc5b7; }
+.admin-title::after { content: ""; width: 76px; height: 3px; position: absolute; left: 0; bottom: -2px; background: var(--navy); }
+.admin-login h1,.admin-title h1 { font-family: "Cormorant Garamond",serif; font-size: clamp(44px,5vw,68px); line-height: .98; letter-spacing: -.02em; }
+.admin-title > div > p:last-child { max-width: 720px; margin-top: 16px; font-size: 13px; }
+.admin-refresh { min-width: 178px; min-height: 46px; border-radius: 2px; background: transparent; font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.admin-section-heading { margin-bottom: 24px; padding-bottom: 15px; align-items: flex-end; border-bottom: 1px solid #d7cec2; }
+.admin-section-heading > div { gap: 14px; }
+.admin-section-heading h2 { font: 600 clamp(27px,2.5vw,36px)/1 "Cormorant Garamond",serif; }
+.admin-section-index { width: 38px; height: 38px; border-radius: 50%; background: transparent; font-family: "Cormorant Garamond",serif; }
+.admin-stats { border: 0; border-radius: 0; background: var(--navy); box-shadow: none; }
+.admin-stats div { min-height: 154px; padding: 32px 28px; display: flex; flex-direction: column; justify-content: center; border-top: 3px solid var(--gold); }
+.admin-stats div + div { border-left-color: rgba(255,255,255,.14); }
+.admin-stats span { color: #d8b775; }
+.admin-stats strong { color: white; font-family: "Cormorant Garamond",serif; font-size: clamp(29px,2.6vw,39px); }
+.admin-stats small { color: rgba(255,255,255,.58); }
+.admin-pricing,.admin-queue { min-width: 0; }
+.admin-price-grid { max-height: min(62vh,620px); padding: 12px; gap: 10px; border-color: #d7cec2; background: #eee8de; overscroll-behavior: contain; scrollbar-color: rgba(0,6,102,.35) transparent; }
+.admin-price-grid > article { min-width: 0; padding: 16px; gap: 12px; border: 1px solid #ddd4c8; background: #fff; }
+.admin-price-grid > article > span b { font: 700 16px "Inter",sans-serif; letter-spacing: .02em; }
+.admin-price-grid label > div { min-height: 44px; }
+.admin-price-grid input { min-width: 0; font-size: 15px; }
+.admin-price-grid label button { min-width: 66px; }
+.artwork-availability-action { min-height: 40px; }
+.admin-toolbar { margin: -2px 0 26px; padding: 10px 0; gap: 8px; background: #f7f3ec; }
+.admin-toolbar button { min-height: 42px; padding: 0 15px; border-radius: 2px; background: transparent; }
+.admin-toolbar button:hover,.admin-toolbar button.active { background: var(--navy); color: white; box-shadow: none; }
+.admin-toolbar button.active b { background: white; color: var(--navy); }
+.person-card { border-color: #d7cec2; border-radius: 2px; box-shadow: none; }
+.person-card:hover,.person-card[open] { border-color: var(--gold); box-shadow: none; }
+.person-summary { min-height: 112px; }
+.person-avatar,.person-expand i { background: transparent; }
+.person-identity > strong,.person-total strong { font-family: "Cormorant Garamond",serif; }
+.person-body { background: #fbfaf7; }
+.intent-group { border-radius: 2px; background: white; }
+.intent-actions button { min-height: 38px; border-radius: 2px; }
+.admin-login { border: 1px solid #d7cec2; border-top: 4px solid var(--navy); border-radius: 2px; box-shadow: none; }
+
+@media (max-width: 900px) {
+  .admin-header { padding-inline: 18px; }
+  .admin-header-actions > span { display: none; }
+  .admin-wrap { width: calc(100vw - 36px); }
+  .admin-stats { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .admin-stats div:nth-child(odd) { border-left: 0; }
+  .admin-stats div:nth-child(n+3) { border-top-color: rgba(216,183,117,.75); }
+  .admin-price-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+
+@media (max-width: 620px) {
+  .admin-header { min-height: 76px; padding-inline: 12px; grid-template-columns: 44px 1fr 52px; gap: 7px; }
+  .admin-back { width: 44px; min-height: 44px; display: grid; place-items: center; }
+  .admin-back > span:last-child { display: none; }
+  .admin-brand { justify-self: center; gap: 8px; }
+  .admin-brand-crest { width: 36px; height: 46px; padding: 4px; }
+  .admin-brand-crest img { width: 28px; height: 38px; }
+  .admin-brand small { display: none; }
+  .admin-brand strong { font-size: 15px; white-space: normal; }
+  .admin-header-actions { gap: 0; }
+  .admin-header .admin-header-actions button { min-width: 52px; min-height: 42px; padding: 0 9px; }
+  .admin-wrap { width: calc(100vw - 24px); padding: 30px 0 72px; }
+  .admin-dashboard { gap: 54px; }
+  .admin-title { margin: 0; padding: 13px 0 30px; gap: 26px; }
+  .admin-login h1,.admin-title h1 { font-size: clamp(40px,12vw,50px); }
+  .admin-title > div > p:last-child { margin-top: 12px; font-size: 12px; }
+  .admin-refresh { min-height: 48px; }
+  .admin-overview { margin-bottom: 0; }
+  .admin-section-heading { margin-bottom: 18px; padding-bottom: 12px; gap: 12px; }
+  .admin-section-heading > div { align-items: center; gap: 10px; }
+  .admin-section-heading h2 { font-size: 28px; }
+  .admin-section-heading > small { max-width: 105px; font-size: 7px; }
+  .admin-stats div { min-height: 128px; padding: 19px 15px; }
+  .admin-stats strong { font-size: clamp(25px,7vw,31px); }
+  .admin-stats span { font-size: 7px; }
+  .admin-price-grid { max-height: 64svh; padding: 8px; grid-template-columns: 1fr; scroll-snap-type: y proximity; }
+  .admin-price-grid > article { padding: 14px; scroll-snap-align: start; }
+  .admin-price-grid input { min-height: 44px; font-size: 16px; }
+  .admin-price-grid label button { min-width: 72px; min-height: 44px; }
+  .admin-toolbar { position: sticky; z-index: 20; top: 76px; width: calc(100vw - 24px); margin-bottom: 18px; padding: 9px 0; }
+  .admin-toolbar button,.admin-toolbar button:first-child { min-height: 44px; padding: 0 14px; }
+  .person-card { border-radius: 2px; }
+  .person-summary { min-height: 0; padding: 18px 14px; }
+  .person-body { margin: 0; padding: 0 14px 18px; }
+  .person-contact-panel .intent-contact a { min-height: 54px; border-radius: 2px; }
+  .intent-group { padding: 17px 0; }
+  .intent-actions button { min-height: 46px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }

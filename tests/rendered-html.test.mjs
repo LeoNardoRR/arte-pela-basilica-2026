@@ -32,6 +32,14 @@ test("admin uses protected Supabase access and has no public demo", async () => 
   assert.match(admin, /Ver detalhes/);
   assert.match(admin, /Contato direto/);
   assert.match(admin, /Somente o usuário autorizado e a senha fixa/);
+  assert.match(admin, /className="admin-brand"/);
+  assert.match(admin, /className="admin-brand-crest"/);
+  assert.match(admin, /className="admin-header-actions"/);
+  const css = await read("app/globals.css");
+  assert.match(css, /\.admin-header\s*\{[^}]*grid-template-columns:\s*1fr auto 1fr/);
+  assert.match(css, /\.admin-stats\s*\{[^}]*background:\s*var\(--navy\)/);
+  assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*\.admin-price-grid\s*\{[^}]*grid-template-columns:\s*1fr/);
+  assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*\.admin-toolbar\s*\{[^}]*position:\s*sticky/);
   assert.doesNotMatch(admin, /resetPasswordForEmail|PASSWORD_RECOVERY|updateUser\(\{ password:|Criar ou redefinir senha|Visualizar demonstração|Modo demonstração|demoMode|demoIntents/);
 });
 

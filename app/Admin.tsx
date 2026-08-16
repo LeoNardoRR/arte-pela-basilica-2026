@@ -2,8 +2,10 @@
 
 import type { Session } from "@supabase/supabase-js";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { publicAsset } from "./publicAsset";
 import { ADMIN_EMAIL, supabase } from "./supabase";
 
+const BASILICA_CREST = publicAsset("/logo-basilica.jpeg");
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 type IntentStatus = "reserved" | "submitted" | "reviewed" | "approved" | "declined" | "paid" | "expired";
 type IntentItem = { artwork_id: number; artwork_code: string; artwork_title: string; artwork_status: "available" | "reserved" | "sold"; amount_cents: number };
@@ -174,5 +176,5 @@ export function Admin() {
     </details>) : <p className="admin-notice empty-state">Nenhuma intenção encontrada neste filtro.</p>}</div>}</section>
   </div>;
 
-  return <main className="admin-page"><header className="admin-header"><a href="#conteudo-principal"><span className="arrow-icon arrow-left" aria-hidden="true" /> Voltar à exposição</a><span>Arte pela Basílica · Gestão presencial</span>{session && <button onClick={logout}>Sair</button>}</header><section className="admin-wrap">{content}</section></main>;
+  return <main className="admin-page"><header className="admin-header"><a className="admin-back" href="#conteudo-principal"><span className="arrow-icon arrow-left" aria-hidden="true" /><span>Voltar à exposição</span></a><a className="admin-brand" href="#conteudo-principal" aria-label="Arte pela Basílica — voltar à exposição"><span className="admin-brand-crest"><img src={BASILICA_CREST} alt="" /></span><span><small>Vernissage 2026</small><strong>Arte pela Basílica</strong></span></a><div className="admin-header-actions"><span>Gestão presencial</span>{session && <button onClick={logout}>Sair</button>}</div></header><section className="admin-wrap">{content}</section></main>;
 }
