@@ -22,6 +22,11 @@ test("admin uses protected Supabase access and has no public demo", async () => 
   assert.match(admin, /admin_update_cart_status/);
   assert.match(admin, /admin_set_artwork_available/);
   assert.match(admin, /Tornar disponível/);
+  assert.match(admin, /function normalizePriceDraft/);
+  assert.match(admin, /function priceDraftToCents/);
+  assert.match(admin, /inputMode="decimal"/);
+  assert.match(admin, /placeholder="0,00"/);
+  assert.match(admin, /centavos\.padEnd\(2, "0"\)/);
   assert.match(admin, /groupByPerson/);
   assert.match(admin, /Intenções por pessoa/);
   assert.match(admin, /Fila de atendimento/);
@@ -41,6 +46,8 @@ test("admin uses protected Supabase access and has no public demo", async () => 
   assert.match(css, /\.admin-header\s*\{[^}]*grid-template-columns:\s*1fr auto 1fr/);
   assert.match(css, /\.admin-stats\s*\{[^}]*background:\s*var\(--navy\)/);
   assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*\.admin-price-grid\s*\{[^}]*grid-template-columns:\s*1fr/);
+  assert.match(css, /\.admin-price-grid\s*\{[^}]*overflow-y:\s*auto[^}]*contain:\s*layout paint/);
+  assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*\.admin-price-grid\s*\{[^}]*height:\s*min\(64svh,\s*640px\)[^}]*max-height:\s*none/);
   assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*\.admin-toolbar\s*\{[^}]*position:\s*sticky/);
   assert.match(css, /\.people-list\s*\{[^}]*max-height:\s*min\(72vh,\s*760px\)[^}]*overflow-y:\s*auto/);
   assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*\.people-list\s*\{[^}]*max-height:\s*min\(68svh,\s*640px\)/);
