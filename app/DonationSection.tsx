@@ -2,6 +2,7 @@
 
 import QRCode from "qrcode";
 import { useEffect, useState } from "react";
+import { ADMIN_EMAIL } from "./supabase";
 
 const PIX_KEY = String(import.meta.env.VITE_BASILICA_PIX_KEY ?? "").trim();
 
@@ -44,18 +45,18 @@ export function DonationSection() {
     <section className="donation-section" id="doacao" data-reveal="up">
       <div className="donation-copy">
         <p className="section-kicker">Doação espontânea</p>
-        <h2>Ajude a preservar<br />esta história.</h2>
-        <p>Além da aquisição das obras, você pode contribuir diretamente com a restauração da estrutura e das pinturas da Basílica.</p>
+        <h2>Um gesto que<br />faz diferença.</h2>
+        <p>Além da aquisição das obras, você pode contribuir diretamente com o apoio financeiro à Basílica Santo Antônio.</p>
         <small>A doação é independente da pré-reserva e não substitui o pagamento presencial da obra.</small>
       </div>
       <div className="donation-pix-card">
         {PIX_KEY && qrUrl ? (
           <>
             <img src={qrUrl} alt="QR Code PIX para doação à Basílica Santo Antônio" />
-            <div><span>PIX para doação</span><strong>Escaneie pelo aplicativo do seu banco</strong><button type="button" onClick={copyKey}>{copied ? "Chave copiada" : "Copiar chave PIX"}</button></div>
+            <div><span>PIX para doação</span><strong>Escaneie pelo aplicativo do seu banco</strong><button className="donation-attention-button" type="button" onClick={copyKey}>{copied ? "Chave copiada" : "Copiar chave PIX"}</button></div>
           </>
         ) : (
-          <div className="pix-pending"><span>PIX para doação</span><strong>QR Code em configuração</strong><p>A chave oficial precisa ser cadastrada pela organização antes da publicação do recebimento.</p></div>
+          <div className="pix-pending"><span>PIX para doação</span><strong>Quero contribuir com a Basílica</strong><p>Enquanto o QR Code oficial é configurado, fale diretamente com a equipe para receber a orientação.</p><a className="donation-attention-button" href={`mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent("Quero contribuir com o Arte pela Basílica")}`}>Quero doar</a></div>
         )}
       </div>
     </section>

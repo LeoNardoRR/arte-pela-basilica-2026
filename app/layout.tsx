@@ -6,13 +6,13 @@ export const SITE_URL = "https://arte-pela-basilica-2026.ribeiroleonardoti.chatg
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: "Arte pela Basílica — 10 de setembro de 2026",
-  description: "Conheça as 84 obras reais do Vernissage 2026, faça uma pré-reserva temporária e conclua o pagamento presencialmente na Basílica.",
+  description: "Conheça o acervo do Vernissage 2026, faça uma pré-reserva temporária e apoie financeiramente a Basílica Santo Antônio.",
   alternates: { canonical: "/" },
   icons: { icon: "/favicon.svg" },
   robots: { index: true, follow: true },
   openGraph: {
     title: "Arte pela Basílica",
-    description: "84 obras reais, pré-reserva temporária e conclusão presencial em favor da restauração da Basílica.",
+    description: "Acervo do Vernissage 2026, pré-reserva temporária e apoio financeiro à Basílica Santo Antônio.",
     url: "/",
     siteName: "Arte pela Basílica",
     locale: "pt_BR",
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Arte pela Basílica",
-    description: "84 obras reais, pré-reserva temporária e conclusão presencial em favor da restauração da Basílica.",
+    description: "Acervo do Vernissage 2026, pré-reserva temporária e apoio financeiro à Basílica Santo Antônio.",
     images: ["/og.png"],
   },
 };

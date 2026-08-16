@@ -8,9 +8,7 @@ import { publicAsset } from "./publicAsset";
 type Artwork3D = {
   code: string;
   title: string;
-  artist: string;
   palette: string;
-  technique?: string;
   dimensions?: string;
   price_cents?: number;
 };
@@ -58,6 +56,8 @@ function makeArtworkCanvas(work: Artwork3D, back = false) {
   context.clearRect(0, 0, canvas.width, canvas.height);
 
   if (back) {
+    context.fillStyle = dark;
+    context.fillRect(0, 0, canvas.width, canvas.height);
     context.globalAlpha = 0.5;
     context.strokeStyle = "#d8c8aa";
     context.lineWidth = 3;
@@ -86,24 +86,14 @@ function makeArtworkCanvas(work: Artwork3D, back = false) {
 
 function alphaMixMaterial(THREE: typeof ThreeTypes, texture: ThreeTypes.Texture, baseColor: string) {
   const material = new THREE.MeshStandardMaterial({
-    color: baseColor,
+    color: 0xffffff,
     map: texture,
-    roughness: 0.78,
-    metalness: 0.02,
-    transparent: false,
-    alphaTest: 0,
+    roughness: 0.74,
+    metalness: 0.01,
+    transparent: true,
+    alphaTest: 0.02,
   });
-
-  material.onBeforeCompile = (shader) => {
-    shader.fragmentShader = shader.fragmentShader.replace(
-      "#include <map_fragment>",
-      `#ifdef USE_MAP
-        vec4 sampledDiffuseColor = texture2D(map, vMapUv);
-        diffuseColor.rgb = mix(diffuseColor.rgb, sampledDiffuseColor.rgb, sampledDiffuseColor.a);
-      #endif`,
-    );
-  };
-  material.customProgramCacheKey = () => "artwork-alpha-mix-v2";
+  material.name = `catalog-artwork-${baseColor}`;
   return material;
 }
 
@@ -174,9 +164,9 @@ export function ArtworkExperience3D({ work, reference, scrollerRef }: Props) {
         const frontMaterial = alphaMixMaterial(THREE, frontTexture, base);
         const backMaterial = alphaMixMaterial(THREE, backTexture, dark);
         const goldFrameMaterial = new THREE.MeshStandardMaterial({
-          color: 0xb7904b,
-          roughness: 0.28,
-          metalness: 0.85,
+          color: 0x9f7b3e,
+          roughness: 0.38,
+          metalness: 0.68,
         });
 
         product.traverse((object) => {
@@ -337,30 +327,17 @@ export function ArtworkExperience3D({ work, reference, scrollerRef }: Props) {
       <div className="artwork-3d-sticky">
         <img className="experience-preview" src={reference.imageUrl} alt="" aria-hidden="true" referrerPolicy="no-referrer" />
         <div className="experience-caption">
-          <span>{work.code} · Experiência 3D</span>
+          <span>{work.code} · Vista interativa</span>
           <strong>{work.title}</strong>
-          <small>{work.artist}</small>
+          {work.dimensions && <small>{work.dimensions}</small>}
         </div>
-        {work.technique && (
-          <div className="experience-corner-details">
-            <div className="corner-detail-header">
-              <span className="corner-tag">{work.code}</span>
-              <strong>Detalhes da Obra</strong>
-            </div>
-            <p className="corner-title">{work.title}</p>
-            <p className="corner-artist">{work.artist}</p>
-            <ul className="corner-specs">
-              <li><span>Técnica:</span> <strong>{work.technique}</strong></li>
-              {work.dimensions && <li><span>Dimensões:</span> <strong>{work.dimensions}</strong></li>}
-            </ul>
-          </div>
-        )}
+        <div className="experience-edition-mark" aria-hidden="true"><span>Vernissage</span><strong>2026</strong></div>
         <canvas ref={canvasRef} role="img" tabIndex={0} aria-label={`Quadro 3D interativo de ${work.title}. Arraste para girar.`} />
         <div className="experience-fallback" aria-hidden={ready}>{failed ? "Visualização estática disponível" : "Preparando visualização 3D…"}</div>
         <div className="experience-guide" aria-hidden="true">
           <small>Como explorar</small>
           <strong>Arraste para girar</strong>
-          <span>Role para avançar · frente, giro e ficha</span>
+          <span>Role para avançar · frente, perfil e verso</span>
         </div>
       </div>
     </section>

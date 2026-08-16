@@ -55,6 +55,11 @@ test("catalog provides flexible prices, full-screen gallery and timed pre-reserv
   assert.match(catalog, /extra_contribution_cents/);
   assert.match(catalog, /release_expired_pre_reservations/);
   assert.match(catalog, /ReservationCountdown/);
+  assert.match(catalog, /purchase_context/);
+  assert.match(catalog, /Pagamento no Hotel Florença/);
+  assert.match(catalog, /allowNotifications/);
+  assert.match(catalog, /reservation-toast/);
+  assert.doesNotMatch(catalog, /className="numbers"/);
   assert.match(catalog, /renderFloatingCart\("gallery"\)/);
   assert.match(catalog, /className="selection-bag-icon"/);
   assert.doesNotMatch(catalog, /MAX_BID|type="number"/);
@@ -89,7 +94,7 @@ test("all 84 supplied catalog slots use the real local artwork images and intera
   const experience = await read("app/ArtworkExperience3D.tsx");
   assert.match(images, /length: 84/);
   assert.match(images, /Imagem fornecida pela organização do Vernissage 2026/);
-  assert.match(images, /`\/artworks\/\$\{filename\}\.jpg`/);
+  assert.match(images, /`\/artworks-clean\/\$\{filename\}\.webp`/);
   assert.match(experience, /pointerdown/);
   assert.match(experience, /pointermove/);
   assert.match(experience, /touch-action:\s*pan-y|canvas\.dataset\.rotation/);
@@ -97,18 +102,33 @@ test("all 84 supplied catalog slots use the real local artwork images and intera
   assert.match(experience, /new THREE\.TextureLoader\(\)\.loadAsync\(reference\.imageUrl\)/);
   assert.match(experience, /frontTexture\.flipY\s*=\s*true/);
   assert.match(experience, /className="experience-guide"/);
-  assert.match(experience, /Role para avançar · frente, giro e ficha/);
+  assert.match(experience, /Role para avançar · frente, perfil e verso/);
+  assert.doesNotMatch(experience, /artist|technique|Artista|Técnica/);
   assert.doesNotMatch(experience, /frontTexture\.rotation/);
   assert.doesNotMatch(experience, /requestAnimationFrame/);
 });
 
 test("database migration installs the 84-work catalog and protected price control", async () => {
   const migration = await read("supabase/migrations/20260815211500_real_catalog_and_admin_prices.sql");
+  const correction = await read("supabase/migrations/20260816024500_catalog_prices_and_payment_context.sql");
   assert.match(migration, /for artwork_number in 1\.\.84/);
   assert.match(migration, /admin_update_artwork_price/);
   assert.match(migration, /52000/);
   assert.match(migration, /3000000/);
   assert.match(migration, /is_basilica_admin/);
+  assert.match(correction, /price_cents is null/);
+  assert.match(correction, /when id = 1 then 52000 else null/);
+});
+
+test("reservation notification and donation callout are explicit but respectful", async () => {
+  const countdown = await read("app/ReservationCountdown.tsx");
+  const donation = await read("app/DonationSection.tsx");
+  const css = await read("app/globals.css");
+  assert.match(countdown, /Notification\.requestPermission/);
+  assert.match(countdown, /remaining <= 5 \* 60/);
+  assert.match(donation, /donation-attention-button/);
+  assert.match(css, /@keyframes donation-pulse/);
+  assert.match(css, /scroll-padding-top:\s*94px/);
 });
 
 test("production metadata and hosting configuration are preserved", async () => {

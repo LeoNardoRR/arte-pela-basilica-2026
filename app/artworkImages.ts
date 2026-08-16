@@ -17,8 +17,8 @@ export const CURATED_ARTWORKS: CuratedArtworkImage[] = Array.from(
       slot,
       title: `Quadro ${slot}`,
       artist: "Acervo Vernissage 2026",
-      imageUrl: `/artworks/${filename}.jpg`,
-      thumbnailUrl: `/artworks/${filename}.jpg`,
+      imageUrl: `/artworks-clean/${filename}.webp`,
+      thumbnailUrl: `/artworks-clean/${filename}.webp`,
       sourceUrl: "",
       license: "Imagem fornecida pela organização do Vernissage 2026",
     };
