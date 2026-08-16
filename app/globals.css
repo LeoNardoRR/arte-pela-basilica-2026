@@ -839,6 +839,55 @@ footer p:last-child { text-align: right; }
 .certificate-footer span { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold); }
 .certificate-footer small { color: var(--muted); font-size: 10px; }
 
+.reservation-countdown { margin: 16px 0; padding: 18px; border: 1px solid #d7c59f; border-radius: 12px; background: #fffaf0; color: var(--navy); }
+.reservation-countdown > span { display: block; color: var(--gold); font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.reservation-countdown > strong { display: block; margin: 4px 0; font: 700 36px "Playfair Display", serif; font-variant-numeric: tabular-nums; }
+.reservation-countdown p { margin: 8px 0 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.reservation-countdown.urgent { border-color: #b44a36; background: #fff2ef; color: #8f241b; animation: countdown-pulse 1.2s ease-in-out infinite; }
+.reservation-countdown.expired { border-color: #bbb; background: #f3f2f0; color: #555; }
+.reservation-countdown.compact { position: absolute; z-index: 4; right: 12px; bottom: 12px; margin: 0; padding: 8px 10px; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,.16); }
+.reservation-countdown.compact > span { font-size: 7px; }
+.reservation-countdown.compact > strong { margin: 0; font-size: 18px; }
+@keyframes countdown-pulse { 50% { box-shadow: 0 0 0 5px rgba(180,74,54,.12); } }
+
+.extra-offer { margin-top: 7px; display: grid; gap: 5px; color: var(--muted); font-size: 9px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.extra-offer > span { width: min(180px,100%); display: flex; align-items: center; border: 1px solid #d8d1ca; border-radius: 8px; background: white; overflow: hidden; }
+.extra-offer b { padding-left: 10px; color: var(--gold); font-size: 11px; }
+.extra-offer input { width: 100%; min-width: 0; padding: 9px; border: 0; outline: 0; color: var(--navy); font-weight: 700; }
+
+.donation-section { width: min(1240px,92vw); margin: 0 auto 120px; padding: clamp(34px,6vw,76px); display: grid; grid-template-columns: 1fr minmax(320px,.75fr); gap: clamp(40px,7vw,100px); align-items: center; border: 1px solid #d9cfbf; background: #f5f0e8; }
+.donation-copy h2,.sponsors-section h2 { margin: 8px 0 22px; color: var(--navy); font: 600 clamp(34px,5vw,62px)/1 "Cormorant Garamond",serif; }
+.donation-copy > p:not(.section-kicker) { max-width: 590px; color: var(--muted); font-size: 15px; line-height: 1.8; }
+.donation-copy > small { display: block; max-width: 540px; padding-top: 18px; border-top: 1px solid #d9cfbf; color: #7a746b; line-height: 1.6; }
+.donation-pix-card { min-height: 270px; padding: 28px; display: flex; gap: 24px; align-items: center; background: white; border: 1px solid #ddd4ca; }
+.donation-pix-card img { width: 170px; height: 170px; }
+.donation-pix-card span { display: block; color: var(--gold); font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.donation-pix-card strong { display: block; margin: 8px 0 16px; color: var(--navy); font: 600 22px/1.15 "Cormorant Garamond",serif; }
+.donation-pix-card button { padding: 10px 14px; border: 1px solid var(--navy); background: transparent; color: var(--navy); cursor: pointer; font: 700 10px "Inter",sans-serif; text-transform: uppercase; }
+.pix-pending p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+
+.sponsors-section { width: min(1240px,92vw); margin: 0 auto 120px; text-align: center; }
+.sponsor-logos { margin-top: 42px; display: grid; grid-template-columns: repeat(5,1fr); align-items: center; border-block: 1px solid var(--line); }
+.sponsor-logos img { width: 100%; height: 130px; padding: 28px; object-fit: contain; filter: grayscale(1); mix-blend-mode: multiply; }
+
+.admin-price-grid { max-height: 480px; padding: 12px; display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; overflow: auto; border: 1px solid var(--line); background: white; }
+.admin-price-grid > label { padding: 12px; display: grid; gap: 9px; border: 1px solid #eee8e0; }
+.admin-price-grid > label > span { display: flex; justify-content: space-between; color: var(--navy); }
+.admin-price-grid small { color: var(--muted); font-size: 9px; }
+.admin-price-grid > label > div { display: grid; grid-template-columns: auto 1fr auto; align-items: center; border: 1px solid #d8d1ca; }
+.admin-price-grid i { padding-left: 9px; color: var(--gold); font-size: 10px; font-style: normal; }
+.admin-price-grid input { min-width: 0; padding: 9px; border: 0; outline: 0; }
+.admin-price-grid button { align-self: stretch; border: 0; background: var(--navy); color: white; cursor: pointer; font-size: 9px; font-weight: 700; text-transform: uppercase; }
+.intent-extra-offer { margin: 10px 0 0; padding: 10px 12px; display: flex; justify-content: space-between; background: #f7f2e8; color: var(--gold); font-size: 11px; }
+
+@media (max-width: 800px) {
+  .donation-section { grid-template-columns: 1fr; margin-bottom: 80px; }
+  .donation-pix-card { flex-direction: column; align-items: flex-start; }
+  .sponsor-logos { grid-template-columns: repeat(2,1fr); }
+  .sponsor-logos img:last-child { grid-column: 1 / -1; }
+  .admin-price-grid { grid-template-columns: 1fr; }
+}
+
 @keyframes pulse {
   0% { transform: scale(1); }
   50% { transform: scale(1.15); }
