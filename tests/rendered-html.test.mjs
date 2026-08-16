@@ -33,7 +33,7 @@ test("admin uses protected Supabase access and has no public demo", async () => 
   assert.doesNotMatch(admin, /resetPasswordForEmail|PASSWORD_RECOVERY|updateUser\(\{ password:|Criar ou redefinir senha|Visualizar demonstração|Modo demonstração|demoMode|demoIntents/);
 });
 
-test("catalog provides fixed prices, full-screen gallery and purchase-intent flow", async () => {
+test("catalog provides flexible prices, full-screen gallery and timed pre-reservation flow", async () => {
   const catalog = await read("app/Catalog.tsx");
   const css = await read("app/globals.css");
   assert.match(catalog, /Abrir galeria/);
@@ -44,16 +44,20 @@ test("catalog provides fixed prices, full-screen gallery and purchase-intent flo
   assert.match(catalog, /event\.key !== "Tab"/);
   assert.match(catalog, /submittingRef\.current/);
   assert.match(catalog, /phoneDigits\.length < 8/);
-  assert.match(catalog, /mobile-catalog-link/);
+  assert.match(catalog, /mobile-menu-toggle/);
+  assert.match(catalog, /aria-controls="mobile-menu"/);
+  assert.match(catalog, /Parceiros desta edição/);
   assert.match(catalog, /className="admin-menu-link" href="#admin"/);
   assert.match(catalog, /price_cents/);
-  assert.match(catalog, /submit_purchase_intent/);
-  assert.match(catalog, /Intenção de compra/);
-  assert.match(catalog, /Sem pagamento online/);
+  assert.match(catalog, /submit_pre_reservation/);
+  assert.match(catalog, /Pré-reserva temporária/);
+  assert.match(catalog, /sem pagamento online/i);
+  assert.match(catalog, /extra_contribution_cents/);
+  assert.match(catalog, /release_expired_pre_reservations/);
+  assert.match(catalog, /ReservationCountdown/);
   assert.match(catalog, /renderFloatingCart\("gallery"\)/);
-  assert.match(catalog, /renderFloatingCart\("detail"\)/);
   assert.match(catalog, /className="selection-bag-icon"/);
-  assert.doesNotMatch(catalog, /updateAmount|MAX_BID|type="number"/);
+  assert.doesNotMatch(catalog, /MAX_BID|type="number"/);
   assert.doesNotMatch(catalog, /fallbackWorks/);
   assert.match(css, /\.gallery-overlay\s*\{[^}]*position:\s*fixed/);
   assert.match(catalog, /IntersectionObserver/);
@@ -76,15 +80,16 @@ test("catalog provides fixed prices, full-screen gallery and purchase-intent flo
   assert.match(css, /\.selection-bag-icon::before/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(css, /position:\s*sticky;\s*top:\s*0/);
-  assert.match(css, /\.mobile-catalog-link\s*\{[^}]*display:\s*none/);
+  assert.match(css, /\.mobile-menu-toggle,\.mobile-menu\s*\{[^}]*display:\s*none/);
+  assert.match(css, /\.menu-open \.mobile-menu\s*\{[^}]*display:\s*block/);
 });
 
-test("all 60 catalog slots have public-domain reference art and interactive 3D", async () => {
+test("all 84 supplied catalog slots use the real local artwork images and interactive 3D", async () => {
   const images = await read("app/artworkImages.ts");
   const experience = await read("app/ArtworkExperience3D.tsx");
-  assert.equal((images.match(/"slot":\s*\d+/g) ?? []).length, 60);
-  assert.equal((images.match(/"license":\s*"Public Domain — The Metropolitan Museum of Art"/g) ?? []).length, 60);
-  assert.equal(new Set(images.match(/"imageUrl":\s*"\/artworks\/\d{2}\.jpg"/g) ?? []).size, 60);
+  assert.match(images, /length: 84/);
+  assert.match(images, /Imagem fornecida pela organização do Vernissage 2026/);
+  assert.match(images, /`\/artworks\/\$\{filename\}\.jpg`/);
   assert.match(experience, /pointerdown/);
   assert.match(experience, /pointermove/);
   assert.match(experience, /touch-action:\s*pan-y|canvas\.dataset\.rotation/);
@@ -95,6 +100,15 @@ test("all 60 catalog slots have public-domain reference art and interactive 3D",
   assert.match(experience, /Role para avançar · frente, giro e ficha/);
   assert.doesNotMatch(experience, /frontTexture\.rotation/);
   assert.doesNotMatch(experience, /requestAnimationFrame/);
+});
+
+test("database migration installs the 84-work catalog and protected price control", async () => {
+  const migration = await read("supabase/migrations/20260815211500_real_catalog_and_admin_prices.sql");
+  assert.match(migration, /for artwork_number in 1\.\.84/);
+  assert.match(migration, /admin_update_artwork_price/);
+  assert.match(migration, /52000/);
+  assert.match(migration, /3000000/);
+  assert.match(migration, /is_basilica_admin/);
 });
 
 test("production metadata and hosting configuration are preserved", async () => {

@@ -6,13 +6,13 @@ export const SITE_URL = "https://arte-pela-basilica-2026.ribeiroleonardoti.chatg
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: "Arte pela Basílica — 10 de setembro de 2026",
-  description: "Conheça a exposição Arte pela Basílica, escolha obras com valor fixo e registre sua intenção para concluir a compra presencialmente.",
+  description: "Conheça as 84 obras reais do Vernissage 2026, faça uma pré-reserva temporária e conclua o pagamento presencialmente na Basílica.",
   alternates: { canonical: "/" },
   icons: { icon: "/favicon.svg" },
   robots: { index: true, follow: true },
   openGraph: {
     title: "Arte pela Basílica",
-    description: "Uma exposição de alto padrão, com valores fixos e compra presencial.",
+    description: "84 obras reais, pré-reserva temporária e conclusão presencial em favor da restauração da Basílica.",
     url: "/",
     siteName: "Arte pela Basílica",
     locale: "pt_BR",
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Arte pela Basílica",
-    description: "Uma exposição de alto padrão, com valores fixos e compra presencial.",
+    description: "84 obras reais, pré-reserva temporária e conclusão presencial em favor da restauração da Basílica.",
     images: ["/og.png"],
   },
 };
