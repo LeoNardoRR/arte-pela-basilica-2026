@@ -1,160 +1,148 @@
-# Arte pela Basílica - Exposição 2026
+<p align="center">
+  <img src="public/og.png" alt="Arte pela Basílica 2026" width="100%" />
+</p>
 
-Uma experiência digital de alto padrão criada para apresentar a exposição beneficente **Arte pela Basílica**, facilitar a descoberta das obras e registrar intenções de compra para conclusão presencial com a equipe do evento.
+<h1 align="center">Arte pela Basílica · 2026</h1>
 
-[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-online-000666?style=flat-square&logo=github)](https://leonardorr.github.io/arte-pela-basilica-2026/)
-[![React](https://img.shields.io/badge/React-19-1a237e?style=flat-square&logo=react)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
-[![Three.js](https://img.shields.io/badge/Three.js-3D-b7904b?style=flat-square&logo=threedotjs)](https://threejs.org/)
-[![Supabase](https://img.shields.io/badge/Supabase-dados-24612b?style=flat-square&logo=supabase)](https://supabase.com/)
+<p align="center">
+  <strong>Uma coleção com propósito. Uma experiência para guardar.</strong><br />
+  Catálogo digital, galeria 3D e pré-reservas para a exposição beneficente da Basílica Santo Antônio.
+</p>
 
----
+<p align="center">
+  <a href="https://leonardorr.github.io/arte-pela-basilica-2026/"><strong>Visitar experiência</strong></a>
+  ·
+  <a href="https://leonardorr.github.io/arte-pela-basilica-2026/#acervo">Explorar acervo</a>
+</p>
 
-## Sobre o Site
-
-O **Arte pela Basílica 2026** é uma plataforma web beneficente que reúne 60 obras de arte em uma galeria interativa e imersiva. O visitante pode explorar o acervo, visualizar cada obra em detalhes — inclusive em 3D — e registrar sua intenção de aquisição antes do evento presencial.
-
-O projeto foi desenhado com estética de alto padrão (inspirada em casas como Christie's e Sotheby's): tipografia refinada, paleta sóbria, animações suaves e uma experiência 3D completa com rotação das obras, detalhes de profundidade e acabamento realístico em madeira e tela.
-
-Não há cobrança online: toda aquisição é confirmada e concluída presencialmente pela equipe do evento.
-
----
-
-## Acesso
-
-- **GitHub Pages:** [leonardorr.github.io/arte-pela-basilica-2026](https://leonardorr.github.io/arte-pela-basilica-2026/)
-- **Área Administrativa:** adicione `#admin` ao final do endereço. Requer autenticação pela conta autorizada no Supabase.
+<p align="center">
+  <a href="https://github.com/LeoNardoRR/arte-pela-basilica-2026/actions/workflows/pages.yml"><img alt="Deploy" src="https://img.shields.io/github/actions/workflow/status/LeoNardoRR/arte-pela-basilica-2026/pages.yml?branch=main&style=flat-square&label=GitHub%20Pages&color=000666" /></a>
+  <img alt="React 19" src="https://img.shields.io/badge/React-19-000666?style=flat-square&logo=react&logoColor=white" />
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white" />
+  <img alt="Three.js" src="https://img.shields.io/badge/Three.js-3D-B7904B?style=flat-square&logo=threedotjs&logoColor=white" />
+  <img alt="Supabase" src="https://img.shields.io/badge/Supabase-dados-2D6A4F?style=flat-square&logo=supabase&logoColor=white" />
+</p>
 
 ---
 
-## Funcionalidades
+## O projeto
 
-- Catálogo editorial com **60 obras** e valores fixos
-- Filtros priorizando obras disponíveis, seguidos de indisponíveis e visão completa
-- Pré-visualizações que respeitam a proporção original de cada quadro
-- Galeria responsiva para desktop, tablet e celular
-- Carrinho flutuante com quantidade e valor da seleção sempre visíveis
-- Detalhe individual com **experiência 3D interativa** via Three.js
-- Rotação da obra por toque ou mouse — frente, espessura e verso em acabamento realístico
-- Animações fluidas com GSAP ScrollTrigger
-- Respeito ao `prefers-reduced-motion` para acessibilidade
-- Registro de intenção de compra sem cobrança online
-- Áudio ambiente opcional para enriquecer a experiência na galeria
-- **Certificado digital** de intenção de compra gerado automaticamente após o registro
+**Arte pela Basílica 2026** transforma o catálogo oficial da exposição em uma experiência digital imersiva e responsiva. O visitante pode conhecer as **84 obras reais**, observar seus formatos e molduras, interagir com uma apresentação 3D e registrar uma pré-reserva para conclusão presencial.
 
----
+O projeto existe para contribuir financeiramente com a **Basílica Santo Antônio de Pádua**, em Americana. Não há pagamento de obras pela internet: o site registra a intenção, bloqueia temporariamente a disponibilidade e orienta o visitante sobre a conclusão da compra.
 
-## Linguagens e Tecnologias
+> **Exposição presencial:** 10 de setembro de 2026, no Hotel Florença — Av. de Cillo, 820, Americana/SP.
 
-| Camada | Tecnologia | Finalidade |
-|---|---|---|
-| Linguagem principal | **TypeScript** | Tipagem estática em todo o projeto |
-| Interface | **React 19** | Catálogo, galeria, seleção e painel |
-| Estilização | **CSS** (Vanilla) | Design system, animações e responsividade |
-| 3D e movimento | **Three.js + GSAP** | Modelo interativo e animações de scroll |
-| Dados e autenticação | **Supabase** | Obras, intenções, sessão admin e regras de acesso |
-| Build (Pages) | **Vite + GitHub Actions** | Build estático publicado automaticamente no GitHub Pages |
-| Marcação | **HTML5** | Estrutura semântica e acessível |
+## Experiência
 
----
+| Para o visitante | Para a organização |
+|---|---|
+| Acervo editorial com as 84 imagens oficiais | Painel administrativo protegido pelo Supabase |
+| Filtros de disponibilidade e valores em reais | Fila de atendimento agrupada por interessado |
+| Zoom e experiência 3D por toque ou mouse | Controle de preços, inclusive com centavos |
+| Seleção com valor total e oferta adicional | Alteração de status e liberação de obras |
+| Pré-reserva com cronômetro e alertas | Histórico de intenções com rolagem interna |
+| Layout mobile-first e navegação acessível | Dados persistentes e regras de acesso protegidas |
+| Música clássica opcional com controle de som | Gestão preparada para o atendimento presencial |
+| Área dedicada à futura doação via QR Code PIX | Visão consolidada de obras, pessoas e valores |
 
-## Como Instalar e Rodar Localmente
+## Regras de pré-reserva
 
-**Requisito:** Node.js `>=22.13.0`
+| Período | Bloqueio | Conclusão da compra |
+|---|---:|---|
+| **10 de setembro · dia do evento** | **30 minutos** | Hotel Florença |
+| **11 a 17 de setembro** | **24 horas** | Basílica Santo Antônio de Pádua, em Americana |
 
-### 1. Clone o repositório
+A pré-reserva não gera cobrança online. O prazo é exibido em tempo real e a comunicação de confirmação repete o local e o limite aplicáveis à escolha do visitante.
+
+## Destaques técnicos
+
+- Interface em **React 19 + TypeScript**, com CSS autoral e identidade editorial.
+- Visualização interativa em **Three.js**, com frente, espessura e verso das obras.
+- Animações com **GSAP ScrollTrigger** e suporte a `prefers-reduced-motion`.
+- Catálogo, autenticação e intenções persistidos no **Supabase**.
+- Valores e disponibilidade tratados como dados confiáveis do servidor.
+- Navegação por teclado, textos semânticos e estados de interface acessíveis.
+- Build estático com **Vite** e publicação automática pelo **GitHub Actions**.
+- Experiência responsiva validada para desktop, tablet e celular.
+
+## Tecnologias
+
+| Camada | Ferramentas |
+|---|---|
+| Interface | React 19, TypeScript, HTML semântico e CSS |
+| Movimento e 3D | Three.js, GSAP e ScrollTrigger |
+| Dados e autenticação | Supabase, PostgreSQL e políticas de acesso |
+| QR Code | `qrcode` |
+| Build | Vite e vinext |
+| Qualidade | ESLint e testes com Node.js |
+| Hospedagem | GitHub Pages e GitHub Actions |
+
+## Executando localmente
+
+**Requisito:** Node.js `>= 22.13.0`
 
 ```bash
 git clone https://github.com/LeoNardoRR/arte-pela-basilica-2026.git
 cd arte-pela-basilica-2026
-```
-
-### 2. Instale as dependências
-
-```bash
 npm install
-```
-
-### 3. Configure as variáveis de ambiente
-
-Crie um arquivo `.env.local` na raiz do projeto com as credenciais do Supabase:
-
-```env
-VITE_SUPABASE_URL=https://SEU_PROJETO.supabase.co
-VITE_SUPABASE_ANON_KEY=sua_chave_publica_aqui
-```
-
-### 4. Inicie o servidor de desenvolvimento
-
-```bash
-npm run dev
-```
-
-Para prévia específica do GitHub Pages:
-
-```bash
 npm run dev:pages
 ```
 
-A aplicação estará disponível em `http://localhost:5173` (ou porta indicada no terminal).
+O endereço local será exibido no terminal, normalmente em `http://localhost:5173`.
 
----
-
-## Build e Deploy
+### Comandos úteis
 
 ```bash
-# Build estático para GitHub Pages
-npm run build:pages
-
-# Verificação de tipos e lint
-npm run lint
+npm run dev:pages     # desenvolvimento com a configuração do Pages
+npm run build:pages   # build estático de produção
+npm run lint          # análise de qualidade do código
+npm test              # build completo e testes automatizados
 ```
 
-O workflow `.github/workflows/pages.yml` instala dependências, gera o build estático e publica automaticamente no GitHub Pages a cada push no branch `main`.
+## Publicação
+
+O workflow [`.github/workflows/pages.yml`](.github/workflows/pages.yml) é acionado a cada atualização do branch `main`:
+
+1. instala as dependências com `npm ci`;
+2. gera o pacote estático com `npm run build:pages`;
+3. prepara o fallback de rotas;
+4. publica o artefato no GitHub Pages.
+
+**Produção:** [leonardorr.github.io/arte-pela-basilica-2026](https://leonardorr.github.io/arte-pela-basilica-2026/)
+
+## Estrutura principal
+
+```text
+app/
+├── Catalog.tsx                 # experiência pública e fluxo de pré-reserva
+├── ArtworkExperience3D.tsx     # visualização tridimensional
+├── DonationSection.tsx         # doação e futuro QR Code PIX
+├── ReservationCountdown.tsx    # cronômetro e alertas de expiração
+├── Admin.tsx                   # operação administrativa
+└── globals.css                 # identidade visual e responsividade
+
+public/
+├── artworks-clean/             # recortes tratados das 84 obras
+├── sponsors/                   # marcas dos parceiros
+└── audio-air-bach.ogg          # ambientação sonora opcional
+
+supabase/migrations/            # catálogo, preços, reservas e regras administrativas
+tests/                          # verificações de fluxo, segurança e apresentação
+```
+
+## Parceiros desta edição
+
+Hotel Florença · Contatto Transportes · Buquê de Flor · Quadrum · Juarez Godoy Arte e Cultura
+
+## Conteúdo e créditos
+
+As fotografias das obras e as marcas dos parceiros pertencem aos respectivos titulares e são utilizadas na apresentação oficial do evento. A ambientação sonora utiliza **Air**, de Bach, em gravação da U.S. Air Force Band disponibilizada em domínio público.
 
 ---
 
-## Área Administrativa
-
-O painel organiza as intenções por pessoa e apoia a operação presencial no evento:
-
-- Resumo de pessoas, intenções e valores totais
-- Filtros com contadores por status (pendente, em atendimento, confirmado, concluído, cancelado)
-- Contatos, obras e valores agrupados por interessado
-- Histórico de intenções com rolagem interna
-- Ações para atendimento, confirmação, cancelamento e conclusão
-- Autenticação protegida pelo Supabase — nenhuma senha armazenada no código
-
-Acesso: adicione `#admin` ao final do endereço da aplicação.
-
----
-
-## Fluxo Comercial
-
-O site registra uma **intenção de compra**. Não existe cobrança ou pagamento online. A equipe confirma a disponibilidade e conclui a aquisição presencialmente no evento.
-
-Os valores exibidos na interface são validados pelo Supabase; o navegador não é fonte confiável para preços ou totais.
-
----
-
-## Créditos das Imagens
-
-As imagens usadas como referências visuais pertencem ao acervo de domínio público do [The Metropolitan Museum of Art](https://www.metmuseum.org/art/collection). Cada ficha de obra mantém um link para a origem correspondente.
-
----
-
-## Certificado Digital de Intenção de Compra
-
-Ao registrar uma intenção de compra, o colecionador recebe automaticamente um **certificado digital** personalizado contendo:
-
-- Nome do interessado
-- Código e título de cada obra selecionada
-- Data e hora do registro
-- Número de referência único
-
-O certificado serve como comprovante formal da intenção e referência para o atendimento presencial no evento. Ele é gerado diretamente no navegador, sem necessidade de conexão adicional, e pode ser salvo ou impresso.
-
----
-
-**Arte pela Basílica · Edição 2026**
-Uma coleção com propósito. Uma experiência para guardar.
+<p align="center">
+  <img src="public/brasao-basilica.png" alt="Brasão da Basílica Santo Antônio" width="76" /><br />
+  <strong>Arte pela Basílica · Edição 2026</strong><br />
+  Arte e participação comunitária em apoio à Basílica Santo Antônio.
+</p>
