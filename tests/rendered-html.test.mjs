@@ -136,6 +136,8 @@ test("catalog provides flexible prices, full-screen gallery and timed pre-reserv
   assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*?#doacao\s*\{[^}]*scroll-margin-top:\s*24px/);
   assert.match(css, /\.how-section\s*\{[^}]*min-height:\s*100svh/);
   assert.match(css, /\.donation-section\s*\{[^}]*margin:\s*clamp\(72px,9vw,132px\) auto 120px/);
+  assert.match(css, /\.pix-pending\s*\{[^}]*min-width:\s*0[^}]*overflow-wrap:\s*anywhere/);
+  assert.match(css, /@media \(max-width:\s*1100px\)[\s\S]*\.donation-pix-card\s*\{[^}]*flex-direction:\s*column[^}]*align-items:\s*stretch/);
   assert.match(css, /\.view-work\s*\{[^}]*display:\s*inline-flex/);
   assert.match(css, /\.gallery-close\s*\{[^}]*position:\s*fixed/);
   assert.match(css, /\.modal-close\.detail-close\s*\{[^}]*position:\s*fixed/);
