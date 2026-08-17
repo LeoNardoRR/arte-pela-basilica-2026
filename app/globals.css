@@ -945,6 +945,7 @@ footer p:last-child { text-align: right; }
 .donation-pix-card button { cursor: pointer; }
 .donation-attention-button { min-width: 150px; padding: 13px 18px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #9f2638; border-radius: 2px; background: #a72a3d; color: white; box-shadow: 0 8px 20px rgba(123,31,51,.2); cursor: pointer; font: 800 10px "Inter",sans-serif; letter-spacing: .08em; text-decoration: none; text-transform: uppercase; animation: donation-pulse 2.5s ease-in-out infinite; }
 .donation-attention-button:hover { background: #8d2032; }
+.pix-pending { min-width: 0; overflow-wrap: anywhere; }
 .pix-pending p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
 
 .sponsors-section { width: min(1240px,92vw); margin: 72px auto 0; padding: 34px 0 0; text-align: left; border-top: 1px solid #d7cdbf; }
@@ -976,6 +977,12 @@ footer p:last-child { text-align: right; }
 .artwork-availability-action.available { border-color: #cfd8cf; color: #5e715f; }
 .artwork-availability-action:disabled { cursor: default; opacity: .62; }
 .intent-extra-offer { margin: 10px 0 0; padding: 10px 12px; display: flex; justify-content: space-between; background: #f7f2e8; color: var(--gold); font-size: 11px; }
+
+@media (max-width: 1100px) {
+  .donation-pix-card { min-width: 0; flex-direction: column; align-items: stretch; }
+  .donation-pix-card > div:last-child, .pix-pending { width: 100%; }
+  .qr-code-slot { align-self: center; }
+}
 
 @media (max-width: 800px) {
   .donation-section { grid-template-columns: 1fr; margin-top: 72px; margin-bottom: 80px; }
