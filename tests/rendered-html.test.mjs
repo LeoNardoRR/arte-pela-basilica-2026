@@ -84,7 +84,12 @@ test("catalog provides flexible prices, full-screen gallery and timed pre-reserv
   assert.match(catalog, /release_expired_pre_reservations/);
   assert.match(catalog, /ReservationCountdown/);
   assert.match(catalog, /purchase_context/);
-  assert.match(catalog, /Pagamento no Hotel Florença/);
+  assert.match(catalog, /Hotel Florença/);
+  assert.match(catalog, /const holdMinutes = purchaseContext === "outside" \? 24 \* 60 : 30/);
+  assert.match(catalog, /hold_minutes: holdMinutes/);
+  assert.match(catalog, /De 11 a 17 de setembro/);
+  assert.match(catalog, /24 horas · Basílica de Americana/);
+  assert.match(catalog, /Confirmar pré-reserva por.*24 horas.*30 min/);
   assert.match(catalog, /allowNotifications/);
   assert.match(catalog, /reservation-toast/);
   assert.doesNotMatch(catalog, /className="numbers"/);
@@ -108,7 +113,7 @@ test("catalog provides flexible prices, full-screen gallery and timed pre-reserv
   assert.match(catalog, /inputMode="decimal"/);
   assert.match(catalog, /parseOfferCents/);
   assert.match(catalog, /RESERVATION_STORAGE_KEY/);
-  assert.match(catalog, /Forma de conclusão/);
+  assert.match(catalog, /Prazo e conclusão/);
   assert.match(catalog, /Preparar cópia por e-mail/);
   assert.doesNotMatch(catalog, /mail\.google\.com|Abrir confirmação no Gmail/);
   assert.match(catalog, /<ArtworkExperience3D/);
@@ -209,6 +214,9 @@ test("reservation notification and donation callout are explicit but respectful"
   const css = await read("app/globals.css");
   assert.match(countdown, /Notification\.requestPermission/);
   assert.match(countdown, /remaining <= 5 \* 60/);
+  assert.match(countdown, /const hours = Math\.floor\(remaining \/ 3600000\)/);
+  assert.match(countdown, /purchaseContext === "outside"/);
+  assert.match(countdown, /antes do fim das 24 horas/);
   assert.match(donation, /donation-attention-button/);
   assert.match(donation, /qr-code-slot/);
   assert.match(donation, /Espaço reservado para o futuro QR Code PIX/);
