@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { publicAsset } from "./publicAsset";
 
-export function ReservationCountdown({ expiresAt, compact = false, allowNotifications = false }: { expiresAt: string; compact?: boolean; allowNotifications?: boolean }) {
+export function ReservationCountdown({ expiresAt, compact = false, allowNotifications = false, purchaseContext }: { expiresAt: string; compact?: boolean; allowNotifications?: boolean; purchaseContext?: "event" | "outside" }) {
   const [remaining, setRemaining] = useState(() => Math.max(0, new Date(expiresAt).getTime() - Date.now()));
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | "unsupported">(() => typeof Notification === "undefined" ? "unsupported" : Notification.permission);
   const urgentNotificationSent = useRef(false);
@@ -34,7 +34,8 @@ export function ReservationCountdown({ expiresAt, compact = false, allowNotifica
     setNotificationPermission(await Notification.requestPermission());
   }
 
-  const minutes = Math.floor(remaining / 60000);
+  const hours = Math.floor(remaining / 3600000);
+  const minutes = Math.floor((remaining % 3600000) / 60000);
   const seconds = Math.floor((remaining % 60000) / 1000);
   const urgent = remaining > 0 && remaining <= 5 * 60000;
   const expired = remaining === 0;
@@ -42,8 +43,8 @@ export function ReservationCountdown({ expiresAt, compact = false, allowNotifica
   return (
     <div className={`reservation-countdown ${compact ? "compact" : ""} ${urgent ? "urgent" : ""} ${expired ? "expired" : ""}`} role={urgent || expired ? "alert" : "timer"} aria-live="polite">
       <span>{expired ? "Pré-reserva expirada" : urgent ? "Atenção: tempo se esgotando" : "Tempo para pagamento presencial"}</span>
-      {!expired && <strong>{String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}</strong>}
-      {!compact && <p>{expired ? "A obra voltou a ficar disponível para outros visitantes." : "Mantenha este protocolo aberto. No dia do evento, o pagamento será realizado no Hotel Florença; reservas feitas fora do evento recebem orientação direta da equipe."}</p>}
+      {!expired && <strong>{hours > 0 && `${String(hours).padStart(2, "0")}:`}{String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}</strong>}
+      {!compact && <p>{expired ? "A obra voltou a ficar disponível para outros visitantes." : purchaseContext === "outside" ? "Conclua a compra presencialmente na Basílica Santo Antônio de Pádua, em Americana, antes do fim das 24 horas." : "Conclua o pagamento no Hotel Florença antes do fim dos 30 minutos de bloqueio."}</p>}
       {!compact && allowNotifications && notificationPermission === "default" && <button className="notification-opt-in" type="button" onClick={enableNotifications}>Ativar alerta no celular</button>}
       {!compact && allowNotifications && notificationPermission === "granted" && <small className="notification-enabled">✓ Alerta de 5 minutos ativado neste dispositivo</small>}
       {!compact && allowNotifications && notificationPermission === "denied" && <small className="notification-denied">Notificações bloqueadas nas configurações do navegador.</small>}
