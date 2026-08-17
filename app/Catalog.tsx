@@ -143,6 +143,7 @@ export function Catalog() {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [formError, setFormError] = useState("");
+  const [purchaseWindow, setPurchaseWindow] = useState<"event" | "outside">("event");
   const [emailUrl, setEmailUrl] = useState(() => loadSavedReservation()?.emailUrl ?? "");
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [selectedWork, setSelectedWork] = useState<Artwork | null>(null);
@@ -492,7 +493,8 @@ export function Catalog() {
     const name = String(form.get("name") || "").trim();
     const email = String(form.get("email") || "").trim();
     const phone = String(form.get("phone") || "").trim();
-    const purchaseContext = String(form.get("purchase_context") || "event");
+    const purchaseContext = String(form.get("purchase_context") || "event") === "outside" ? "outside" : "event";
+    const holdMinutes = purchaseContext === "outside" ? 24 * 60 : 30;
     const submittedItems = cart.map((item) => ({ ...item, work: currentWorks.get(item.work.id)! }));
     const submittedWorks = submittedItems.map((item) => item.work);
 
@@ -510,7 +512,7 @@ export function Catalog() {
       bidder_phone: phone,
       items: submittedItems.map((item) => ({ artwork_id: item.work.id })),
       extra_contribution_cents: submittedItems.reduce((sum, item) => sum + item.extraOfferCents, 0),
-      hold_minutes: 30,
+      hold_minutes: holdMinutes,
     });
     const { data, error } = response;
 
@@ -521,8 +523,8 @@ export function Catalog() {
       const receipt = data as ReservationReceipt;
       const itemLines = submittedItems.map((item) => `• ${item.work.title} (${item.work.code}) — ${displayPrice(item.work.price_cents)}${item.extraOfferCents ? ` + oferta de ${formatPrice(item.extraOfferCents)}` : ""}`).join("\n");
       const paymentInstruction = purchaseContext === "outside"
-        ? "Reserva feita fora do evento: o pagamento será combinado com a equipe e realizado fora da Basílica. Aguarde o contato pelos dados informados."
-        : "Pagamento: será realizado no Hotel Florença, no dia do evento. Não é necessário se dirigir à Basílica para pagar.";
+        ? "Compra entre 11 e 17 de setembro: a obra ficará bloqueada por 24 horas. Conclua a compra presencialmente na Basílica Santo Antônio de Pádua, em Americana, dentro desse prazo."
+        : "Compra no dia do evento: a obra ficará bloqueada por 30 minutos. O pagamento será realizado no Hotel Florença dentro desse prazo.";
       const emailMessage = [
         "Confirmação de pré-reserva — Arte pela Basílica 2026", "", `Protocolo: ${receipt.confirmation_code}`, `Interessado: ${name}`, `WhatsApp: ${phone}`, `E-mail: ${email}`, "",
         "Obras selecionadas:", itemLines, "", `Valor total: ${formatPrice(totalCents)}`, "", paymentInstruction,
@@ -539,7 +541,9 @@ export function Catalog() {
       setReservationReceipt(receipt);
       setEmailUrl(`mailto:${encodeURIComponent(ADMIN_EMAIL)}?cc=${encodeURIComponent(email)}&subject=${encodeURIComponent(`Confirmação de pré-reserva — ${receipt.confirmation_code}`)}&body=${encodeURIComponent(emailMessage)}`);
       setCart([]);
-      setMessage("Sua pré-reserva foi registrada e as obras estão bloqueadas temporariamente.");
+      setMessage(purchaseContext === "outside"
+        ? "Sua pré-reserva foi registrada. As obras ficarão bloqueadas por 24 horas para conclusão presencial na Basílica."
+        : "Sua pré-reserva foi registrada. As obras ficarão bloqueadas por 30 minutos para conclusão no Hotel Florença.");
       void loadCatalog();
     }
     setSubmitting(false);
@@ -598,11 +602,11 @@ export function Catalog() {
         )}
       </section>
 
-      <section className="how-section" id="como-participar" data-reveal="up"><div><p className="section-kicker light">Como adquirir</p><h2>Sua obra bloqueada.<br />A compra, confirmada.</h2></div><ol><li><span>01</span><div><strong>Escolha as obras</strong><p>Explore o acervo, confira os valores e adicione as peças à sua seleção.</p></div></li><li><span>02</span><div><strong>Faça a pré-reserva</strong><p>Informe seus dados e, se quiser, acrescente uma oferta acima do valor padrão.</p></div></li><li><span>03</span><div><strong>Conclua com a equipe</strong><p>No evento, o pagamento acontece no Hotel Florença. Fora do evento, a equipe envia a orientação diretamente.</p></div></li></ol></section>
+      <section className="how-section" id="como-participar" data-reveal="up"><div><p className="section-kicker light">Como adquirir</p><h2>Sua obra bloqueada.<br />A compra, confirmada.</h2></div><ol><li><span>01</span><div><strong>Escolha as obras</strong><p>Explore o acervo, confira os valores e adicione as peças à sua seleção.</p></div></li><li><span>02</span><div><strong>Faça a pré-reserva</strong><p>Informe seus dados e, se quiser, acrescente uma oferta acima do valor padrão.</p></div></li><li><span>03</span><div><strong>Conclua dentro do prazo</strong><p>No dia 10, você terá 30 minutos para concluir no Hotel Florença. De 11 a 17 de setembro, terá 24 horas para concluir presencialmente na Basílica.</p></div></li></ol></section>
 
       <DonationSection />
 
-      <section className="closing" id="contato" data-reveal="up"><img src={BASILICA_CREST} alt="" /><p className="section-kicker">10 de setembro de 2026</p><h2>Leve uma obra.<br />Faça parte desta história.</h2><p>A pré-reserva não gera cobrança online. No evento, a confirmação acontece no Hotel Florença; fora dele, a equipe orienta o pagamento diretamente.</p><button className="button primary" onClick={() => setCartOpen(true)}>Revisar minha seleção <ArrowIcon /></button></section>
+      <section className="closing" id="contato" data-reveal="up"><img src={BASILICA_CREST} alt="" /><p className="section-kicker">10 de setembro de 2026</p><h2>Leve uma obra.<br />Faça parte desta história.</h2><p>A pré-reserva não gera cobrança online. No dia 10, conclua em até 30 minutos no Hotel Florença; de 11 a 17, conclua em até 24 horas na Basílica.</p><button className="button primary" onClick={() => setCartOpen(true)}>Revisar minha seleção <ArrowIcon /></button></section>
 
       <footer><div className="brand footer-brand"><img src={BASILICA_CREST} alt="" /><span><strong>Basílica</strong><small>Santo Antônio</small></span></div><p>Arte pela Basílica · Edição 2026<br /><a href="https://commons.wikimedia.org/wiki/File:Air.ogg" target="_blank" rel="noreferrer">Áudio: Bach, Air · U.S. Air Force Band · domínio público</a></p><p><a className="admin-link" href="#admin">Área administrativa</a><br />Acervo online até 17 de setembro</p></footer>
       </div>
@@ -611,7 +615,7 @@ export function Catalog() {
 
       {selectedWork && <div ref={detailScrollerRef} className="detail-backdrop" role="presentation"><section className="artwork-detail" role="dialog" aria-modal="true" aria-labelledby="detail-title"><button ref={detailCloseRef} className="modal-close detail-close" onClick={() => setSelectedWork(null)} aria-label="Fechar detalhes">×</button><ArtworkExperience3D work={selectedWork} reference={artworkReference(selectedWork)} scrollerRef={detailScrollerRef} /><div className="detail-copy"><div><span className="section-kicker">Dados do catálogo</span><h3 id="detail-title">{selectedWork.title}</h3><dl><div><dt>Dimensões</dt><dd>{selectedWork.dimensions}</dd></div><div><dt>Disponibilidade</dt><dd>{selectedWork.status === "available" && !selectedWork.price_cents ? "Aguardando confirmação do valor" : statusLabel[selectedWork.status]}</dd></div></dl><p className="reference-credit">Imagem e informações fornecidas no Catálogo Vernissage 2026.</p></div><div className="detail-purchase"><div className="detail-price"><span>Valor informado no catálogo</span><strong>{displayPrice(selectedWork.price_cents)}</strong>{selectedWork.status !== "available" ? <small>Esta obra não está disponível para uma nova pré-reserva.</small> : selectedWork.price_cents ? <small>Você pode acrescentar uma oferta na pré-reserva</small> : <small>Pré-reserva indisponível até a definição do valor.</small>}</div>{selectedWork.status === "reserved" && selectedWork.reserved_until && <ReservationCountdown expiresAt={selectedWork.reserved_until} />}<button className="button primary" disabled={selectedWork.status !== "available" || !selectedWork.price_cents || cart.some((item) => item.work.id === selectedWork.id)} onClick={() => addToCart(selectedWork)}>{cart.some((item) => item.work.id === selectedWork.id) ? "Obra já selecionada" : selectedWork.status !== "available" ? "Obra indisponível" : !selectedWork.price_cents ? "Valor a confirmar" : "Pré-reservar esta obra"}<ArrowIcon /></button></div></div></section></div>}
 
-      {cartOpen && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && closeCart()}><section className="purchase-modal cart-modal" role="dialog" aria-modal="true" aria-labelledby="cart-title"><button className="modal-close" onClick={closeCart} aria-label="Fechar seleção">×</button><p className="section-kicker">Sua seleção</p><h2 id="cart-title">Pré-reserva temporária</h2><p className="modal-note">Ao confirmar, as obras serão bloqueadas por 30 minutos. No evento, o pagamento acontece no Hotel Florença; fora do evento, a equipe orientará o pagamento.</p>
+      {cartOpen && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && closeCart()}><section className="purchase-modal cart-modal" role="dialog" aria-modal="true" aria-labelledby="cart-title"><button className="modal-close" onClick={closeCart} aria-label="Fechar seleção">×</button><p className="section-kicker">Sua seleção</p><h2 id="cart-title">Pré-reserva temporária</h2><p className="modal-note">No dia 10, o bloqueio dura 30 minutos e a conclusão acontece no Hotel Florença. De 11 a 17 de setembro, o bloqueio dura 24 horas e a conclusão acontece presencialmente na Basílica.</p>
         {formError && <p className="form-error" role="alert">{formError}</p>}
         {message ? (
           <div className={emailUrl ? "success-message" : "success-message error-message"} role="status">
@@ -630,7 +634,7 @@ export function Catalog() {
                   <div className="certificate-row"><span>Protocolo</span><strong>{lastIntentData.code}</strong></div>
                   <div className="certificate-row"><span>Titular</span><strong>{lastIntentData.bidderName}</strong></div>
                   <div className="certificate-row"><span>Data de Emissão</span><strong>{lastIntentData.date}</strong></div>
-                  <div className="certificate-row"><span>Forma de conclusão</span><strong>{lastIntentData.purchaseContext === "outside" ? "Fora do evento · orientação da equipe" : "No evento · Hotel Florença"}</strong></div>
+                  <div className="certificate-row"><span>Prazo e conclusão</span><strong>{lastIntentData.purchaseContext === "outside" ? "24 horas · Basílica" : "30 minutos · Hotel Florença"}</strong></div>
                   <div className="certificate-row"><span>Valor total</span><strong>{formatPrice(lastIntentData.totalCents)}</strong></div>
                   <div className="certificate-items">
                     <small>Obras reservadas em curadoria:</small>
@@ -639,15 +643,15 @@ export function Catalog() {
                 </div>
                 <div className="certificate-footer">
                   <span>Arte em apoio financeiro à Basílica</span>
-                  <small>Apresente este protocolo à equipe do evento.</small>
+                  <small>{lastIntentData.purchaseContext === "outside" ? "Apresente este protocolo na Basílica." : "Apresente este protocolo no Hotel Florença."}</small>
                 </div>
               </div>
             )}
-            {reservationReceipt && <ReservationCountdown expiresAt={reservationReceipt.expires_at} allowNotifications />}
+            {reservationReceipt && <ReservationCountdown expiresAt={reservationReceipt.expires_at} purchaseContext={lastIntentData?.purchaseContext} allowNotifications />}
             {emailUrl && <><small className="confirmation-email-note">A pré-reserva já está registrada. Este botão apenas prepara uma cópia para você e para a equipe.</small><a className="button email-button" href={emailUrl}>Preparar cópia por e-mail <ArrowIcon direction="up-right" /></a></>}
             {emailUrl ? <button className="button primary" onClick={closeCart} style={{ marginTop: "16px" }}>Voltar ao acervo</button> : <button className="button primary error-retry" onClick={() => { setMessage(""); void loadCatalog(); }}>Corrigir dados e revisar seleção</button>}
           </div>
-        ) : cart.length === 0 ? <div className="empty-cart"><p>Sua seleção está vazia. Explore a galeria e escolha as obras de seu interesse.</p><a className="button primary" href="#acervo" onClick={closeCart}>Explorar acervo <ArrowIcon /></a></div> : <form onSubmit={submitPurchaseIntent}><div className="cart-lines">{cart.map((item) => <div className="cart-line" key={item.work.id}><div className={`cart-thumb work-image ${item.work.palette}`}><ArtworkPhoto work={item.work} /></div><div className="cart-line-info"><small>{item.work.code}</small><strong>{item.work.title}</strong><span>{displayPrice(item.work.price_cents)}</span><label className="extra-offer">Oferta adicional (opcional)<span><b>R$</b><input inputMode="decimal" defaultValue={offerInputValue(item.extraOfferCents)} onChange={(event) => updateExtraOffer(item.work.id, event.target.value)} placeholder="0,00" aria-label={`Oferta adicional para ${item.work.title}`} /></span></label></div><button type="button" onClick={() => removeFromCart(item.work.id)} aria-label={`Remover ${item.work.title}`}>Remover</button></div>)}</div><div className="cart-total"><span>Valor base + ofertas</span><strong>{formatPrice(totalCents)}</strong></div><div className="contact-fields"><label>Nome completo<input name="name" required minLength={2} maxLength={120} autoComplete="name" placeholder="Como devemos chamar você?" /></label><label>E-mail<input name="email" type="email" required maxLength={160} autoComplete="email" placeholder="voce@email.com" /></label><label>WhatsApp<input name="phone" type="tel" required minLength={8} maxLength={40} autoComplete="tel" placeholder="(11) 99999-9999" /></label></div><fieldset className="purchase-context"><legend>Quando você fará a compra?</legend><label><input type="radio" name="purchase_context" value="event" defaultChecked /><span><strong>No dia do evento</strong><small>Pagamento no Hotel Florença</small></span></label><label><input type="radio" name="purchase_context" value="outside" /><span><strong>Fora do evento</strong><small>A equipe enviará a orientação de pagamento</small></span></label></fieldset><div className="in-person-note"><strong>Bloqueio temporário · sem pagamento online</strong><p>Durante o evento, o pagamento será feito no Hotel Florença. Para reservas fora do evento, a orientação seguirá na confirmação por e-mail.</p></div><button className="button primary submit-intent" disabled={submitting}>{submitting ? "Bloqueando obras…" : "Confirmar pré-reserva por 30 min"}<ArrowIcon /></button><small className="form-consent">Ao enviar, você concorda em ser contatado pela equipe sobre esta pré-reserva.</small></form>}
+        ) : cart.length === 0 ? <div className="empty-cart"><p>Sua seleção está vazia. Explore a galeria e escolha as obras de seu interesse.</p><a className="button primary" href="#acervo" onClick={closeCart}>Explorar acervo <ArrowIcon /></a></div> : <form onSubmit={submitPurchaseIntent}><div className="cart-lines">{cart.map((item) => <div className="cart-line" key={item.work.id}><div className={`cart-thumb work-image ${item.work.palette}`}><ArtworkPhoto work={item.work} /></div><div className="cart-line-info"><small>{item.work.code}</small><strong>{item.work.title}</strong><span>{displayPrice(item.work.price_cents)}</span><label className="extra-offer">Oferta adicional (opcional)<span><b>R$</b><input inputMode="decimal" defaultValue={offerInputValue(item.extraOfferCents)} onChange={(event) => updateExtraOffer(item.work.id, event.target.value)} placeholder="0,00" aria-label={`Oferta adicional para ${item.work.title}`} /></span></label></div><button type="button" onClick={() => removeFromCart(item.work.id)} aria-label={`Remover ${item.work.title}`}>Remover</button></div>)}</div><div className="cart-total"><span>Valor base + ofertas</span><strong>{formatPrice(totalCents)}</strong></div><div className="contact-fields"><label>Nome completo<input name="name" required minLength={2} maxLength={120} autoComplete="name" placeholder="Como devemos chamar você?" /></label><label>E-mail<input name="email" type="email" required maxLength={160} autoComplete="email" placeholder="voce@email.com" /></label><label>WhatsApp<input name="phone" type="tel" required minLength={8} maxLength={40} autoComplete="tel" placeholder="(11) 99999-9999" /></label></div><fieldset className="purchase-context"><legend>Quando você concluirá a compra?</legend><label><input type="radio" name="purchase_context" value="event" checked={purchaseWindow === "event"} onChange={() => setPurchaseWindow("event")} /><span><strong>No dia 10 de setembro</strong><small>30 minutos · Hotel Florença</small></span></label><label><input type="radio" name="purchase_context" value="outside" checked={purchaseWindow === "outside"} onChange={() => setPurchaseWindow("outside")} /><span><strong>De 11 a 17 de setembro</strong><small>24 horas · Basílica de Americana</small></span></label></fieldset><div className="in-person-note"><strong>Bloqueio temporário · sem pagamento online</strong><p>{purchaseWindow === "outside" ? "Você terá 24 horas para concluir a compra presencialmente na Basílica Santo Antônio de Pádua, em Americana." : "Você terá 30 minutos para concluir a compra no Hotel Florença, durante o evento."}</p></div><button className="button primary submit-intent" disabled={submitting}>{submitting ? "Bloqueando obras…" : `Confirmar pré-reserva por ${purchaseWindow === "outside" ? "24 horas" : "30 min"}`}<ArrowIcon /></button><small className="form-consent">Ao enviar, você concorda em ser contatado pela equipe sobre esta pré-reserva.</small></form>}
       </section></div>}
       {reservationReceipt && !cartOpen && <div className="reservation-toast"><ReservationCountdown expiresAt={reservationReceipt.expires_at} compact allowNotifications /><button type="button" className="reservation-toast-open" onClick={openActiveReservation}>Ver protocolo</button></div>}
     </main>
