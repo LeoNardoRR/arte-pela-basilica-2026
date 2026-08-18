@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="public/og.png" alt="Arte pela Basílica 2026" width="100%" />
-</p>
-
 <h1 align="center">Arte pela Basílica · 2026</h1>
 
 <p align="center">
