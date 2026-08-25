@@ -63,7 +63,7 @@ export function DonationSection() {
         {PIX_KEY && qrUrl ? (
           <div><span>PIX para doação</span><strong>Escaneie pelo aplicativo do seu banco</strong><button className="donation-attention-button" type="button" onClick={copyKey}>{copied ? "Chave copiada" : "Copiar chave PIX"}</button></div>
         ) : (
-          <div className="pix-pending"><span>PIX para doação</span><strong>Espaço reservado para o QR Code oficial</strong><p>Assim que o PIX for configurado, o código aparecerá aqui. Enquanto isso, fale com a equipe para receber a orientação.</p><a className="donation-attention-button" href={`mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent("Quero contribuir com o Arte pela Basílica")}`}>Quero doar</a></div>
+          <div className="pix-pending"><span>PIX para doação</span><strong>Espaço reservado para o QR Code oficial</strong><p>Assim que o PIX for configurado, o código aparecerá aqui. Enquanto isso, fale com a equipe para receber a orientação.</p><a className="donation-attention-button" href={`mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent("Quero contribuir com a Arte pela Basílica")}`}>Quero doar</a></div>
         )}
       </div>
     </section>

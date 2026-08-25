@@ -23,7 +23,7 @@ export function ReservationCountdown({ expiresAt, compact = false, allowNotifica
     if (!allowNotifications || notificationPermission !== "granted" || remaining <= 0 || remaining > 5 * 60000 || urgentNotificationSent.current) return;
     urgentNotificationSent.current = true;
     new Notification("Sua pré-reserva está perto de expirar", {
-      body: "Restam menos de 5 minutos. Confira as orientações da equipe do Arte pela Basílica.",
+      body: "Restam menos de 5 minutos. Confira as orientações da equipe da Arte pela Basílica.",
       icon: publicAsset("/logo-basilica.jpeg"),
       tag: `reserva-${expiresAt}`,
     });

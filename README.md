@@ -27,8 +27,6 @@
 
 O projeto existe para contribuir financeiramente com a **Basílica Santo Antônio de Pádua**, em Americana. Não há pagamento de obras pela internet: o site registra a intenção, bloqueia temporariamente a disponibilidade e orienta o visitante sobre a conclusão da compra.
 
-> **Exposição presencial:** 10 de setembro de 2026, no Hotel Florença — Av. de Cillo, 820, Americana/SP.
-
 ## Experiência
 
 | Para o visitante | Para a organização |
