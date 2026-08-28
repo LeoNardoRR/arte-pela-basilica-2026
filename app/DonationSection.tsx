@@ -2,9 +2,11 @@
 
 import QRCode from "qrcode";
 import { useEffect, useState } from "react";
+import { publicAsset } from "./publicAsset";
 import { ADMIN_EMAIL } from "./supabase";
 
 const PIX_KEY = String(import.meta.env.VITE_BASILICA_PIX_KEY ?? "").trim();
+const STATIC_QR = publicAsset("/qr-doacao-pix.png");
 
 function field(id: string, value: string) {
   return `${id}${String(value.length).padStart(2, "0")}${value}`;
@@ -50,20 +52,13 @@ export function DonationSection() {
         <small>A doação é independente da pré-reserva e não substitui o pagamento presencial da obra.</small>
       </div>
       <div className="donation-pix-card">
-        <div className={`qr-code-slot ${qrUrl ? "is-ready" : "is-pending"}`}>
-          {qrUrl ? (
-            <img src={qrUrl} alt="QR Code PIX para doação à Basílica Santo Antônio" />
-          ) : (
-            <div className="qr-code-placeholder" role="img" aria-label="Espaço reservado para o futuro QR Code PIX">
-              <span>QR Code PIX</span>
-              <strong>Em breve</strong>
-            </div>
-          )}
+        <div className="qr-code-slot is-ready">
+          <img src={qrUrl || STATIC_QR} alt="QR Code PIX para doação à Basílica Santo Antônio" />
         </div>
         {PIX_KEY && qrUrl ? (
           <div><span>PIX para doação</span><strong>Escaneie pelo aplicativo do seu banco</strong><button className="donation-attention-button" type="button" onClick={copyKey}>{copied ? "Chave copiada" : "Copiar chave PIX"}</button></div>
         ) : (
-          <div className="pix-pending"><span>PIX para doação</span><strong>Espaço reservado para o QR Code oficial</strong><p>Assim que o PIX for configurado, o código aparecerá aqui. Enquanto isso, fale com a equipe para receber a orientação.</p><a className="donation-attention-button" href={`mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent("Quero contribuir com a Arte pela Basílica")}`}>Quero doar</a></div>
+          <div className="pix-pending"><span>PIX para doação</span><strong>Escaneie pelo aplicativo do seu banco</strong><p>Aponte a câmera do app do seu banco para o QR Code e confirme a doação. Qualquer valor ajuda a Basílica Santo Antônio.</p><a className="donation-attention-button" href={`mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent("Quero contribuir com a Arte pela Basílica")}`}>Falar com a equipe</a></div>
         )}
       </div>
     </section>
