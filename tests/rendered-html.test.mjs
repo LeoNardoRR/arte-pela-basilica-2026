@@ -219,11 +219,13 @@ test("reservation notification and official donation QR are explicit but respect
   assert.match(countdown, /const hours = Math\.floor\(remaining \/ 3600000\)/);
   assert.match(countdown, /purchaseContext === "outside"/);
   assert.match(countdown, /antes do fim das 24 horas/);
+  assert.match(donation, /donation-attention-button/);
   assert.match(donation, /qr-code-slot/);
-  assert.match(donation, /qr-code-doacao-patrimonio\.png/);
+  assert.match(donation, /qr-doacao-pix\.png/);
   assert.match(donation, /QR Code oficial para doação à Basílica Santo Antônio/);
-  assert.match(donation, /confira no aplicativo se os dados do recebedor correspondem à Basílica Santo Antônio/);
+  assert.match(donation, /confira se os dados do recebedor correspondem à Basílica Santo Antônio/);
   assert.doesNotMatch(donation, /Espaço reservado|Em breve|VITE_BASILICA_PIX_KEY/);
+  assert.match(donation, /Escaneie pelo aplicativo do seu banco/);
   assert.match(css, /@keyframes donation-pulse/);
   assert.match(css, /scroll-padding-top:\s*96px/);
   assert.match(css, /scroll-padding-top:\s*75px/);
