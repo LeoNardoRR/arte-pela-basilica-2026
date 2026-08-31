@@ -196,6 +196,7 @@ test("all 84 supplied catalog slots use the real local artwork images and intera
 test("database migration installs the 84-work catalog and protected price control", async () => {
   const migration = await read("supabase/migrations/20260815211500_real_catalog_and_admin_prices.sql");
   const correction = await read("supabase/migrations/20260816024500_catalog_prices_and_payment_context.sql");
+  const officialCatalog = await read("supabase/migrations/20260831095500_sync_official_catalog_prices.sql");
   assert.match(migration, /for artwork_number in 1\.\.84/);
   assert.match(migration, /admin_update_artwork_price/);
   assert.match(migration, /52000/);
@@ -203,6 +204,14 @@ test("database migration installs the 84-work catalog and protected price contro
   assert.match(migration, /is_basilica_admin/);
   assert.match(correction, /price_cents is null/);
   assert.match(correction, /when id = 1 then 52000 else null/);
+  const officialRows = [...officialCatalog.matchAll(/^\s*\((\d+),\s*'([^']+)',\s*(\d+)\),?$/gm)];
+  assert.equal(officialRows.length, 84);
+  assert.deepEqual(officialRows.map((row) => Number(row[1])), Array.from({ length: 84 }, (_, index) => index + 1));
+  assert.match(officialCatalog, /\(1, '86 × 75 cm', 250000\)/);
+  assert.match(officialCatalog, /\(53, '30 × 34 cm', 98000\)/);
+  assert.match(officialCatalog, /\(70, '86 × 107 cm', 400000\)/);
+  assert.match(officialCatalog, /\(84, '98 × 78 cm', 600000\)/);
+  assert.match(officialCatalog, /O catálogo oficial deve atualizar exatamente 84 obras/);
   const availability = await read("supabase/migrations/20260816033000_admin_restore_artwork_availability.sql");
   assert.match(availability, /admin_set_artwork_available/);
   assert.match(availability, /status = 'available'/);
