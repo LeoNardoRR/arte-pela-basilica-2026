@@ -63,9 +63,13 @@ function offerInputValue(cents: number) {
   return cents ? (cents / 100).toLocaleString("pt-BR", { minimumFractionDigits: cents % 100 ? 2 : 0, maximumFractionDigits: 2 }) : "";
 }
 
-function artworkReference(work: Artwork): CuratedArtworkImage {
+function artworkSlot(work: Artwork) {
   const parsedSlot = Number(work.code.match(/\d+/)?.[0]);
-  const slot = Number.isFinite(parsedSlot) && parsedSlot > 0 ? parsedSlot : work.id;
+  return Number.isFinite(parsedSlot) && parsedSlot > 0 ? parsedSlot : work.id;
+}
+
+function artworkReference(work: Artwork): CuratedArtworkImage {
+  const slot = artworkSlot(work);
   const reference = CURATED_ARTWORKS[(slot - 1) % CURATED_ARTWORKS.length];
   return {
     ...reference,
@@ -80,6 +84,7 @@ function ArrowIcon({ direction = "right" }: { direction?: "right" | "up-right" |
 
 function ArtworkPhoto({ work, eager = false }: { work: Artwork; eager?: boolean }) {
   const reference = artworkReference(work);
+  const fallbackUrl = publicAsset(`/artworks/${String(artworkSlot(work)).padStart(2, "0")}.jpg`);
   const rotation = artworkRotationDegrees(work.code);
   const correctionStyle = {
     "--artwork-rotation": `${rotation}deg`,
@@ -94,14 +99,24 @@ function ArtworkPhoto({ work, eager = false }: { work: Artwork; eager?: boolean 
       loading={eager ? "eager" : "lazy"}
       decoding="async"
       referrerPolicy="no-referrer"
+      data-fallback={fallbackUrl}
       onLoad={(event) => {
         const image = event.currentTarget;
+        image.hidden = false;
         const frame = image.parentElement;
         if (frame && image.naturalWidth > 0 && image.naturalHeight > 0) {
           frame.style.setProperty("--artwork-aspect", `${image.naturalWidth} / ${image.naturalHeight}`);
         }
       }}
-      onError={(event) => { event.currentTarget.hidden = true; }}
+      onError={(event) => {
+        const image = event.currentTarget;
+        const fallback = image.dataset.fallback;
+        if (fallback && image.src !== fallback) {
+          image.src = fallback;
+          return;
+        }
+        image.hidden = true;
+      }}
     />
   );
 }
@@ -437,7 +452,7 @@ export function Catalog() {
       <article className={`work-card ${work.status !== "available" ? "unavailable" : ""}`} key={work.id}>
         <button className="work-visual-button" type="button" onClick={() => setSelectedWork(work)} aria-label={`Abrir experiência 3D de ${work.title}`}>
           <div className={`work-image ${work.palette}`}>
-            <ArtworkPhoto work={work} />
+            <ArtworkPhoto work={work} eager />
             <span className={`status ${work.status} ${work.status === "available" && !work.price_cents ? "price-pending" : ""}`}>{work.status === "available" && !work.price_cents ? "Aguardando valor" : statusLabel[work.status]}</span>
             {work.status === "reserved" && work.reserved_until && <ReservationCountdown expiresAt={work.reserved_until} compact />}
             {work.status !== "available" && <div className="sold-overlay"><strong>{statusLabel[work.status]}</strong><span>Indisponível para nova intenção.</span></div>}
