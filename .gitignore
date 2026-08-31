@@ -43,5 +43,5 @@ next-env.d.ts
 /outputs/
 /work/
 
-# local scratch / plans (not versioned)
+# local 
 /temp/
