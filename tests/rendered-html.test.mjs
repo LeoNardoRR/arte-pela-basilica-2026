@@ -17,7 +17,11 @@ test("admin uses protected Supabase access and has no public demo", async () => 
   const admin = await read("app/Admin.tsx");
   const supabase = await read("app/supabase.ts");
   assert.match(admin, /signInWithPassword/);
-  assert.match(supabase, /ADMIN_EMAIL\s*=\s*"ribeiroleonardoti@gmail\.com"/);
+  assert.match(admin, /rpc\("is_basilica_admin"\)/);
+  assert.doesNotMatch(admin, /ADMIN_EMAIL|readOnly autoComplete="username"/);
+  assert.doesNotMatch(supabase, /ADMIN_EMAIL/);
+  assert.match(supabase, /detectSessionInUrl:\s*false/);
+  assert.match(supabase, /persistSession:\s*false/);
   assert.match(admin, /admin_get_proposals/);
   assert.match(admin, /admin_update_cart_status/);
   assert.match(admin, /admin_set_artwork_available/);
@@ -38,7 +42,7 @@ test("admin uses protected Supabase access and has no public demo", async () => 
   assert.match(admin, /<details className="person-card"/);
   assert.match(admin, /Ver detalhes/);
   assert.match(admin, /Contato direto/);
-  assert.match(admin, /Somente o usuário autorizado e a senha fixa/);
+  assert.match(admin, /credenciais administrativas fornecidas/);
   assert.match(admin, /className="admin-brand"/);
   assert.match(admin, /className="admin-brand-crest"/);
   assert.match(admin, /className="admin-header-actions"/);
@@ -81,7 +85,7 @@ test("catalog provides flexible prices, full-screen gallery and timed pre-reserv
   assert.match(catalog, /Pré-reserva temporária/);
   assert.match(catalog, /sem pagamento online/i);
   assert.match(catalog, /extra_contribution_cents/);
-  assert.match(catalog, /release_expired_pre_reservations/);
+  assert.doesNotMatch(catalog, /release_expired_pre_reservations/);
   assert.match(catalog, /ReservationCountdown/);
   assert.match(catalog, /purchase_context/);
   assert.match(catalog, /Hotel Florença/);
@@ -109,12 +113,14 @@ test("catalog provides flexible prices, full-screen gallery and timed pre-reserv
   assert.match(catalog, /pré-reservas liberadas/);
   assert.match(catalog, /Aguardando valor/);
   assert.match(catalog, /Obra indisponível/);
+  assert.match(catalog, /submissionSucceeded/);
   assert.match(catalog, /Corrigir dados e revisar seleção/);
   assert.match(catalog, /inputMode="decimal"/);
   assert.match(catalog, /parseOfferCents/);
-  assert.match(catalog, /RESERVATION_STORAGE_KEY/);
+  assert.match(catalog, /sessionStorage\.setItem\(CART_STORAGE_KEY/);
+  assert.doesNotMatch(catalog, /RESERVATION_STORAGE_KEY|localStorage|mailto:|emailUrl/);
   assert.match(catalog, /Prazo e conclusão/);
-  assert.match(catalog, /Preparar cópia por e-mail/);
+  assert.doesNotMatch(catalog, /Preparar cópia por e-mail/);
   assert.doesNotMatch(catalog, /mail\.google\.com|Abrir confirmação no Gmail/);
   assert.match(catalog, /<ArtworkExperience3D/);
   assert.match(catalog, /CURATED_ARTWORKS/);
@@ -217,6 +223,24 @@ test("database migration installs the 84-work catalog and protected price contro
   assert.match(availability, /status = 'available'/);
   assert.match(availability, /reserved_until = null/);
   assert.match(availability, /is_basilica_admin/);
+});
+
+test("SOC hardening denies public PII RPCs and removes the duplicate D1 surface", async () => {
+  const migration = await read("supabase/migrations/20260831233000_soc_hardening.sql");
+  const hosting = JSON.parse(await read(".openai/hosting.json"));
+  const worker = await read("worker/index.ts");
+  const legacyAdmin = await read("src/Admin.tsx");
+  assert.equal(hosting.d1, null);
+  assert.match(migration, /revoke all on function public\.admin_get_proposals\(\) from public, anon/);
+  assert.match(migration, /security invoker/);
+  assert.match(migration, /app_metadata.*basilica_admin/);
+  assert.match(migration, /hold_minutes > 1440/);
+  assert.match(migration, /recent_request_count >= 5/);
+  assert.match(migration, /alter default privileges for role postgres/);
+  assert.match(worker, /default-src 'self'/);
+  assert.match(worker, /connect-src 'self' https:\/\/luodxzttfbnnufxufehb\.supabase\.co/);
+  assert.doesNotMatch(worker, /DB:\s*D1Database/);
+  assert.doesNotMatch(legacyAdmin, /admin_get_proposals|SUPABASE_KEY|Senha incorreta/);
 });
 
 test("reservation notification and official donation QR are explicit but respectful", async () => {

@@ -1,6 +1,4 @@
--- View pública segura para o painel admin (dados pessoais protegidos por RLS,
--- mas a função abaixo roda como security definer e pode ser exposta seletivamente).
--- Esta RPC retorna as propostas com os itens aninhados para o painel de administração.
+-- A consulta administrativa roda com as permissões do usuário autenticado.
 
 create or replace function public.admin_get_proposals()
 returns table (
@@ -15,10 +13,14 @@ returns table (
   items       jsonb
 )
 language plpgsql
-security definer
-set search_path = public, pg_temp
+security invoker
+set search_path = ''
 as $$
 begin
+  if not (select public.is_basilica_admin()) then
+    raise exception 'Acesso administrativo não autorizado.' using errcode = '42501';
+  end if;
+
   return query
   select
     c.id,
@@ -49,11 +51,5 @@ begin
 end;
 $$;
 
--- Por padrão não concedemos a anon: o acesso deve ser protegido por senha no front.
--- Se quiser expor sem autenticação no MVP, descomente a linha abaixo:
--- grant execute on function public.admin_get_proposals() to anon;
-
--- Para proteger com senha simples no front-end, basta não conceder a anon
--- e chamar a função com a service_role key (nunca exposta no client).
--- Solução MVP: conceder a authenticated e usar login básico.
-grant execute on function public.admin_get_proposals() to anon, authenticated;
+revoke all on function public.admin_get_proposals() from public, anon;
+grant execute on function public.admin_get_proposals() to authenticated, service_role;
