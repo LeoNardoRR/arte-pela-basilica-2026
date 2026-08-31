@@ -136,7 +136,7 @@ test("catalog provides flexible prices, full-screen gallery and timed pre-reserv
   assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*?#doacao\s*\{[^}]*scroll-margin-top:\s*24px/);
   assert.match(css, /\.how-section\s*\{[^}]*min-height:\s*100svh/);
   assert.match(css, /\.donation-section\s*\{[^}]*margin:\s*clamp\(72px,9vw,132px\) auto 120px/);
-  assert.match(css, /\.pix-pending\s*\{[^}]*min-width:\s*0[^}]*overflow-wrap:\s*anywhere/);
+  assert.match(css, /\.pix-ready\s*\{[^}]*min-width:\s*0[^}]*overflow-wrap:\s*anywhere/);
   assert.match(css, /@media \(max-width:\s*1100px\)[\s\S]*\.donation-pix-card\s*\{[^}]*flex-direction:\s*column[^}]*align-items:\s*stretch/);
   assert.match(css, /\.view-work\s*\{[^}]*display:\s*inline-flex/);
   assert.match(css, /\.gallery-close\s*\{[^}]*position:\s*fixed/);
@@ -210,7 +210,7 @@ test("database migration installs the 84-work catalog and protected price contro
   assert.match(availability, /is_basilica_admin/);
 });
 
-test("reservation notification and donation callout are explicit but respectful", async () => {
+test("reservation notification and official donation QR are explicit but respectful", async () => {
   const countdown = await read("app/ReservationCountdown.tsx");
   const donation = await read("app/DonationSection.tsx");
   const css = await read("app/globals.css");
@@ -219,9 +219,11 @@ test("reservation notification and donation callout are explicit but respectful"
   assert.match(countdown, /const hours = Math\.floor\(remaining \/ 3600000\)/);
   assert.match(countdown, /purchaseContext === "outside"/);
   assert.match(countdown, /antes do fim das 24 horas/);
-  assert.match(donation, /donation-attention-button/);
   assert.match(donation, /qr-code-slot/);
-  assert.match(donation, /Espaço reservado para o futuro QR Code PIX/);
+  assert.match(donation, /qr-code-doacao-patrimonio\.png/);
+  assert.match(donation, /QR Code oficial para doação à Basílica Santo Antônio/);
+  assert.match(donation, /confira no aplicativo se os dados do recebedor correspondem à Basílica Santo Antônio/);
+  assert.doesNotMatch(donation, /Espaço reservado|Em breve|VITE_BASILICA_PIX_KEY/);
   assert.match(css, /@keyframes donation-pulse/);
   assert.match(css, /scroll-padding-top:\s*96px/);
   assert.match(css, /scroll-padding-top:\s*75px/);
