@@ -14,4 +14,7 @@ test("migrations version revoke grants and RLS policies", async () => {
   assert.match(sql, /catalog_is_public/);
   assert.match(sql, /admin_reads_auction_carts/);
   assert.match(sql, /submit_pre_reservation/);
+  assert.match(sql, /release_expired_pre_reservations/);
+  assert.match(sql, /admin_update_cart_status/);
+  assert.match(sql, /is_basilica_admin\(\)/);
 });

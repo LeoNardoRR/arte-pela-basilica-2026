@@ -170,6 +170,8 @@ As migrações ficam em [<code>supabase/migrations/</code>](supabase/migrations/
 
 As migrações devem ser revisadas e aplicadas em ordem. Mudanças no frontend não substituem a aplicação da migração correspondente no Supabase.
 
+Arquitetura detalhada: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
 ## Publicação
 
 ### GitHub Pages
