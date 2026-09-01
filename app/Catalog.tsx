@@ -2,7 +2,7 @@
 
 import { FormEvent, MouseEvent, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import { ADMIN_EMAIL, supabase } from "./supabase";
+import { supabase } from "./supabase";
 import { ArtworkExperience3D } from "./ArtworkExperience3D";
 import { artworkRotationDegrees } from "./artworkAdjustments";
 import { CURATED_ARTWORKS, CuratedArtworkImage } from "./artworkImages";
@@ -12,7 +12,6 @@ import { ReservationCountdown } from "./ReservationCountdown";
 
 const BASILICA_CREST = publicAsset("/logo-basilica.jpeg");
 const CART_STORAGE_KEY = "arte-pela-basilica-cart-v2";
-const RESERVATION_STORAGE_KEY = "arte-pela-basilica-active-reservation-v1";
 
 type Artwork = {
   id: number;
@@ -31,7 +30,6 @@ type CartItem = { work: Artwork; extraOfferCents: number };
 type ReservationReceipt = { confirmation_code: string; expires_at: string; total_cents: number };
 type LastIntentData = { bidderName: string; code: string; date: string; items: Artwork[]; purchaseContext: "event" | "outside"; totalCents: number };
 type CatalogFilter = "all" | "available" | "unavailable";
-type SavedReservation = { receipt: ReservationReceipt; intent: LastIntentData; emailUrl: string };
 
 const statusLabel = {
   available: "Disponível",
@@ -123,7 +121,7 @@ function ArtworkPhoto({ work, eager = false }: { work: Artwork; eager?: boolean 
 
 function loadSavedCart(): CartItem[] {
   try {
-    const saved = localStorage.getItem(CART_STORAGE_KEY);
+    const saved = sessionStorage.getItem(CART_STORAGE_KEY);
     if (!saved) return [];
     const parsed = JSON.parse(saved) as unknown;
     if (!Array.isArray(parsed)) return [];
@@ -137,17 +135,6 @@ function loadSavedCart(): CartItem[] {
   }
 }
 
-function loadSavedReservation(): SavedReservation | null {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(RESERVATION_STORAGE_KEY) || "null") as SavedReservation | null;
-    if (!parsed?.receipt?.confirmation_code || !parsed.receipt.expires_at || !parsed.intent?.code) return null;
-    if (new Date(parsed.receipt.expires_at).getTime() <= Date.now()) return null;
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
 export function Catalog() {
   const [works, setWorks] = useState<Artwork[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(true);
@@ -157,15 +144,15 @@ export function Catalog() {
   const [cartOpen, setCartOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
+  const [submissionSucceeded, setSubmissionSucceeded] = useState(false);
   const [formError, setFormError] = useState("");
   const [purchaseWindow, setPurchaseWindow] = useState<"event" | "outside">("event");
-  const [emailUrl, setEmailUrl] = useState(() => loadSavedReservation()?.emailUrl ?? "");
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [selectedWork, setSelectedWork] = useState<Artwork | null>(null);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [lastIntentData, setLastIntentData] = useState<LastIntentData | null>(() => loadSavedReservation()?.intent ?? null);
-  const [reservationReceipt, setReservationReceipt] = useState<ReservationReceipt | null>(() => loadSavedReservation()?.receipt ?? null);
+  const [lastIntentData, setLastIntentData] = useState<LastIntentData | null>(null);
+  const [reservationReceipt, setReservationReceipt] = useState<ReservationReceipt | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const galleryCloseRef = useRef<HTMLButtonElement>(null);
   const detailCloseRef = useRef<HTMLButtonElement>(null);
@@ -194,7 +181,6 @@ export function Catalog() {
   async function loadCatalog() {
     setCatalogLoading(true);
     setCatalogError("");
-    await supabase.rpc("release_expired_pre_reservations");
     const { data, error } = await supabase
       .from("artworks")
       .select("id,code,title,artist,technique,dimensions,status,palette,price_cents,reserved_until")
@@ -204,7 +190,12 @@ export function Catalog() {
       setCatalogError("Não foi possível carregar o acervo agora. Tente novamente em alguns instantes.");
       setWorks([]);
     } else {
-      const freshWorks = (data ?? []) as Artwork[];
+      const now = Date.now();
+      const freshWorks = ((data ?? []) as Artwork[]).map((work) =>
+        work.status === "reserved" && work.reserved_until && new Date(work.reserved_until).getTime() <= now
+          ? { ...work, status: "available" as const, reserved_until: null }
+          : work
+      );
       setWorks(freshWorks);
       setCart((items) => items.flatMap((item) => {
         const currentWork = freshWorks.find((work) => work.id === item.work.id);
@@ -268,20 +259,11 @@ export function Catalog() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+      sessionStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
     } catch {
       // The cart remains usable in memory when browser storage is unavailable.
     }
   }, [cart]);
-
-  useEffect(() => {
-    if (!reservationReceipt || !lastIntentData) return;
-    try {
-      localStorage.setItem(RESERVATION_STORAGE_KEY, JSON.stringify({ receipt: reservationReceipt, intent: lastIntentData, emailUrl } satisfies SavedReservation));
-    } catch {
-      // The on-screen receipt remains available when browser storage is unavailable.
-    }
-  }, [reservationReceipt, lastIntentData, emailUrl]);
 
   const modalOpen = cartOpen || galleryOpen || Boolean(selectedWork);
 
@@ -396,7 +378,7 @@ export function Catalog() {
   function closeCart() {
     setCartOpen(false);
     setMessage("");
-    if (!reservationReceipt) setEmailUrl("");
+    setSubmissionSucceeded(false);
     if (openedFromGallery) {
       setGalleryOpen(true);
       setOpenedFromGallery(false);
@@ -502,8 +484,8 @@ export function Catalog() {
     submittingRef.current = true;
     setSubmitting(true);
     setMessage("");
+    setSubmissionSucceeded(false);
     setFormError("");
-    setEmailUrl("");
     const form = new FormData(event.currentTarget);
     const name = String(form.get("name") || "").trim();
     const email = String(form.get("email") || "").trim();
@@ -536,14 +518,6 @@ export function Catalog() {
       setMessage(safeMessages.includes(error.message) ? error.message : "Não foi possível registrar sua intenção agora. Tente novamente em alguns instantes.");
     } else {
       const receipt = data as ReservationReceipt;
-      const itemLines = submittedItems.map((item) => `• ${item.work.title} (${item.work.code}) — ${displayPrice(item.work.price_cents)}${item.extraOfferCents ? ` + oferta de ${formatPrice(item.extraOfferCents)}` : ""}`).join("\n");
-      const paymentInstruction = purchaseContext === "outside"
-        ? "Compra entre 11 e 17 de setembro: a obra ficará bloqueada por 24 horas. Conclua a compra presencialmente na Basílica Santo Antônio de Pádua, em Americana, dentro desse prazo."
-        : "Compra no dia do evento: a obra ficará bloqueada por 30 minutos. O pagamento será realizado no Hotel Florença dentro desse prazo.";
-      const emailMessage = [
-        "Confirmação de pré-reserva — Arte pela Basílica 2026", "", `Protocolo: ${receipt.confirmation_code}`, `Interessado: ${name}`, `WhatsApp: ${phone}`, `E-mail: ${email}`, "",
-        "Obras selecionadas:", itemLines, "", `Valor total: ${formatPrice(totalCents)}`, "", paymentInstruction,
-      ].join("\n");
       const intentData: LastIntentData = {
         bidderName: name,
         code: receipt.confirmation_code,
@@ -554,7 +528,7 @@ export function Catalog() {
       };
       setLastIntentData(intentData);
       setReservationReceipt(receipt);
-      setEmailUrl(`mailto:${encodeURIComponent(ADMIN_EMAIL)}?cc=${encodeURIComponent(email)}&subject=${encodeURIComponent(`Confirmação de pré-reserva — ${receipt.confirmation_code}`)}&body=${encodeURIComponent(emailMessage)}`);
+      setSubmissionSucceeded(true);
       setCart([]);
       setMessage(purchaseContext === "outside"
         ? "Sua pré-reserva foi registrada. As obras ficarão bloqueadas por 24 horas para conclusão presencial na Basílica."
@@ -633,8 +607,8 @@ export function Catalog() {
       {cartOpen && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && closeCart()}><section className="purchase-modal cart-modal" role="dialog" aria-modal="true" aria-labelledby="cart-title"><button className="modal-close" onClick={closeCart} aria-label="Fechar seleção">×</button><p className="section-kicker">Sua seleção</p><h2 id="cart-title">Pré-reserva temporária</h2><p className="modal-note">No dia 10, o bloqueio dura 30 minutos e a conclusão acontece no Hotel Florença. De 11 a 17 de setembro, o bloqueio dura 24 horas e a conclusão acontece presencialmente na Basílica.</p>
         {formError && <p className="form-error" role="alert">{formError}</p>}
         {message ? (
-          <div className={emailUrl ? "success-message" : "success-message error-message"} role="status">
-            <span>{emailUrl ? "✓" : "!"}</span>
+          <div className={submissionSucceeded ? "success-message" : "success-message error-message"} role="status">
+            <span>{submissionSucceeded ? "✓" : "!"}</span>
             <p>{message}</p>
             {lastIntentData && (
               <div className="intent-certificate">
@@ -663,8 +637,9 @@ export function Catalog() {
               </div>
             )}
             {reservationReceipt && <ReservationCountdown expiresAt={reservationReceipt.expires_at} purchaseContext={lastIntentData?.purchaseContext} allowNotifications />}
-            {emailUrl && <><small className="confirmation-email-note">A pré-reserva já está registrada. Este botão apenas prepara uma cópia para você e para a equipe.</small><a className="button email-button" href={emailUrl}>Preparar cópia por e-mail <ArrowIcon direction="up-right" /></a></>}
-            {emailUrl ? <button className="button primary" onClick={closeCart} style={{ marginTop: "16px" }}>Voltar ao acervo</button> : <button className="button primary error-retry" onClick={() => { setMessage(""); void loadCatalog(); }}>Corrigir dados e revisar seleção</button>}
+            {submissionSucceeded
+              ? <button className="button primary" onClick={closeCart} style={{ marginTop: "16px" }}>Voltar ao acervo</button>
+              : <button className="button primary error-retry" onClick={() => { setMessage(""); void loadCatalog(); }}>Corrigir dados e revisar seleção</button>}
           </div>
         ) : cart.length === 0 ? <div className="empty-cart"><p>Sua seleção está vazia. Explore a galeria e escolha as obras de seu interesse.</p><a className="button primary" href="#acervo" onClick={closeCart}>Explorar acervo <ArrowIcon /></a></div> : <form onSubmit={submitPurchaseIntent}><div className="cart-lines">{cart.map((item) => <div className="cart-line" key={item.work.id}><div className={`cart-thumb work-image ${item.work.palette}`}><ArtworkPhoto work={item.work} /></div><div className="cart-line-info"><small>{item.work.code}</small><strong>{item.work.title}</strong><span>{displayPrice(item.work.price_cents)}</span><label className="extra-offer">Oferta adicional (opcional)<span><b>R$</b><input inputMode="decimal" defaultValue={offerInputValue(item.extraOfferCents)} onChange={(event) => updateExtraOffer(item.work.id, event.target.value)} placeholder="0,00" aria-label={`Oferta adicional para ${item.work.title}`} /></span></label></div><button type="button" onClick={() => removeFromCart(item.work.id)} aria-label={`Remover ${item.work.title}`}>Remover</button></div>)}</div><div className="cart-total"><span>Valor base + ofertas</span><strong>{formatPrice(totalCents)}</strong></div><div className="contact-fields"><label>Nome completo<input name="name" required minLength={2} maxLength={120} autoComplete="name" placeholder="Como devemos chamar você?" /></label><label>E-mail<input name="email" type="email" required maxLength={160} autoComplete="email" placeholder="voce@email.com" /></label><label>WhatsApp<input name="phone" type="tel" required minLength={8} maxLength={40} autoComplete="tel" placeholder="(11) 99999-9999" /></label></div><fieldset className="purchase-context"><legend>Quando você concluirá a compra?</legend><label><input type="radio" name="purchase_context" value="event" checked={purchaseWindow === "event"} onChange={() => setPurchaseWindow("event")} /><span><strong>No dia 10 de setembro</strong><small>30 minutos · Hotel Florença</small></span></label><label><input type="radio" name="purchase_context" value="outside" checked={purchaseWindow === "outside"} onChange={() => setPurchaseWindow("outside")} /><span><strong>De 11 a 17 de setembro</strong><small>24 horas · Basílica de Americana</small></span></label></fieldset><div className="in-person-note"><strong>Bloqueio temporário · sem pagamento online</strong><p>{purchaseWindow === "outside" ? "Você terá 24 horas para concluir a compra presencialmente na Basílica Santo Antônio de Pádua, em Americana." : "Você terá 30 minutos para concluir a compra no Hotel Florença, durante o evento."}</p></div><button className="button primary submit-intent" disabled={submitting}>{submitting ? "Bloqueando obras…" : `Confirmar pré-reserva por ${purchaseWindow === "outside" ? "24 horas" : "30 min"}`}<ArrowIcon /></button><small className="form-consent">Ao enviar, você concorda em ser contatado pela equipe sobre esta pré-reserva.</small></form>}
       </section></div>}

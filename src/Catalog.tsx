@@ -57,12 +57,12 @@ export function Catalog({ onAdmin }: { onAdmin?: () => void }) {
       .then((data: Artwork[]) => setWorks(data))
       .catch(() => undefined);
     try {
-      const saved = localStorage.getItem("arte-pela-basilica-cart");
+      const saved = sessionStorage.getItem("arte-pela-basilica-cart");
       if (saved) setCart(JSON.parse(saved) as CartItem[]);
     } catch { /* cart is optional device-local convenience */ }
   }, []);
 
-  useEffect(() => { localStorage.setItem("arte-pela-basilica-cart", JSON.stringify(cart)); }, [cart]);
+  useEffect(() => { sessionStorage.setItem("arte-pela-basilica-cart", JSON.stringify(cart)); }, [cart]);
 
   const visibleWorks = useMemo(() => filter === "available" ? works.filter((w) => w.status === "available") : filter === "sold" ? works.filter((w) => w.status === "sold") : works, [filter, works]);
   const availableCount = works.filter((work) => work.status === "available").length;

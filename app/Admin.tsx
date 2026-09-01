@@ -3,7 +3,7 @@
 import type { Session } from "@supabase/supabase-js";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { publicAsset } from "./publicAsset";
-import { ADMIN_EMAIL, supabase } from "./supabase";
+import { supabase } from "./supabase";
 
 const BASILICA_CREST = publicAsset("/logo-basilica.jpeg");
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
@@ -74,18 +74,18 @@ function groupByPerson(intents: Intent[]): PersonGroup[] {
 
 export function Admin() {
   const [session, setSession] = useState<Session | null>(null);
+  const [authorized, setAuthorized] = useState<boolean | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const [intents, setIntents] = useState<Intent[]>([]);
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(false);
   const [changingId, setChangingId] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | IntentStatus>("all");
-  const [username, setUsername] = useState(ADMIN_EMAIL);
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [openKeys, setOpenKeys] = useState<Set<string>>(new Set());
   const [artworkPrices, setArtworkPrices] = useState<ArtworkPrice[]>([]);
   const [priceDrafts, setPriceDrafts] = useState<Record<number, string>>({});
-  const authorized = session?.user?.email?.toLowerCase() === ADMIN_EMAIL;
 
   const togglePersonOpen = (key: string) => {
     setOpenKeys((prev) => {
@@ -108,19 +108,27 @@ export function Admin() {
 
   useEffect(() => {
     let active = true;
-    supabase.auth.getSession().then(({ data }) => { if (!active) return; setSession(data.session); setAuthReady(true); if (data.session) cleanAdminUrl(); });
-    const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => { if (!active) return; setSession(nextSession); setAuthReady(true); if (nextSession) cleanAdminUrl(); });
+    supabase.auth.getSession().then(({ data }) => { if (!active) return; setSession(data.session); setAuthorized(data.session ? null : false); setAuthReady(true); if (data.session) cleanAdminUrl(); });
+    const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => { if (!active) return; setSession(nextSession); setAuthorized(nextSession ? null : false); setAuthReady(true); if (nextSession) cleanAdminUrl(); });
     return () => { active = false; data.subscription.unsubscribe(); };
   }, []);
   useEffect(() => {
-    if (!authorized) return;
+    if (!session) return;
+    let active = true;
+    supabase.rpc("is_basilica_admin").then(({ data, error }) => {
+      if (!active) return;
+      setAuthorized(!error && data === true);
+    });
+    return () => { active = false; };
+  }, [session]);
+  useEffect(() => {
+    if (authorized !== true) return;
     const timer = window.setTimeout(() => void loadProposals(), 0);
     return () => window.clearTimeout(timer);
   }, [authorized, loadProposals]);
   async function login(event: FormEvent) {
     event.preventDefault(); setLoading(true); setNotice("");
     const email = username.trim().toLowerCase();
-    if (email !== ADMIN_EMAIL) { setNotice("Usuário ou senha incorretos."); setLoading(false); return; }
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setNotice(error ? "Usuário ou senha incorretos." : "Acesso autorizado.");
     if (!error) setPassword("");
@@ -128,7 +136,7 @@ export function Admin() {
   }
 
   async function logout() {
-    setLoading(true); await supabase.auth.signOut(); setSession(null); setIntents([]); setLoading(false); window.history.replaceState({}, "", `${window.location.pathname}#admin`);
+    setLoading(true); await supabase.auth.signOut(); setSession(null); setAuthorized(false); setIntents([]); setLoading(false); window.history.replaceState({}, "", `${window.location.pathname}#admin`);
   }
 
   async function updateStatus(intent: Intent, nextStatus: IntentStatus) {
@@ -173,8 +181,8 @@ export function Admin() {
   const statusCount = useCallback((status: "all" | IntentStatus) => status === "all" ? displayedIntents.length : displayedIntents.filter((intent) => intent.status === status).length, [displayedIntents]);
 
   let content;
-  if (!authReady) content = <p className="admin-notice">Verificando acesso seguro…</p>;
-  else if (!session) content = <div className="admin-login"><p className="section-kicker">Área restrita</p><h1>Acesso administrativo</h1><p>Somente o usuário autorizado e a senha fixa da equipe liberam este painel.</p><form className="admin-auth-form" onSubmit={login}><label>Usuário autorizado<input name="username" type="email" required readOnly autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} /></label><label>Senha<input name="password" type="password" required minLength={16} autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Digite a senha administrativa" /></label><button className="button primary" disabled={loading}>{loading ? "Entrando…" : "Entrar no painel"}<span className="arrow-icon arrow-right" aria-hidden="true" /></button></form>{notice && <p className="admin-notice" role="status">{notice}</p>}</div>;
+  if (!authReady || (session && authorized === null)) content = <p className="admin-notice">Verificando acesso seguro…</p>;
+  else if (!session) content = <div className="admin-login"><p className="section-kicker">Área restrita</p><h1>Acesso administrativo</h1><p>Use as credenciais administrativas fornecidas à equipe responsável.</p><form className="admin-auth-form" onSubmit={login}><label>E-mail<input name="username" type="email" required autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} /></label><label>Senha<input name="password" type="password" required minLength={16} autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Digite a senha administrativa" /></label><button className="button primary" disabled={loading}>{loading ? "Entrando…" : "Entrar no painel"}<span className="arrow-icon arrow-right" aria-hidden="true" /></button></form>{notice && <p className="admin-notice" role="status">{notice}</p>}</div>;
   else if (!authorized) content = <div className="admin-login"><p className="section-kicker">Acesso negado</p><h1>Conta não autorizada</h1><p>Esta conta não possui permissão para consultar dados administrativos.</p><button className="button primary" onClick={logout}>Sair desta conta <span className="arrow-icon arrow-right" aria-hidden="true" /></button></div>;
   else content = <div className="admin-dashboard">
     <div className="admin-title"><div><p className="section-kicker">Painel administrativo</p><h1>Intenções por pessoa</h1><p>Cada pessoa reúne seus pedidos, obras selecionadas e valor total para atendimento presencial.</p></div><button className="admin-refresh" onClick={loadProposals} disabled={loading}>{loading ? "Atualizando…" : "Atualizar dados"}</button></div>

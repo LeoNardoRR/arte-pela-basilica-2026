@@ -1,7 +1,6 @@
 "use client";
 
 import { publicAsset } from "./publicAsset";
-import { ADMIN_EMAIL } from "./supabase";
 
 const STATIC_QR = publicAsset("/qr-doacao-pix.png");
 
@@ -22,7 +21,7 @@ export function DonationSection() {
           <span>PIX para doação</span>
           <strong>Escaneie pelo aplicativo do seu banco</strong>
           <p>Aponte a câmera do aplicativo para o QR Code. Antes de concluir, confira se os dados do recebedor correspondem à Basílica Santo Antônio.</p>
-          <a className="donation-attention-button" href={`mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent("Quero contribuir com a Arte pela Basílica")}`}>Falar com a equipe</a>
+          <a className="donation-attention-button" href="#como-participar">Ver orientações para participar</a>
         </div>
       </div>
     </section>
