@@ -118,7 +118,10 @@ O projeto adota os seguintes controles:
 git clone https://github.com/LeoNardoRR/arte-pela-basilica-2026.git
 cd arte-pela-basilica-2026
 npm ci
+cp .env.example .env.local
 ~~~
+
+Preencha <code>.env.local</code> com a URL e a chave publishable do Supabase (opcional em desenvolvimento — há fallback no código).
 
 ### Desenvolvimento
 
