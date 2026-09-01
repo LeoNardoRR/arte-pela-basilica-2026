@@ -1,0 +1,10 @@
+# A minimal config for Supabase CLI migrations (db push / link).
+# See: https://supabase.com/docs/guides/cli/config
+
+project_id = "luodxzttfbnnufxufehb"
+
+[db]
+major_version = 15
+
+[db.migrations]
+enabled = true

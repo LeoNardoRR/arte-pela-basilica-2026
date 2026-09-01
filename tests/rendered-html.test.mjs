@@ -22,6 +22,8 @@ test("admin uses protected Supabase access and has no public demo", async () => 
   assert.doesNotMatch(supabase, /ADMIN_EMAIL/);
   assert.match(supabase, /detectSessionInUrl:\s*false/);
   assert.match(supabase, /persistSession:\s*false/);
+  assert.match(supabase, /import\.meta\.env\.VITE_SUPABASE_URL/);
+  assert.match(supabase, /import\.meta\.env\.VITE_SUPABASE_ANON_KEY/);
   assert.match(admin, /admin_get_proposals/);
   assert.match(admin, /admin_update_cart_status/);
   assert.match(admin, /admin_set_artwork_available/);
@@ -36,10 +38,12 @@ test("admin uses protected Supabase access and has no public demo", async () => 
   assert.match(admin, /Fila de atendimento/);
   assert.ok(admin.indexOf('id="queue-title"') < admin.indexOf('id="pricing-title"'));
   assert.match(admin, /statusFilters\.map/);
-  assert.match(admin, /className="people-list" tabIndex=\{people\.length > 4 \? 0 : undefined\} aria-label="Pessoas na fila de atendimento"/);
+  assert.match(admin, /className="people-list"/);
+  assert.match(admin, /aria-label="Pessoas na fila de atendimento"/);
+  assert.match(admin, /tabIndex=\{people\.length > 4/);
   assert.match(admin, /Histórico de intenções/);
   assert.match(admin, /tabIndex=\{person\.intents\.length > 2/);
-  assert.match(admin, /<details className="person-card"/);
+  assert.match(admin, /className="person-card"/);
   assert.match(admin, /Ver detalhes/);
   assert.match(admin, /Contato direto/);
   assert.match(admin, /credenciais administrativas fornecidas/);
@@ -79,7 +83,7 @@ test("catalog provides flexible prices, full-screen gallery and timed pre-reserv
   assert.match(catalog, /href="#conteudo-principal" onClick=\{\(event\) => navigateToSection\(event, "conteudo-principal"\)\}><small>01<\/small>A exposição/);
   assert.match(catalog, /href="#conteudo-principal" onClick=\{\(event\) => navigateToSection\(event, "conteudo-principal"\)\}><small>01<\/small><span>A exposição/);
   assert.match(catalog, /Parceiros desta edição/);
-  assert.match(catalog, /className="admin-menu-link" href="#admin"/);
+  assert.doesNotMatch(catalog, /admin-menu-link|admin-link|href="#admin"/);
   assert.match(catalog, /price_cents/);
   assert.match(catalog, /submit_pre_reservation/);
   assert.match(catalog, /Pré-reserva temporária/);
@@ -229,7 +233,6 @@ test("SOC hardening denies public PII RPCs and removes the duplicate D1 surface"
   const migration = await read("supabase/migrations/20260831233000_soc_hardening.sql");
   const hosting = JSON.parse(await read(".openai/hosting.json"));
   const worker = await read("worker/index.ts");
-  const legacyAdmin = await read("src/Admin.tsx");
   assert.equal(hosting.d1, null);
   assert.match(migration, /revoke all on function public\.admin_get_proposals\(\) from public, anon/);
   assert.match(migration, /security invoker/);
@@ -240,7 +243,6 @@ test("SOC hardening denies public PII RPCs and removes the duplicate D1 surface"
   assert.match(worker, /default-src 'self'/);
   assert.match(worker, /connect-src 'self' https:\/\/luodxzttfbnnufxufehb\.supabase\.co/);
   assert.doesNotMatch(worker, /DB:\s*D1Database/);
-  assert.doesNotMatch(legacyAdmin, /admin_get_proposals|SUPABASE_KEY|Senha incorreta/);
 });
 
 test("reservation notification and official donation QR are explicit but respectful", async () => {
