@@ -95,7 +95,7 @@ test("catalog provides flexible prices, full-screen gallery and timed pre-reserv
   assert.match(catalog, /Hotel Florença/);
   assert.match(catalog, /const holdMinutes = purchaseContext === "outside" \? 24 \* 60 : 30/);
   assert.match(catalog, /hold_minutes: holdMinutes/);
-  assert.match(catalog, /De 11 a 17 de setembro/);
+  assert.match(catalog, /De 23 a 29 de setembro/);
   assert.match(catalog, /24 horas · Basílica de Americana/);
   assert.match(catalog, /Confirmar pré-reserva por.*24 horas.*30 min/);
   assert.match(catalog, /allowNotifications/);

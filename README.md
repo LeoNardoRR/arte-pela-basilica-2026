@@ -27,7 +27,7 @@
 
 O projeto apoia financeiramente a **Basílica Santo Antônio de Pádua**, em Americana. O site não processa pagamentos de obras: ele registra a intenção, bloqueia temporariamente a disponibilidade e apresenta as instruções para a conclusão presencial.
 
-> **Evento:** 10 de setembro de 2026, no Hotel Florença — Av. de Cillo, 820, Americana/SP.
+> **Evento:** 22 de setembro de 2026, no Hotel Florença — Av. de Cillo, 820, Americana/SP.
 
 ## Funcionalidades
 
@@ -46,8 +46,8 @@ O projeto apoia financeiramente a **Basílica Santo Antônio de Pádua**, em Ame
 
 | Período | Bloqueio | Conclusão |
 |---|---:|---|
-| **10 de setembro · evento** | **30 minutos** | Hotel Florença |
-| **11 a 17 de setembro** | **24 horas** | Basílica Santo Antônio de Pádua |
+| **22 de setembro · evento** | **30 minutos** | Hotel Florença |
+| **23 a 29 de setembro** | **24 horas** | Basílica Santo Antônio de Pádua |
 
 A pré-reserva:
 

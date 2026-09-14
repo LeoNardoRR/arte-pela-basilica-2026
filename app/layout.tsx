@@ -5,7 +5,7 @@ export const SITE_URL = "https://arte-pela-basilica-2026.ribeiroleonardoti.chatg
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "Arte pela Basílica — 10 de setembro de 2026",
+  title: "Arte pela Basílica — 22 de setembro de 2026",
   description: "Conheça o acervo do Vernissage 2026, faça uma pré-reserva temporária e apoie financeiramente a Basílica Santo Antônio.",
   alternates: { canonical: "/" },
   icons: { icon: "/favicon.svg" },
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     siteName: "Arte pela Basílica",
     locale: "pt_BR",
     type: "website",
-    images: [{ url: "/og.png", width: 1672, height: 941, alt: "Arte pela Basílica — 10 a 17 de setembro de 2026" }],
+    images: [{ url: "/og.png", width: 1672, height: 941, alt: "Arte pela Basílica — 22 a 29 de setembro de 2026" }],
   },
   twitter: {
     card: "summary_large_image",
