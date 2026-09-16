@@ -284,9 +284,11 @@ export function Admin() {
     setNotice("");
     const redirectTo = `${window.location.origin}${window.location.pathname}?admin=reset`;
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
-    setNotice(error
-      ? "Não foi possível enviar o link agora. Tente novamente em alguns instantes."
-      : "Se este e-mail estiver cadastrado, um novo link de recuperação será enviado.");
+    setNotice(error?.status === 429
+      ? "O limite de e-mails do Supabase foi atingido. Aguarde até uma hora antes de solicitar outro link."
+      : error
+        ? "Não foi possível enviar o link agora. Tente novamente em alguns instantes."
+        : "Se este e-mail estiver cadastrado, um novo link de recuperação será enviado.");
     setLoading(false);
   }
 
