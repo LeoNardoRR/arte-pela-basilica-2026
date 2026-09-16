@@ -359,7 +359,7 @@ export function Admin() {
   async function makeArtworkAvailable(artwork: ArtworkPrice) {
     if (artwork.status === "available") return;
     const confirmed = window.confirm(
-      `${artwork.title} voltará a aparecer como disponível no acervo. O histórico de reservas e vendas será preservado. Deseja continuar?`,
+      `${artwork.title} voltará a aparecer como disponível. Se fizer parte de uma pré-reserva com outras obras, a pré-reserva inteira será cancelada e todas essas obras serão liberadas. O histórico será preservado. Deseja continuar?`,
     );
     if (!confirmed) return;
     setChangingId(`availability-${artwork.id}`);
