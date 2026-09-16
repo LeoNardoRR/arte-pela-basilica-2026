@@ -1,7 +1,7 @@
 "use client";
 
 import type { Session } from "@supabase/supabase-js";
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { publicAsset } from "./publicAsset";
 import { supabase } from "./supabase";
 
@@ -46,6 +46,9 @@ type ArtworkPrice = {
   price_cents: number | null;
   status: "available" | "reserved" | "sold";
 };
+type PendingAdminAction =
+  | { type: "status"; intent: Intent; nextStatus: IntentStatus }
+  | { type: "availability"; artwork: ArtworkPrice };
 type PersonGroup = {
   key: string;
   name: string;
@@ -195,6 +198,13 @@ export function Admin() {
   const [openKeys, setOpenKeys] = useState<Set<string>>(new Set());
   const [artworkPrices, setArtworkPrices] = useState<ArtworkPrice[]>([]);
   const [priceDrafts, setPriceDrafts] = useState<Record<number, string>>({});
+  const [pendingAction, setPendingAction] = useState<PendingAdminAction | null>(null);
+  const confirmDialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    if (pendingAction && confirmDialogRef.current && !confirmDialogRef.current.open)
+      confirmDialogRef.current.showModal();
+  }, [pendingAction]);
 
   const togglePersonOpen = (key: string) => {
     setOpenKeys((prev) => {
@@ -302,17 +312,15 @@ export function Admin() {
     window.history.replaceState({}, "", `${window.location.pathname}#admin`);
   }
 
-  async function updateStatus(intent: Intent, nextStatus: IntentStatus) {
-    const destructive = nextStatus === "approved" || nextStatus === "declined";
-    if (
-      destructive &&
-      !window.confirm(
-        nextStatus === "approved"
-          ? "Confirmar esta venda marcará as obras como adquiridas. Deseja continuar?"
-          : "Confirma o cancelamento desta intenção?",
-      )
-    )
+  function updateStatus(intent: Intent, nextStatus: IntentStatus) {
+    if (nextStatus === "approved" || nextStatus === "declined") {
+      setPendingAction({ type: "status", intent, nextStatus });
       return;
+    }
+    void performStatusUpdate(intent, nextStatus);
+  }
+
+  async function performStatusUpdate(intent: Intent, nextStatus: IntentStatus) {
     setChangingId(intent.id);
     setNotice("");
     const { error } = await supabase.rpc("admin_update_cart_status", {
@@ -356,12 +364,12 @@ export function Admin() {
     setChangingId("");
   }
 
-  async function makeArtworkAvailable(artwork: ArtworkPrice) {
+  function makeArtworkAvailable(artwork: ArtworkPrice) {
     if (artwork.status === "available") return;
-    const confirmed = window.confirm(
-      `${artwork.title} voltará a aparecer como disponível. Se fizer parte de uma pré-reserva com outras obras, a pré-reserva inteira será cancelada e todas essas obras serão liberadas. O histórico será preservado. Deseja continuar?`,
-    );
-    if (!confirmed) return;
+    setPendingAction({ type: "availability", artwork });
+  }
+
+  async function performMakeArtworkAvailable(artwork: ArtworkPrice) {
     setChangingId(`availability-${artwork.id}`);
     setNotice("");
     const { error } = await supabase.rpc("admin_set_artwork_available", {
@@ -373,6 +381,15 @@ export function Admin() {
       setNotice(`${artwork.title} voltou a ficar disponível.`);
     }
     setChangingId("");
+  }
+
+  function confirmPendingAction() {
+    if (!pendingAction) return;
+    const action = pendingAction;
+    setPendingAction(null);
+    if (action.type === "status")
+      void performStatusUpdate(action.intent, action.nextStatus);
+    else void performMakeArtworkAvailable(action.artwork);
   }
 
   const displayedIntents = intents;
@@ -849,6 +866,42 @@ export function Admin() {
         </div>
       </header>
       <section className="admin-wrap">{content}</section>
+      {pendingAction && (
+        <dialog
+          ref={confirmDialogRef}
+          className="admin-confirm-dialog"
+          aria-labelledby="admin-confirm-title"
+          aria-describedby="admin-confirm-description"
+          onCancel={() => setPendingAction(null)}
+        >
+          <h2 id="admin-confirm-title">
+            {pendingAction.type === "availability"
+              ? "Tornar obra disponível?"
+              : pendingAction.nextStatus === "approved"
+                ? "Confirmar venda?"
+                : "Cancelar intenção?"}
+          </h2>
+          <p id="admin-confirm-description">
+            {pendingAction.type === "availability"
+              ? `${pendingAction.artwork.title} voltará a ficar disponível. Se fizer parte de uma pré-reserva com outras obras, a pré-reserva inteira será cancelada e todas serão liberadas. O histórico será preservado.`
+              : pendingAction.nextStatus === "approved"
+                ? `A venda ${pendingAction.intent.confirmation_code ?? "selecionada"} será confirmada e suas obras serão marcadas como adquiridas.`
+                : `A intenção ${pendingAction.intent.confirmation_code ?? "selecionada"} será cancelada e suas obras voltarão a ficar disponíveis. O histórico será preservado.`}
+          </p>
+          <div className="admin-confirm-actions">
+            <button type="button" autoFocus onClick={() => setPendingAction(null)}>
+              Voltar
+            </button>
+            <button type="button" className="confirm" onClick={confirmPendingAction}>
+              {pendingAction.type === "availability"
+                ? "Tornar disponível"
+                : pendingAction.nextStatus === "approved"
+                  ? "Confirmar venda"
+                  : "Cancelar intenção"}
+            </button>
+          </div>
+        </dialog>
+      )}
     </main>
   );
 }

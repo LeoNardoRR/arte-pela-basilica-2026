@@ -26,6 +26,14 @@ body { margin: 0; background: var(--ivory); color: var(--ink); font-family: "Int
 .not-found-page h1 { max-width: 760px; margin: 0; color: var(--navy); font: 700 clamp(42px, 6vw, 72px)/1.05 "Playfair Display", serif; }
 .not-found-page > p:not(.section-kicker) { max-width: 560px; margin: 24px 0 30px; color: var(--muted); line-height: 1.7; }
 .admin-page { min-height: 100vh; background: var(--ivory); color: var(--ink); }
+.admin-confirm-dialog { width: min(440px, calc(100vw - 32px)); max-height: calc(100vh - 32px); padding: 28px; border: 1px solid #ded4c6; border-radius: 14px; background: #fff; color: var(--ink); box-shadow: 0 20px 70px rgba(0, 6, 70, .22); }
+.admin-confirm-dialog::backdrop { background: rgba(8, 13, 42, .62); }
+.admin-confirm-dialog h2 { margin: 0 0 12px; color: var(--navy); font: 700 27px/1.2 "Playfair Display", serif; }
+.admin-confirm-dialog p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
+.admin-confirm-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.admin-confirm-actions button { min-height: 42px; padding: 9px 16px; border: 1px solid var(--navy); border-radius: 6px; background: #fff; color: var(--navy); font: 700 13px "Inter", sans-serif; cursor: pointer; }
+.admin-confirm-actions button.confirm { background: var(--navy); color: #fff; }
+.admin-confirm-actions button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .admin-header {
   min-height: 70px;
   padding: 0 max(4vw, calc((100vw - 1380px) / 2));
