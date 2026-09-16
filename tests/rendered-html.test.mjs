@@ -11,12 +11,15 @@ test("admin route survives hash navigation and auth redirects", async () => {
   assert.match(page, /URLSearchParams/);
   assert.match(page, /access_token=/);
   assert.match(page, /hashchange/);
+  assert.match(page, /PasswordRecovery/);
+  assert.match(page, /hash\.get\("type"\) === "recovery"/);
 });
 
 test("admin uses protected Supabase access and has no public demo", async () => {
   const admin = await read("app/Admin.tsx");
   const supabase = await read("app/supabase.ts");
   assert.match(admin, /signInWithPassword/);
+  assert.match(admin, /resetPasswordForEmail/);
   assert.match(admin, /rpc\("is_basilica_admin"\)/);
   assert.doesNotMatch(admin, /ADMIN_EMAIL|readOnly autoComplete="username"/);
   assert.doesNotMatch(supabase, /ADMIN_EMAIL/);
@@ -61,7 +64,17 @@ test("admin uses protected Supabase access and has no public demo", async () => 
   assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*\.people-list\s*\{[^}]*max-height:\s*min\(68svh,\s*640px\)/);
   assert.match(css, /@media \(max-width:\s*620px\)[\s\S]*\.person-intents\s*\{[^}]*max-height:\s*none[^}]*overflow:\s*visible/);
   assert.match(css, /\.person-contact-panel \.intent-contact b\s*\{[^}]*overflow-wrap:\s*anywhere/);
-  assert.doesNotMatch(admin, /resetPasswordForEmail|PASSWORD_RECOVERY|updateUser\(\{ password:|Criar ou redefinir senha|Visualizar demonstração|Modo demonstração|demoMode|demoIntents/);
+  assert.doesNotMatch(admin, /Visualizar demonstração|Modo demonstração|demoMode|demoIntents/);
+});
+
+test("password recovery only updates a session established by the recovery link", async () => {
+  const recovery = await read("app/PasswordRecovery.tsx");
+  assert.match(recovery, /hash\.get\("type"\) === "recovery"/);
+  assert.match(recovery, /setSession\(\{ access_token: accessToken, refresh_token: refreshToken \}\)/);
+  assert.match(recovery, /history\.replaceState/);
+  assert.match(recovery, /auth\.updateUser\(\{ password \}\)/);
+  assert.match(recovery, /password\.length < 16/);
+  assert.match(recovery, /password !== confirmation/);
 });
 
 test("catalog provides flexible prices, full-screen gallery and timed pre-reservation flow", async () => {

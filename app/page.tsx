@@ -3,6 +3,18 @@
 import { useEffect, useState } from "react";
 import { Admin } from "./Admin";
 import { Catalog } from "./Catalog";
+import { PasswordRecovery } from "./PasswordRecovery";
+
+function routeIsRecovery(): boolean {
+  if (typeof window === "undefined") return false;
+  const hash = new URLSearchParams(window.location.hash.slice(1));
+  return (
+    new URLSearchParams(window.location.search).get("admin") === "reset" ||
+    hash.get("type") === "recovery" ||
+    hash.has("error_code") ||
+    hash.has("error")
+  );
+}
 
 function routeIsAdmin(): boolean {
   if (typeof window === "undefined") return false;
@@ -15,9 +27,13 @@ function routeIsAdmin(): boolean {
 
 export default function Home() {
   const [isAdmin, setIsAdmin] = useState<boolean>(() => routeIsAdmin());
+  const [isRecovery, setIsRecovery] = useState<boolean>(() => routeIsRecovery());
 
   useEffect(() => {
-    const updateRoute = () => setIsAdmin(routeIsAdmin());
+    const updateRoute = () => {
+      setIsAdmin(routeIsAdmin());
+      setIsRecovery(routeIsRecovery());
+    };
     window.addEventListener("hashchange", updateRoute);
     window.addEventListener("popstate", updateRoute);
     return () => {
@@ -26,5 +42,5 @@ export default function Home() {
     };
   }, []);
 
-  return isAdmin ? <Admin /> : <Catalog />;
+  return isRecovery ? <PasswordRecovery /> : isAdmin ? <Admin /> : <Catalog />;
 }

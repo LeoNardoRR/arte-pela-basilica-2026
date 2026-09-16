@@ -274,6 +274,22 @@ export function Admin() {
     setLoading(false);
   }
 
+  async function requestRecovery() {
+    const email = username.trim().toLowerCase();
+    if (!email) {
+      setNotice("Informe seu e-mail para receber o link de recuperação.");
+      return;
+    }
+    setLoading(true);
+    setNotice("");
+    const redirectTo = `${window.location.origin}${window.location.pathname}?admin=reset`;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+    setNotice(error
+      ? "Não foi possível enviar o link agora. Tente novamente em alguns instantes."
+      : "Se este e-mail estiver cadastrado, um novo link de recuperação será enviado.");
+    setLoading(false);
+  }
+
   async function logout() {
     setLoading(true);
     await supabase.auth.signOut();
@@ -436,6 +452,9 @@ export function Admin() {
             <span className="arrow-icon arrow-right" aria-hidden="true" />
           </button>
         </form>
+        <button className="admin-recovery-link" type="button" disabled={loading} onClick={requestRecovery}>
+          Esqueci minha senha
+        </button>
         {notice && (
           <p className="admin-notice" role="status">
             {notice}

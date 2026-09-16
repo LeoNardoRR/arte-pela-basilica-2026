@@ -71,6 +71,8 @@ body { margin: 0; background: var(--ivory); color: var(--ink); font-family: "Int
 .admin-auth-form input { width: 100%; border: 1px solid #d8d2cd; border-radius: 10px; padding: 14px 16px; outline: none; background: #faf9f7; color: var(--ink); font-size: 14px; transition: border-color 0.2s, box-shadow 0.2s; }
 .admin-auth-form input:focus { border-color: var(--navy-2); background: #ffffff; box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.08); }
 .admin-auth-form .button { width: 100%; min-width: 0; margin-top: 8px; }
+.admin-recovery-link { display: block; margin: 18px auto 0; padding: 6px; border: 0; background: transparent; color: var(--navy); font: 600 13px "Inter", sans-serif; text-decoration: underline; cursor: pointer; }
+.admin-recovery-link:disabled { opacity: .55; cursor: wait; }
 
 .admin-title { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
 .admin-title > div > p:last-child { max-width: 680px; margin: 10px 0 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
