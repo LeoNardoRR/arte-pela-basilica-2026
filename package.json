@@ -13,7 +13,8 @@
     "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
     "test": "npm run build && node --test tests/*.test.mjs",
     "test:integration": "node --test tests/supabase-rpc.integration.test.mjs",
-    "lint": "eslint . --ignore-pattern dist --ignore-pattern dist-pages --ignore-pattern .next"
+    "lint": "eslint . --ignore-pattern dist --ignore-pattern dist-pages --ignore-pattern .next",
+    "send:reservation-emails": "node scripts/send-reservation-emails.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.112.3",

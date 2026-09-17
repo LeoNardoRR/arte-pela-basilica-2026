@@ -16,5 +16,10 @@ test("migrations version revoke grants and RLS policies", async () => {
   assert.match(sql, /submit_pre_reservation/);
   assert.match(sql, /release_expired_pre_reservations/);
   assert.match(sql, /admin_update_cart_status/);
+  assert.match(sql, /reservation_email_queue/);
+  assert.match(sql, /enqueue_pre_reservation_emails/);
+  assert.match(sql, /buyer_confirmation/);
+  assert.match(sql, /internal_notification/);
+  assert.match(sql, /2026-09-23 00:00:00-03/);
   assert.match(sql, /is_basilica_admin\(\)/);
 });
