@@ -125,7 +125,7 @@ begin
       'instructions', 'Identificar a obra reservada, acompanhar o pagamento pela secretaria e registrar a conclusão no painel administrativo.'
     )
   )
-  on conflict (cart_id, message_kind) do nothing;
+  on conflict on constraint reservation_email_queue_cart_id_message_kind_key do nothing;
 end;
 $$;
 
