@@ -28,7 +28,9 @@ node scripts/send-reservation-emails.mjs
 
 ## Agendamento
 
-O worker está agendado em `.github/workflows/send-reservation-emails.yml`. Ele roda automaticamente a cada 5 minutos e também pode ser disparado manualmente pelo GitHub Actions.
+O worker principal roda continuamente no contêiner `basilica-reservation-worker` da VPS Hetzner, processando a fila a cada minuto. O contêiner usa `--restart unless-stopped` e mantém as credenciais em `/opt/basilica-reservation-worker/.env` com acesso restrito.
+
+O workflow `.github/workflows/send-reservation-emails.yml` fica disponível somente para contingência e acionamento manual, evitando concorrência e envio duplicado.
 
 Secrets necessários no GitHub:
 
@@ -45,7 +47,7 @@ SUPABASE_URL=https://luodxzttfbnnufxufehb.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=...
 ```
 
-Alternativa n8n/VPS: criar um fluxo Cron a cada 5 minutos que execute `npm run send:reservation-emails` neste diretório, com as mesmas variáveis acima no ambiente.
+Os IPs IPv4 e IPv6 da VPS precisam permanecer autorizados na conta Brevo. Para verificar a operação, use `docker logs basilica-reservation-worker` na VPS.
 
 ## Observações
 
