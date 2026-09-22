@@ -10,6 +10,9 @@ test("admin route survives hash navigation and auth redirects", async () => {
   assert.match(page, /hash\.startsWith\("#admin"\)/);
   assert.match(page, /URLSearchParams/);
   assert.match(page, /access_token=/);
+  assert.match(page, /const \[isAdmin, setIsAdmin\] = useState\(false\)/);
+  assert.match(page, /const \[isRecovery, setIsRecovery\] = useState\(false\)/);
+  assert.match(page, /setIsAdmin\(routeIsAdmin\(\)\);[\s\S]*setIsRecovery\(routeIsRecovery\(\)\);[\s\S]*updateRoute\(\);/);
   assert.match(page, /hashchange/);
   assert.match(page, /PasswordRecovery/);
   assert.match(page, /hash\.get\("type"\) === "recovery"/);
@@ -37,6 +40,8 @@ test("admin uses protected Supabase access and has no public demo", async () => 
   assert.match(admin, /placeholder="0,00"/);
   assert.match(admin, /centavos\.padEnd\(2, "0"\)/);
   assert.match(admin, /groupByPerson/);
+  assert.match(admin, /normalizeBuyerName\(intent\.bidder_name\)/);
+  assert.ok(admin.indexOf("normalizeBuyerName(intent.bidder_name)") < admin.indexOf("intent.bidder_email.trim().toLowerCase()"));
   assert.match(admin, /Intenções por pessoa/);
   assert.match(admin, /Fila de atendimento/);
   assert.ok(admin.indexOf('id="queue-title"') < admin.indexOf('id="pricing-title"'));

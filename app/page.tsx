@@ -26,14 +26,15 @@ function routeIsAdmin(): boolean {
 }
 
 export default function Home() {
-  const [isAdmin, setIsAdmin] = useState<boolean>(() => routeIsAdmin());
-  const [isRecovery, setIsRecovery] = useState<boolean>(() => routeIsRecovery());
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isRecovery, setIsRecovery] = useState(false);
 
   useEffect(() => {
     const updateRoute = () => {
       setIsAdmin(routeIsAdmin());
       setIsRecovery(routeIsRecovery());
     };
+    updateRoute();
     window.addEventListener("hashchange", updateRoute);
     window.addEventListener("popstate", updateRoute);
     return () => {

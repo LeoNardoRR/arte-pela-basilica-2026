@@ -144,12 +144,22 @@ function priceDraftToCents(value: string) {
   return Number.isSafeInteger(cents) && cents >= 100 ? cents : null;
 }
 
+function normalizeBuyerName(value: string) {
+  return value
+    .normalize("NFKC")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLocaleLowerCase("pt-BR");
+}
+
 function groupByPerson(intents: Intent[]): PersonGroup[] {
   const groups = new Map<string, PersonGroup>();
   intents.forEach((intent) => {
     const key =
+      normalizeBuyerName(intent.bidder_name) ||
       intent.bidder_email.trim().toLowerCase() ||
-      intent.bidder_phone.replace(/\D/g, "");
+      intent.bidder_phone.replace(/\D/g, "") ||
+      intent.id;
     const current = groups.get(key) ?? {
       key,
       name: intent.bidder_name,
