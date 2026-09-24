@@ -20,6 +20,7 @@ test("migrations version revoke grants and RLS policies", async () => {
   assert.match(sql, /enqueue_pre_reservation_emails/);
   assert.match(sql, /buyer_confirmation/);
   assert.match(sql, /internal_notification/);
+  assert.match(sql, /pagamento e a retirada da obra são feitos na secretaria da Basílica/i);
   assert.match(sql, /2026-09-23 00:00:00-03/);
   assert.match(sql, /is_basilica_admin\(\)/);
 });

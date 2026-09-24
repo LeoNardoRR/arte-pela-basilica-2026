@@ -282,6 +282,12 @@ a { color: inherit; text-decoration: none; }
 .event-bar strong { color: var(--navy); font: 600 14px "Playfair Display", serif; }
 .event-bar > a { font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: .06em; color: var(--navy-2); }
 
+.pickup-notice { width: min(1160px, 90vw); margin: 28px auto 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); background: var(--navy); color: white; border-top: 3px solid var(--gold); }
+.pickup-notice > div { min-height: 96px; padding: 22px 28px; display: flex; flex-direction: column; justify-content: center; gap: 8px; }
+.pickup-notice > div + div { border-left: 1px solid rgba(255,255,255,.18); }
+.pickup-notice span { color: rgba(255,255,255,.65); font-size: 9px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; }
+.pickup-notice strong { font: 600 20px/1.25 "Playfair Display", serif; }
+
 .intro { max-width: 1180px; margin: auto; padding: 120px 0 95px; text-align: center; }
 .section-kicker { color: var(--gold); }
 .intro h2, .catalog-heading h2, .how-section h2, .closing h2, .purchase-modal h2 { margin: 0; color: var(--navy); font: 700 clamp(44px, 4.6vw, 68px)/1.07 "Playfair Display", serif; letter-spacing: -.012em; }
@@ -754,6 +760,9 @@ footer p:last-child { text-align: right; }
   .event-bar { width: 92vw; margin-top: -54px; grid-template-columns: 42px 1fr; padding: 18px; gap: 14px; }
   .event-bar > div:nth-of-type(2) { border-right: 0; }
   .event-bar > div:nth-of-type(3), .event-bar > div:nth-of-type(4) { display: none; }
+  .pickup-notice { width: 92vw; grid-template-columns: 1fr; }
+  .pickup-notice > div { min-height: 82px; padding: 18px; }
+  .pickup-notice > div + div { border-left: 0; border-top: 1px solid rgba(255,255,255,.18); }
   .intro { padding-top: 100px; padding-bottom: 76px; }
   .intro-copy { margin-bottom: 45px; font-size: 14px; }
   .numbers { grid-template-columns: 1fr; }

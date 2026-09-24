@@ -87,7 +87,7 @@ function buyerEmail(row) {
     <div style="margin:24px 0;padding:18px 20px;background:#fbf9f8;border-left:4px solid #c9a227;"><strong style="color:#000666;">Código da reserva</strong><br><span style="font-size:24px;font-weight:800;letter-spacing:.06em;">${escapeHtml(p.confirmation_code)}</span></div>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:22px 0;border-collapse:collapse;">${worksRows(p.works)}</table>
     <p style="margin:0 0 18px;color:#000666;font-size:18px;font-weight:800;">Valor total: ${formatCents(p.total_cents)}</p>
-    <p style="margin:0;color:#3a3a46;font-size:15px;line-height:1.75;">A retirada da obra poderá ser feita na Basílica a partir de 23 de setembro. O pagamento será realizado diretamente com a Basílica. Apresente o código da reserva e a identificação da obra para que a secretaria possa localizar, entregar e receber o pagamento.</p>`;
+    <p style="margin:0;color:#3a3a46;font-size:15px;line-height:1.75;">Para reservas realizadas pelo site a partir de 23 de setembro, o pagamento e a retirada da obra são feitos na secretaria da Basílica. Apresente o código da reserva e a identificação da obra para que a equipe possa localizar sua compra.</p>`;
   return shell("Pré-reserva confirmada", `Reserva ${p.confirmation_code} confirmada.`, body);
 }
 
@@ -103,7 +103,7 @@ function internalEmail(row) {
     </table>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:22px 0;border-collapse:collapse;">${worksRows(p.works)}</table>
     <p style="margin:0 0 18px;color:#000666;font-size:18px;font-weight:800;">Valor total: ${formatCents(p.total_cents)}</p>
-    <div style="margin:22px 0 0;padding:18px 20px;background:#fbf9f8;border-left:4px solid #c9a227;color:#3a3a46;font-size:14px;line-height:1.65;"><strong style="color:#000666;">Ação operacional</strong><br>Identificar a obra reservada, acompanhar o pagamento pela secretaria e registrar a conclusão no painel administrativo.</div>`;
+    <div style="margin:22px 0 0;padding:18px 20px;background:#fbf9f8;border-left:4px solid #c9a227;color:#3a3a46;font-size:14px;line-height:1.65;"><strong style="color:#000666;">Ação operacional</strong><br>Reserva feita pelo site: identificar a obra, receber o pagamento e realizar a retirada na secretaria da Basílica. Depois, registrar a conclusão no painel administrativo.</div>`;
   return shell("Nova reserva de obra", `Nova reserva ${p.confirmation_code}.`, body);
 }
 

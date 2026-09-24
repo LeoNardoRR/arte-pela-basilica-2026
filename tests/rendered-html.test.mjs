@@ -115,7 +115,7 @@ test("catalog provides flexible prices, full-screen gallery and timed pre-reserv
   assert.match(emailWorker, /BASILICA_ARTWORK_INTERNAL_EMAILS/);
   assert.match(emailWorker, /Pré-reserva confirmada/);
   assert.match(emailWorker, /Nova reserva de obra/);
-  assert.match(emailWorker, /Retirada da obra poderá ser feita na Basílica a partir de 23 de setembro/i);
+  assert.match(emailWorker, /pagamento e a retirada da obra são feitos na secretaria da Basílica/i);
   assert.match(catalog, /Pré-reserva temporária/);
   assert.match(catalog, /sem pagamento online/i);
   assert.match(catalog, /extra_contribution_cents/);
@@ -125,7 +125,9 @@ test("catalog provides flexible prices, full-screen gallery and timed pre-reserv
   assert.match(catalog, /Hotel Florença/);
   assert.match(catalog, /const holdMinutes = 24 \* 60/);
   assert.match(catalog, /hold_minutes: holdMinutes/);
-  assert.match(catalog, /retirada poderá ser feita a partir de 23 de setembro/);
+  assert.match(catalog, /Retirada na Quadrum/);
+  assert.match(catalog, /Pagamento e retirada na Basílica/);
+  assert.match(catalog, /purchaseContext="outside"/);
   assert.match(catalog, /Confirmar pré-reserva/);
   assert.doesNotMatch(catalog, /30 minutos|24 horas|Confirmar pré-reserva por/);
   assert.match(catalog, /allowNotifications/);
@@ -154,6 +156,7 @@ test("catalog provides flexible prices, full-screen gallery and timed pre-reserv
   assert.match(catalog, /sessionStorage\.setItem\(CART_STORAGE_KEY/);
   assert.doesNotMatch(catalog, /RESERVATION_STORAGE_KEY|localStorage|mailto:|emailUrl/);
   assert.match(catalog, /Pagamento direto com a Basílica/);
+  assert.match(catalog, /pagamento e a retirada serão realizados na secretaria da Basílica/i);
   assert.doesNotMatch(catalog, /Preparar cópia por e-mail/);
   assert.doesNotMatch(catalog, /mail\.google\.com|Abrir confirmação no Gmail/);
   assert.match(catalog, /<ArtworkExperience3D/);
@@ -286,7 +289,7 @@ test("reservation notification and official donation QR are explicit but respect
   assert.match(countdown, /remaining <= 5 \* 60/);
   assert.match(countdown, /const hours = Math\.floor\(remaining \/ 3600000\)/);
   assert.match(countdown, /purchaseContext === "outside"/);
-  assert.match(countdown, /antes do fim das 24 horas/);
+  assert.match(countdown, /pagamento e a retirada na Basílica Santo Antônio/i);
   assert.match(donation, /donation-attention-button/);
   assert.match(donation, /qr-code-slot/);
   assert.match(donation, /qr-doacao-pix\.png/);
