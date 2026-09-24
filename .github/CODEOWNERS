@@ -1,0 +1,5 @@
+# Alteracoes no catalogo e nas regras de integridade exigem revisao do responsavel.
+/app/artworkImages.ts @jeanbiscazzi
+/supabase/migrations/ @jeanbiscazzi
+/.github/workflows/catalog-integrity.yml @jeanbiscazzi
+/tests/catalog-integrity.test.mjs @jeanbiscazzi
