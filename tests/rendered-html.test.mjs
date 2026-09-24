@@ -127,6 +127,10 @@ test("catalog provides flexible prices, full-screen gallery and timed pre-reserv
   assert.match(catalog, /hold_minutes: holdMinutes/);
   assert.match(catalog, /Retirada na Quadrum/);
   assert.match(catalog, /Pagamento e retirada na Basílica/);
+  assert.match(catalog, /O evento na imprensa/);
+  assert.match(catalog, /Escolher uma obra/);
+  assert.ok(catalog.includes("https://novomomento.com.br/hotel-florenca-vernissage-ajuda-basilc-santonio/"));
+  assert.match(catalog, /Ler a matéria no Novo Momento/);
   assert.match(catalog, /purchaseContext="outside"/);
   assert.match(catalog, /Confirmar pré-reserva/);
   assert.doesNotMatch(catalog, /30 minutos|24 horas|Confirmar pré-reserva por/);
