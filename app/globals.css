@@ -959,6 +959,9 @@ footer p:last-child { text-align: right; }
 .donation-copy h2,.sponsors-section h2 { margin: 8px 0 22px; color: var(--navy); font: 600 clamp(34px,5vw,62px)/1 "Playfair Display",serif; }
 .donation-copy > p:not(.section-kicker) { max-width: 590px; color: var(--muted); font-size: 15px; line-height: 1.8; }
 .donation-copy > small { display: block; max-width: 540px; padding-top: 18px; border-top: 1px solid #d9cfbf; color: #7a746b; line-height: 1.6; }
+.donation-total { display: flex; align-items: baseline; gap: 12px; margin-top: 20px; }
+.donation-total span { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--gold); font-weight: 600; }
+.donation-total strong { font: 600 26px/1 "Playfair Display",serif; color: var(--navy); }
 .donation-pix-card { min-height: 270px; padding: 28px; display: flex; gap: 24px; align-items: center; background: white; border: 1px solid #ddd4ca; }
 .qr-code-slot { width: 170px; height: 170px; flex: 0 0 170px; padding: 9px; display: grid; place-items: center; position: relative; border: 1px solid #cfc2ae; background: #fffdf9; }
 .qr-code-slot::before,.qr-code-slot::after { content: ""; width: 22px; height: 22px; position: absolute; border-color: var(--navy); opacity: .6; }

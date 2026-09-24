@@ -12,6 +12,7 @@ import { ReservationCountdown } from "./ReservationCountdown";
 
 const BASILICA_CREST = publicAsset("/logo-basilica.jpeg");
 const CART_STORAGE_KEY = "arte-pela-basilica-cart-v2";
+const DONATION_ARTWORK_ID = 9000;
 
 type Artwork = {
   id: number;
@@ -52,6 +53,10 @@ function displayPrice(cents: number | null) {
   return cents ? formatPrice(cents) : "Valor a confirmar";
 }
 
+function isDonationWork(work: Pick<Artwork, "id">) {
+  return work.id === DONATION_ARTWORK_ID;
+}
+
 function parseOfferCents(reais: string) {
   const normalized = reais.trim().replace(/\s/g, "").replace(/\./g, "").replace(",", ".").replace(/[^\d.]/g, "");
   const parsed = Number(normalized);
@@ -68,6 +73,18 @@ function artworkSlot(work: Artwork) {
 }
 
 function artworkReference(work: Artwork): CuratedArtworkImage {
+  if (isDonationWork(work)) {
+    const donationImage = publicAsset("/artworks-clean/doacao.webp");
+    return {
+      slot: 0,
+      title: work.title,
+      artist: "Basílica Santo Antônio de Pádua",
+      imageUrl: donationImage,
+      thumbnailUrl: donationImage,
+      sourceUrl: "",
+      license: "",
+    };
+  }
   const slot = artworkSlot(work);
   const reference = CURATED_ARTWORKS[(slot - 1) % CURATED_ARTWORKS.length];
   return {
@@ -351,7 +368,7 @@ export function Catalog() {
   }
 
   function addToCart(work: Artwork) {
-    if (!work.price_cents) {
+    if (!work.price_cents && !isDonationWork(work)) {
       setMessage("O valor desta obra ainda não foi informado no catálogo.");
       setCartOpen(true);
       return;
@@ -429,13 +446,15 @@ export function Catalog() {
 
   function renderArtworkCard(work: Artwork) {
     const inCart = cart.some((item) => item.work.id === work.id);
-    const canReserve = work.status === "available" && Boolean(work.price_cents);
+    const isDonation = isDonationWork(work);
+    const canReserve = work.status === "available" && (Boolean(work.price_cents) || isDonation);
+    const isPricePending = work.status === "available" && !work.price_cents && !isDonation;
     return (
       <article className={`work-card ${work.status !== "available" ? "unavailable" : ""}`} key={work.id}>
         <button className="work-visual-button" type="button" onClick={() => setSelectedWork(work)} aria-label={`Abrir experiência 3D de ${work.title}`}>
           <div className={`work-image ${work.palette}`}>
             <ArtworkPhoto work={work} eager />
-            <span className={`status ${work.status} ${work.status === "available" && !work.price_cents ? "price-pending" : ""}`}>{work.status === "available" && !work.price_cents ? "Aguardando valor" : statusLabel[work.status]}</span>
+            <span className={`status ${work.status} ${isPricePending ? "price-pending" : ""}`}>{isPricePending ? "Aguardando valor" : statusLabel[work.status]}</span>
             {work.status === "reserved" && work.reserved_until && <ReservationCountdown expiresAt={work.reserved_until} compact />}
             {work.status !== "available" && <div className="sold-overlay"><strong>{statusLabel[work.status]}</strong><span>Indisponível para nova intenção.</span></div>}
             <span className="view-work">Abrir experiência 3D</span>
@@ -444,10 +463,10 @@ export function Catalog() {
         <div className="work-body">
           <div className="work-heading">
             <span className="work-code">{work.code}</span>
-            <strong className="work-price">{displayPrice(work.price_cents)}</strong>
+            <strong className="work-price">{isDonation ? "Valor livre" : displayPrice(work.price_cents)}</strong>
           </div>
           <h3>{work.title}</h3>
-          <p className="work-spec">Dimensões: {work.dimensions}</p>
+          <p className="work-spec">{isDonation ? "Contribua com o valor que desejar." : `Dimensões: ${work.dimensions}`}</p>
           <div className="work-card-actions">
             <button
               className={`button-add-cart ${inCart ? "in-cart" : ""}`}
@@ -455,7 +474,7 @@ export function Catalog() {
               disabled={!canReserve}
               onClick={() => (inCart ? removeFromCart(work.id) : addToCart(work))}
             >
-              {inCart ? "Na seleção ✓" : !work.price_cents ? "Valor pendente" : "Adicionar"}
+              {inCart ? "Na seleção ✓" : isDonation ? "Quero doar" : !work.price_cents ? "Valor pendente" : "Adicionar"}
             </button>
           </div>
         </div>
@@ -475,7 +494,10 @@ export function Catalog() {
       setMessage("Uma das obras não está mais disponível. Atualize o acervo e revise sua seleção.");
       return;
     }
-    if (cart.some((item) => !currentWorks.get(item.work.id)?.price_cents)) {
+    if (cart.some((item) => {
+      const currentWork = currentWorks.get(item.work.id);
+      return currentWork && !currentWork.price_cents && !isDonationWork(currentWork);
+    })) {
       setMessage("Uma das obras ainda está com o valor pendente. Revise sua seleção.");
       return;
     }
@@ -599,7 +621,7 @@ export function Catalog() {
 
       {galleryOpen && <section className="gallery-overlay" role="dialog" aria-modal="true" aria-labelledby="gallery-title"><header className="gallery-header"><div><p className="section-kicker">Acervo 2026</p><h2 id="gallery-title">Galeria de obras</h2><span>{visibleWorks.length} {visibleWorks.length === 1 ? "obra exibida" : "obras exibidas"}</span></div><div className="gallery-actions"><div className="filters" aria-label="Filtrar obras"><button aria-pressed={filter === "available"} className={filter === "available" ? "active" : ""} onClick={() => setFilter("available")}>Em exposição <small>{availableCount}</small></button><button aria-pressed={filter === "unavailable"} className={filter === "unavailable" ? "active" : ""} onClick={() => setFilter("unavailable")}>Indisponíveis <small>{works.length - availableCount}</small></button><button aria-pressed={filter === "all"} className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>Todas <small>{works.length}</small></button></div><button ref={galleryCloseRef} className="gallery-close" type="button" onClick={() => setGalleryOpen(false)} aria-label="Fechar galeria">×</button></div></header><div className="gallery-content">{reservableCount === 0 && <p className="gallery-availability-note">As obras podem ser exploradas normalmente. A pré-reserva será liberada assim que os valores oficiais forem confirmados pela equipe.</p>}<div className="gallery-grid" aria-live="polite">{visibleWorks.map(renderArtworkCard)}{visibleWorks.length === 0 && <p className="catalog-empty">Nenhuma obra encontrada neste filtro.</p>}</div></div>{renderFloatingCart("gallery")}</section>}
 
-      {selectedWork && <div ref={detailScrollerRef} className="detail-backdrop" role="presentation"><section className="artwork-detail" role="dialog" aria-modal="true" aria-labelledby="detail-title"><button ref={detailCloseRef} className="modal-close detail-close" onClick={() => setSelectedWork(null)} aria-label="Fechar detalhes">×</button><ArtworkExperience3D work={selectedWork} reference={artworkReference(selectedWork)} scrollerRef={detailScrollerRef} /><div className="detail-copy"><div><span className="section-kicker">Dados do catálogo</span><h3 id="detail-title">{selectedWork.title}</h3><dl><div><dt>Dimensões</dt><dd>{selectedWork.dimensions}</dd></div><div><dt>Disponibilidade</dt><dd>{selectedWork.status === "available" && !selectedWork.price_cents ? "Aguardando confirmação do valor" : statusLabel[selectedWork.status]}</dd></div></dl><p className="reference-credit">Imagem e informações fornecidas no Catálogo Vernissage 2026.</p></div><div className="detail-purchase"><div className="detail-price"><span>Valor informado no catálogo</span><strong>{displayPrice(selectedWork.price_cents)}</strong>{selectedWork.status !== "available" ? <small>Esta obra não está disponível para uma nova pré-reserva.</small> : selectedWork.price_cents ? <small>Você pode acrescentar uma oferta na pré-reserva</small> : <small>Pré-reserva indisponível até a definição do valor.</small>}</div>{selectedWork.status === "reserved" && selectedWork.reserved_until && <ReservationCountdown expiresAt={selectedWork.reserved_until} />}<button className="button primary" disabled={selectedWork.status !== "available" || !selectedWork.price_cents || cart.some((item) => item.work.id === selectedWork.id)} onClick={() => addToCart(selectedWork)}>{cart.some((item) => item.work.id === selectedWork.id) ? "Obra já selecionada" : selectedWork.status !== "available" ? "Obra indisponível" : !selectedWork.price_cents ? "Valor a confirmar" : "Pré-reservar esta obra"}<ArrowIcon /></button></div></div></section></div>}
+      {selectedWork && <div ref={detailScrollerRef} className="detail-backdrop" role="presentation"><section className="artwork-detail" role="dialog" aria-modal="true" aria-labelledby="detail-title"><button ref={detailCloseRef} className="modal-close detail-close" onClick={() => setSelectedWork(null)} aria-label="Fechar detalhes">×</button><ArtworkExperience3D work={selectedWork} reference={artworkReference(selectedWork)} scrollerRef={detailScrollerRef} /><div className="detail-copy"><div><span className="section-kicker">Dados do catálogo</span><h3 id="detail-title">{selectedWork.title}</h3><dl><div><dt>{isDonationWork(selectedWork) ? "Sobre" : "Dimensões"}</dt><dd>{isDonationWork(selectedWork) ? "Contribuição livre, sem valor fixo." : selectedWork.dimensions}</dd></div><div><dt>Disponibilidade</dt><dd>{selectedWork.status === "available" && !selectedWork.price_cents && !isDonationWork(selectedWork) ? "Aguardando confirmação do valor" : statusLabel[selectedWork.status]}</dd></div></dl><p className="reference-credit">Imagem e informações fornecidas no Catálogo Vernissage 2026.</p></div><div className="detail-purchase"><div className="detail-price"><span>{isDonationWork(selectedWork) ? "Valor da doação" : "Valor informado no catálogo"}</span><strong>{isDonationWork(selectedWork) ? "Você escolhe" : displayPrice(selectedWork.price_cents)}</strong>{selectedWork.status !== "available" ? <small>Esta obra não está disponível para uma nova pré-reserva.</small> : isDonationWork(selectedWork) ? <small>Informe o valor da sua doação na sua seleção</small> : selectedWork.price_cents ? <small>Você pode acrescentar uma oferta na pré-reserva</small> : <small>Pré-reserva indisponível até a definição do valor.</small>}</div>{selectedWork.status === "reserved" && selectedWork.reserved_until && <ReservationCountdown expiresAt={selectedWork.reserved_until} />}<button className="button primary" disabled={selectedWork.status !== "available" || (!selectedWork.price_cents && !isDonationWork(selectedWork)) || cart.some((item) => item.work.id === selectedWork.id)} onClick={() => addToCart(selectedWork)}>{cart.some((item) => item.work.id === selectedWork.id) ? "Obra já selecionada" : selectedWork.status !== "available" ? "Obra indisponível" : isDonationWork(selectedWork) ? "Quero doar" : !selectedWork.price_cents ? "Valor a confirmar" : "Pré-reservar esta obra"}<ArrowIcon /></button></div></div></section></div>}
 
       {cartOpen && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && closeCart()}><section className="purchase-modal cart-modal" role="dialog" aria-modal="true" aria-labelledby="cart-title"><button className="modal-close" onClick={closeCart} aria-label="Fechar seleção">×</button><p className="section-kicker">Sua seleção</p><h2 id="cart-title">Pré-reserva temporária</h2><p className="modal-note">A pré-reserva bloqueia a obra para acompanhamento da equipe. O pagamento e a retirada serão realizados na secretaria da Basílica.</p>
         {formError && <p className="form-error" role="alert">{formError}</p>}
@@ -638,7 +660,7 @@ export function Catalog() {
               ? <button className="button primary" onClick={closeCart} style={{ marginTop: "16px" }}>Voltar ao acervo</button>
               : <button className="button primary error-retry" onClick={() => { setMessage(""); void loadCatalog(); }}>Corrigir dados e revisar seleção</button>}
           </div>
-        ) : cart.length === 0 ? <div className="empty-cart"><p>Sua seleção está vazia. Explore a galeria e escolha as obras de seu interesse.</p><a className="button primary" href="#acervo" onClick={closeCart}>Explorar acervo <ArrowIcon /></a></div> : <form onSubmit={submitPurchaseIntent}><div className="cart-lines">{cart.map((item) => <div className="cart-line" key={item.work.id}><div className={`cart-thumb work-image ${item.work.palette}`}><ArtworkPhoto work={item.work} /></div><div className="cart-line-info"><small>{item.work.code}</small><strong>{item.work.title}</strong><span>{displayPrice(item.work.price_cents)}</span><label className="extra-offer">Oferta adicional (opcional)<span><b>R$</b><input inputMode="decimal" defaultValue={offerInputValue(item.extraOfferCents)} onChange={(event) => updateExtraOffer(item.work.id, event.target.value)} placeholder="0,00" aria-label={`Oferta adicional para ${item.work.title}`} /></span></label></div><button type="button" onClick={() => removeFromCart(item.work.id)} aria-label={`Remover ${item.work.title}`}>Remover</button></div>)}</div><div className="cart-total"><span>Valor base + ofertas</span><strong>{formatPrice(totalCents)}</strong></div><div className="contact-fields"><label>Nome completo<input name="name" required minLength={2} maxLength={120} autoComplete="name" placeholder="Como devemos chamar você?" /></label><label>E-mail<input name="email" type="email" required maxLength={160} autoComplete="email" placeholder="voce@email.com" /></label><label>WhatsApp<input name="phone" type="tel" required minLength={8} maxLength={40} autoComplete="tel" placeholder="(19) 99999-9999" /></label></div><input type="hidden" name="purchase_context" value="outside" /><div className="in-person-note"><strong>Pré-reserva sem pagamento online</strong><p>A obra ficará bloqueada para acompanhamento da equipe. O pagamento e a retirada serão realizados na secretaria da Basílica.</p></div><button className="button primary submit-intent" disabled={submitting}>{submitting ? "Bloqueando obra…" : "Confirmar pré-reserva"}<ArrowIcon /></button><small className="form-consent">Ao enviar, você concorda em ser contatado pela equipe sobre esta pré-reserva.</small></form>}
+        ) : cart.length === 0 ? <div className="empty-cart"><p>Sua seleção está vazia. Explore a galeria e escolha as obras de seu interesse.</p><a className="button primary" href="#acervo" onClick={closeCart}>Explorar acervo <ArrowIcon /></a></div> : <form onSubmit={submitPurchaseIntent}><div className="cart-lines">{cart.map((item) => <div className="cart-line" key={item.work.id}><div className={`cart-thumb work-image ${item.work.palette}`}><ArtworkPhoto work={item.work} /></div><div className="cart-line-info"><small>{item.work.code}</small><strong>{item.work.title}</strong><span>{isDonationWork(item.work) ? "Valor livre" : displayPrice(item.work.price_cents)}</span><label className="extra-offer">{isDonationWork(item.work) ? "Valor da doação" : "Oferta adicional (opcional)"}<span><b>R$</b><input inputMode="decimal" defaultValue={offerInputValue(item.extraOfferCents)} onChange={(event) => updateExtraOffer(item.work.id, event.target.value)} placeholder="0,00" aria-label={isDonationWork(item.work) ? "Valor da doação" : `Oferta adicional para ${item.work.title}`} /></span></label></div><button type="button" onClick={() => removeFromCart(item.work.id)} aria-label={`Remover ${item.work.title}`}>Remover</button></div>)}</div><div className="cart-total"><span>Valor base + ofertas</span><strong>{formatPrice(totalCents)}</strong></div><div className="contact-fields"><label>Nome completo<input name="name" required minLength={2} maxLength={120} autoComplete="name" placeholder="Como devemos chamar você?" /></label><label>E-mail<input name="email" type="email" required maxLength={160} autoComplete="email" placeholder="voce@email.com" /></label><label>WhatsApp<input name="phone" type="tel" required minLength={8} maxLength={40} autoComplete="tel" placeholder="(19) 99999-9999" /></label></div><input type="hidden" name="purchase_context" value="outside" /><div className="in-person-note"><strong>Pré-reserva sem pagamento online</strong><p>A obra ficará bloqueada para acompanhamento da equipe. O pagamento e a retirada serão realizados na secretaria da Basílica.</p></div><button className="button primary submit-intent" disabled={submitting}>{submitting ? "Bloqueando obra…" : "Confirmar pré-reserva"}<ArrowIcon /></button><small className="form-consent">Ao enviar, você concorda em ser contatado pela equipe sobre esta pré-reserva.</small></form>}
       </section></div>}
       {reservationReceipt && !cartOpen && <div className="reservation-toast"><ReservationCountdown expiresAt={reservationReceipt.expires_at} purchaseContext="outside" compact allowNotifications /><button type="button" className="reservation-toast-open" onClick={openActiveReservation}>Ver protocolo</button></div>}
     </main>
