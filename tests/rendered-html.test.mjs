@@ -84,6 +84,7 @@ test("password recovery only updates a session established by the recovery link"
 
 test("catalog provides flexible prices, full-screen gallery and timed pre-reservation flow", async () => {
   const catalog = await read("app/Catalog.tsx");
+  const artworkImages = await read("app/artworkImages.ts");
   const css = await read("app/globals.css");
   assert.match(catalog, /Abrir galeria/);
   assert.match(catalog, /role="dialog" aria-modal="true" aria-labelledby="gallery-title"/);
@@ -104,6 +105,13 @@ test("catalog provides flexible prices, full-screen gallery and timed pre-reserv
   assert.doesNotMatch(catalog, /admin-menu-link|admin-link|href="#admin"/);
   assert.match(catalog, /price_cents/);
   assert.match(catalog, /submit_pre_reservation/);
+  assert.match(artworkImages, /ARTWORK_IMAGE_SOURCE_SLOTS/);
+  assert.match(artworkImages, /4:\s*6/);
+  assert.match(artworkImages, /25:\s*27/);
+  assert.match(artworkImages, /43:\s*45/);
+  assert.match(artworkImages, /58:\s*60/);
+  assert.match(artworkImages, /74:\s*81/);
+  assert.match(artworkImages, /sourceSlot = ARTWORK_IMAGE_SOURCE_SLOTS\[slot\] \?\? slot/);
   const packageJson = JSON.parse(await read("package.json"));
   assert.equal(packageJson.scripts["send:reservation-emails"], "node scripts/send-reservation-emails.mjs");
   const emailWorker = await read("scripts/send-reservation-emails.mjs");
