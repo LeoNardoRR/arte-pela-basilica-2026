@@ -20,7 +20,7 @@ type Artwork = {
   artist: string;
   technique: string;
   dimensions: string;
-  status: "available" | "reserved" | "sold";
+  status: "available" | "reserved" | "sold" | "unavailable";
   palette: string;
   price_cents: number | null;
   reserved_until: string | null;
@@ -35,6 +35,7 @@ const statusLabel = {
   available: "Disponível",
   reserved: "Em negociação",
   sold: "Adquirida",
+  unavailable: "Indisponível",
 };
 
 const money = new Intl.NumberFormat("pt-BR", {

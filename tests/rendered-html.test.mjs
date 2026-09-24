@@ -213,11 +213,11 @@ test("catalog provides flexible prices, full-screen gallery and timed pre-reserv
   assert.match(css, /\.mobile-menu nav span\s*\{[^}]*clamp\(18px,4\.8vw,21px\)/);
 });
 
-test("all 84 supplied catalog slots use the real local artwork images and interactive 3D", async () => {
+test("all 90 supplied catalog slots use the real local artwork images and interactive 3D", async () => {
   const images = await read("app/artworkImages.ts");
   const adjustments = await read("app/artworkAdjustments.ts");
   const experience = await read("app/ArtworkExperience3D.tsx");
-  assert.match(images, /length: 84/);
+  assert.match(images, /length: 90/);
   assert.match(images, /Imagem fornecida pela organização do Vernissage 2026/);
   assert.match(images, /`\/artworks-clean\/\$\{filename\}\.webp`/);
   assert.match(experience, /pointerdown/);

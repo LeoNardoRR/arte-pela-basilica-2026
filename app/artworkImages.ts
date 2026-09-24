@@ -22,18 +22,23 @@ export const ARTWORK_IMAGE_SOURCE_SLOTS: Record<number, number> = {
   80: 74, 81: 80,
 };
 
+const NO_PHOTO_SLOTS = new Set([85, 86, 87, 88, 89, 90]);
+
 export const CURATED_ARTWORKS: CuratedArtworkImage[] = Array.from(
-  { length: 84 },
+  { length: 90 },
   (_, index) => {
     const slot = index + 1;
     const sourceSlot = ARTWORK_IMAGE_SOURCE_SLOTS[slot] ?? slot;
     const filename = String(sourceSlot).padStart(2, "0");
+    const imagePath = NO_PHOTO_SLOTS.has(slot)
+      ? "/artworks-clean/sem-foto.webp"
+      : `/artworks-clean/${filename}.webp`;
     return {
       slot,
       title: `Quadro ${slot}`,
       artist: "Acervo Vernissage 2026",
-      imageUrl: `/artworks-clean/${filename}.webp`,
-      thumbnailUrl: `/artworks-clean/${filename}.webp`,
+      imageUrl: imagePath,
+      thumbnailUrl: imagePath,
       sourceUrl: "",
       license: "Imagem fornecida pela organização do Vernissage 2026",
     };

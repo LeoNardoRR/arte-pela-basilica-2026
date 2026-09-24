@@ -23,7 +23,7 @@
 
 ## Sobre o projeto
 
-**Arte pela Basílica 2026** transforma o catálogo oficial da exposição em uma experiência digital responsiva. O visitante pode conhecer as **84 obras**, explorar suas imagens em uma apresentação 3D, montar uma seleção e registrar uma pré-reserva para conclusão presencial.
+**Arte pela Basílica 2026** transforma o catálogo oficial da exposição em uma experiência digital responsiva. O visitante pode conhecer as **90 obras**, explorar suas imagens em uma apresentação 3D, montar uma seleção e registrar uma pré-reserva para conclusão presencial.
 
 O projeto apoia financeiramente a **Basílica Santo Antônio de Pádua**, em Americana. O site não processa pagamentos de obras: ele registra a intenção, bloqueia temporariamente a disponibilidade e apresenta as instruções para a conclusão presencial.
 
@@ -33,7 +33,7 @@ O projeto apoia financeiramente a **Basílica Santo Antônio de Pádua**, em Ame
 
 | Experiência pública | Operação privada |
 |---|---|
-| Catálogo editorial com 84 obras oficiais | Autenticação administrativa pelo Supabase |
+| Catálogo editorial com 90 obras oficiais | Autenticação administrativa pelo Supabase |
 | Filtros por disponibilidade | Fila agrupada por interessado |
 | Galeria em tela cheia e visualização 3D | Histórico de intenções e contatos |
 | Seleção com total e contribuição adicional | Atualização de status e disponibilidade |
@@ -196,7 +196,7 @@ app/
 └── globals.css               # identidade visual e responsividade
 
 public/
-├── artworks-clean/            # imagens tratadas das 84 obras
+├── artworks-clean/            # imagens tratadas das 84 obras fotografadas + placeholder das 6 sem foto
 ├── sponsors/                  # marcas dos parceiros
 └── audio-air-bach.ogg         # ambientação sonora opcional
 

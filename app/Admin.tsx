@@ -22,7 +22,7 @@ type IntentItem = {
   artwork_id: number;
   artwork_code: string;
   artwork_title: string;
-  artwork_status: "available" | "reserved" | "sold";
+  artwork_status: "available" | "reserved" | "sold" | "unavailable";
   amount_cents: number;
 };
 type Intent = {
@@ -44,7 +44,7 @@ type ArtworkPrice = {
   code: string;
   title: string;
   price_cents: number | null;
-  status: "available" | "reserved" | "sold";
+  status: "available" | "reserved" | "sold" | "unavailable";
 };
 type PendingAdminAction =
   | { type: "status"; intent: Intent; nextStatus: IntentStatus }
@@ -794,7 +794,9 @@ export function Admin() {
                       ? "Disponível"
                       : artwork.status === "reserved"
                         ? "Pré-reservada"
-                        : "Adquirida"}
+                        : artwork.status === "unavailable"
+                          ? "Indisponível"
+                          : "Adquirida"}
                   </small>
                 </span>
                 <label>
