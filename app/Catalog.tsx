@@ -535,8 +535,8 @@ export function Catalog() {
     const { data, error } = response;
 
     if (error) {
-      const safeMessages = ["Preencha nome, e-mail e WhatsApp corretamente.", "A seleção deve ter entre 1 e 20 obras.", "A seleção contém dados inválidos.", "Uma obra não pode aparecer duas vezes na mesma seleção.", "Uma ou mais obras não estão mais disponíveis para pré-reserva."];
-      setMessage(safeMessages.includes(error.message) ? error.message : "Não foi possível registrar sua intenção agora. Tente novamente em alguns instantes.");
+      const safeErrorCodes = ["22023", "P0001"];
+      setMessage(safeErrorCodes.includes(error.code) ? error.message : "Não foi possível registrar sua intenção agora. Tente novamente em alguns instantes.");
     } else {
       const receipt = data as ReservationReceipt;
       const intentData: LastIntentData = {
